@@ -1,10 +1,12 @@
 import { Routes, Route } from "react-router";
 import { useTheme, BUILT_IN_THEMES } from "./contexts/ThemeContext";
+import { useAuth } from "./contexts/AuthContext";
+import { Login } from "./pages/patron/Login";
 
 function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
   return (
-    <div className="fixed right-4 top-4 flex gap-2">
+    <div className="fixed right-4 top-4 z-50 flex gap-2">
       {BUILT_IN_THEMES.map((t) => (
         <button
           key={t}
@@ -44,13 +46,47 @@ function Placeholder({ title }: { title: string }) {
   );
 }
 
+function PatronView() {
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="text-on-surface-muted">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-surface text-on-surface">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold">Queue</h1>
+        <p className="mt-2 text-on-surface-muted">
+          Welcome, {user?.displayName || "Patron"}!
+        </p>
+        <p className="mt-1 text-sm text-on-surface-muted">Coming soon</p>
+        <button
+          onClick={logout}
+          className="mt-6 rounded-lg border border-border px-4 py-2 text-sm text-on-surface-muted hover:text-on-surface"
+        >
+          Log out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   return (
     <>
       <ThemeSwitcher />
       <Routes>
         <Route path="/" element={<Placeholder title="PlayPlay Venue" />} />
-        <Route path="/venue/:slug" element={<Placeholder title="Queue" />} />
+        <Route path="/venue/:slug" element={<PatronView />} />
         <Route
           path="/venue/:slug/now-playing"
           element={<Placeholder title="Now Playing" />}

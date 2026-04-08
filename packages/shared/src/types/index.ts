@@ -64,11 +64,14 @@ export interface Vote {
 
 export interface RequestOtpBody {
   phone: string;
+  venueSlug: string;
+  email?: string;
 }
 
 export interface VerifyOtpBody {
   phone: string;
   code: string;
+  venueSlug: string;
 }
 
 export interface AuthResponse {
