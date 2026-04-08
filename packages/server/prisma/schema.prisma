@@ -55,6 +55,7 @@ model Song {
   venue Venue        @relation(fields: [venueId], references: [id])
   queue QueueEntry[]
 
+  @@unique([filePath, venueId])
   @@index([venueId])
   @@index([title, artist])
 }

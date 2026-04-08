@@ -101,6 +101,20 @@ export interface SongSearchResult {
   total: number;
 }
 
+export interface PaginatedSongs {
+  songs: Song[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface ScanResult {
+  added: number;
+  updated: number;
+  removed: number;
+  errors: string[];
+}
+
 export interface ApiError {
   error: string;
   message: string;
