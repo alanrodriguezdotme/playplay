@@ -24,10 +24,9 @@ function formatEntry(
       totalAdds: entry.song.totalAdds,
       isBlocked: entry.song.blocked,
     },
-    addedBy: {
-      id: entry.addedBy.id,
-      displayName: entry.addedBy.displayName,
-    },
+    addedBy: entry.addedBy
+      ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName }
+      : null,
     status: entry.status,
     voteScore: entry.voteScore,
     currentUserVote,

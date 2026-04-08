@@ -42,6 +42,11 @@ export async function scanMusicLibrary(
   const resolvedPath = resolve(libraryPath);
   const result: ScanResult = { added: 0, updated: 0, removed: 0, errors: [] };
 
+  // Get venue settings for default playlist path
+  const venue = await prisma.venue.findUnique({ where: { id: venueId } });
+  const settings = venue?.settings as Record<string, unknown> | undefined;
+  const defaultPlaylistPath = (settings?.defaultPlaylistPath as string) || "";
+
   // Collect all audio files
   let audioFiles: string[];
   try {
@@ -69,6 +74,9 @@ export async function scanMusicLibrary(
       const artist = common.artist || "Unknown Artist";
       const album = common.album || "";
       const duration = Math.round(format.duration || 0);
+      const isDefault = defaultPlaylistPath
+        ? relativePath.startsWith(defaultPlaylistPath)
+        : false;
 
       const existing = await prisma.song.findUnique({
         where: { filePath_venueId: { filePath: relativePath, venueId } },
@@ -77,7 +85,7 @@ export async function scanMusicLibrary(
       if (existing) {
         await prisma.song.update({
           where: { id: existing.id },
-          data: { title, artist, album, duration, blocked: false },
+          data: { title, artist, album, duration, blocked: false, isDefault },
         });
         result.updated++;
       } else {
@@ -89,6 +97,7 @@ export async function scanMusicLibrary(
             duration,
             filePath: relativePath,
             venueId,
+            isDefault,
           },
         });
         result.added++;

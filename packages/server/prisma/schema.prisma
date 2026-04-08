@@ -47,6 +47,7 @@ model Song {
   duration  Int      @default(0)
   filePath  String
   blocked   Boolean  @default(false)
+  isDefault Boolean  @default(false)
   totalPlays Int     @default(0)
   totalAdds  Int     @default(0)
   venueId   String
@@ -63,7 +64,7 @@ model Song {
 model QueueEntry {
   id        String    @id @default(cuid())
   songId    String
-  addedById String
+  addedById String?
   venueId   String
   status    String    @default("QUEUED")
   voteScore Int       @default(0)
@@ -72,7 +73,7 @@ model QueueEntry {
   playedAt  DateTime?
 
   song    Song  @relation(fields: [songId], references: [id])
-  addedBy User  @relation(fields: [addedById], references: [id])
+  addedBy User? @relation(fields: [addedById], references: [id])
   venue   Venue @relation(fields: [venueId], references: [id])
   votes   Vote[]
 

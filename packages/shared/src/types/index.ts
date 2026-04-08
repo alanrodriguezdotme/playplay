@@ -44,7 +44,7 @@ export interface Song {
 export interface QueueEntry {
   id: string;
   song: Song;
-  addedBy: { id: string; displayName: string | null };
+  addedBy: { id: string; displayName: string | null } | null;
   status: QueueEntryStatus;
   voteScore: number;
   currentUserVote?: number | null;

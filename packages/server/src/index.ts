@@ -1,4 +1,5 @@
 import "dotenv/config";
+import http from "node:http";
 import express from "express";
 import cors from "cors";
 import authRouter from "./routes/auth.js";
@@ -7,8 +8,10 @@ import adminRouter from "./routes/admin.js";
 import queueRouter from "./routes/queue.js";
 import { authenticate, requireAdmin } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/error.js";
+import { initSocket } from "./socket/index.js";
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
@@ -25,6 +28,8 @@ app.use("/api/admin", authenticate, requireAdmin, adminRouter);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

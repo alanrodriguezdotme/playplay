@@ -12,6 +12,8 @@ import {
 } from "../services/queue.js";
 import { prisma } from "../lib/prisma.js";
 import { QUEUE_STATUS } from "@playplay/shared";
+import { broadcastQueueUpdated, broadcastEntryAdded, broadcastEntryRemoved, broadcastNowPlayingChanged } from "../socket/broadcast.js";
+import { advanceQueue } from "../services/playback.js";
 
 const router = Router();
 
@@ -26,6 +28,8 @@ router.post("/add", authenticate, async (req, res, next) => {
 
     const entry = await addToQueue(req.user!.id, songId, req.user!.venueId);
     res.status(201).json(entry);
+    broadcastEntryAdded(req.user!.venueId, entry).catch(console.error);
+    broadcastQueueUpdated(req.user!.venueId).catch(console.error);
   } catch (err) {
     if (err instanceof QueueError) {
       res.status(err.statusCode).json({ error: err.code, message: err.message });
@@ -46,6 +50,10 @@ router.post("/:entryId/vote", authenticate, async (req, res, next) => {
 
     const entry = await voteOnEntry(req.user!.id, req.params.entryId as string, value);
     res.json(entry);
+    if (entry.status === QUEUE_STATUS.REMOVED) {
+      broadcastEntryRemoved(req.user!.venueId, entry.id).catch(console.error);
+    }
+    broadcastQueueUpdated(req.user!.venueId).catch(console.error);
   } catch (err) {
     if (err instanceof QueueError) {
       res.status(err.statusCode).json({ error: err.code, message: err.message });
@@ -105,10 +113,9 @@ router.get("/now-playing", async (req, res, next) => {
         totalAdds: entry.song.totalAdds,
         isBlocked: entry.song.blocked,
       },
-      addedBy: {
-        id: entry.addedBy.id,
-        displayName: entry.addedBy.displayName,
-      },
+      addedBy: entry.addedBy
+        ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName }
+        : null,
       status: entry.status,
       voteScore: entry.voteScore,
       createdAt: entry.createdAt.toISOString(),
@@ -137,6 +144,8 @@ router.delete("/:entryId", authenticate, requireAdmin, async (req, res, next) =>
   try {
     await removeEntry(req.params.entryId as string, req.user!.venueId);
     res.status(204).end();
+    broadcastEntryRemoved(req.user!.venueId, req.params.entryId as string).catch(console.error);
+    broadcastQueueUpdated(req.user!.venueId).catch(console.error);
   } catch (err) {
     if (err instanceof QueueError) {
       res.status(err.statusCode).json({ error: err.code, message: err.message });
@@ -151,6 +160,8 @@ router.post("/:entryId/play-now", authenticate, requireAdmin, async (req, res, n
   try {
     const entry = await playNow(req.params.entryId as string, req.user!.venueId);
     res.json(entry);
+    broadcastNowPlayingChanged(req.user!.venueId, entry).catch(console.error);
+    broadcastQueueUpdated(req.user!.venueId).catch(console.error);
   } catch (err) {
     if (err instanceof QueueError) {
       res.status(err.statusCode).json({ error: err.code, message: err.message });
@@ -171,6 +182,7 @@ router.post("/reorder", authenticate, requireAdmin, async (req, res, next) => {
 
     await reorderQueue(req.user!.venueId, entryIds);
     res.status(204).end();
+    broadcastQueueUpdated(req.user!.venueId).catch(console.error);
   } catch (err) {
     if (err instanceof QueueError) {
       res.status(err.statusCode).json({ error: err.code, message: err.message });
