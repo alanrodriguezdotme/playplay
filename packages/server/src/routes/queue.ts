@@ -1,0 +1,183 @@
+import { Router } from "express";
+import { authenticate, requireAdmin } from "../middleware/auth.js";
+import {
+  addToQueue,
+  voteOnEntry,
+  getQueue,
+  getHistory,
+  removeEntry,
+  playNow,
+  reorderQueue,
+  QueueError,
+} from "../services/queue.js";
+import { prisma } from "../lib/prisma.js";
+import { QUEUE_STATUS } from "@playplay/shared";
+
+const router = Router();
+
+// POST /api/queue/add — add a song to the queue
+router.post("/add", authenticate, async (req, res, next) => {
+  try {
+    const { songId } = req.body;
+    if (!songId || typeof songId !== "string") {
+      res.status(400).json({ error: "bad_request", message: "songId is required" });
+      return;
+    }
+
+    const entry = await addToQueue(req.user!.id, songId, req.user!.venueId);
+    res.status(201).json(entry);
+  } catch (err) {
+    if (err instanceof QueueError) {
+      res.status(err.statusCode).json({ error: err.code, message: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+// POST /api/queue/:entryId/vote — vote on a queue entry
+router.post("/:entryId/vote", authenticate, async (req, res, next) => {
+  try {
+    const { value } = req.body;
+    if (value !== 1 && value !== -1) {
+      res.status(400).json({ error: "bad_request", message: "value must be 1 or -1" });
+      return;
+    }
+
+    const entry = await voteOnEntry(req.user!.id, req.params.entryId as string, value);
+    res.json(entry);
+  } catch (err) {
+    if (err instanceof QueueError) {
+      res.status(err.statusCode).json({ error: err.code, message: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+// GET /api/queue — get current queue + now playing
+router.get("/", authenticate, async (req, res, next) => {
+  try {
+    const result = await getQueue(req.user!.venueId, req.user!.id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/queue/now-playing — no auth (for display view)
+router.get("/now-playing", async (req, res, next) => {
+  try {
+    const venueSlug = req.query.venue as string;
+    if (!venueSlug) {
+      res.status(400).json({ error: "bad_request", message: "venue query param is required" });
+      return;
+    }
+
+    const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+    if (!venue) {
+      res.status(404).json({ error: "not_found", message: "Venue not found" });
+      return;
+    }
+
+    const entry = await prisma.queueEntry.findFirst({
+      where: { venueId: venue.id, status: QUEUE_STATUS.PLAYING },
+      include: {
+        song: true,
+        addedBy: { select: { id: true, displayName: true } },
+      },
+    });
+
+    if (!entry) {
+      res.json(null);
+      return;
+    }
+
+    res.json({
+      id: entry.id,
+      song: {
+        id: entry.song.id,
+        title: entry.song.title,
+        artist: entry.song.artist,
+        album: entry.song.album,
+        duration: entry.song.duration,
+        totalPlays: entry.song.totalPlays,
+        totalAdds: entry.song.totalAdds,
+        isBlocked: entry.song.blocked,
+      },
+      addedBy: {
+        id: entry.addedBy.id,
+        displayName: entry.addedBy.displayName,
+      },
+      status: entry.status,
+      voteScore: entry.voteScore,
+      createdAt: entry.createdAt.toISOString(),
+      playedAt: entry.playedAt?.toISOString() ?? null,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/queue/history — paginated play history
+router.get("/history", authenticate, async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
+
+    const result = await getHistory(req.user!.venueId, page, limit);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/queue/:entryId — admin remove from queue
+router.delete("/:entryId", authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    await removeEntry(req.params.entryId as string, req.user!.venueId);
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof QueueError) {
+      res.status(err.statusCode).json({ error: err.code, message: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+// POST /api/queue/:entryId/play-now — admin play immediately
+router.post("/:entryId/play-now", authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const entry = await playNow(req.params.entryId as string, req.user!.venueId);
+    res.json(entry);
+  } catch (err) {
+    if (err instanceof QueueError) {
+      res.status(err.statusCode).json({ error: err.code, message: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+// POST /api/queue/reorder — admin reorder queue
+router.post("/reorder", authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { entryIds } = req.body;
+    if (!Array.isArray(entryIds) || !entryIds.every((id: unknown) => typeof id === "string")) {
+      res.status(400).json({ error: "bad_request", message: "entryIds must be an array of strings" });
+      return;
+    }
+
+    await reorderQueue(req.user!.venueId, entryIds);
+    res.status(204).end();
+  } catch (err) {
+    if (err instanceof QueueError) {
+      res.status(err.statusCode).json({ error: err.code, message: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+export default router;

@@ -115,6 +115,17 @@ export interface ScanResult {
   errors: string[];
 }
 
+export interface ReorderQueueBody {
+  entryIds: string[];
+}
+
+export interface QueueHistoryResponse {
+  entries: QueueEntry[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 export interface ApiError {
   error: string;
   message: string;
