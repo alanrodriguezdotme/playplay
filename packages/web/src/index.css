@@ -1,1 +1,207 @@
 @import "tailwindcss";
+
+/* ============================================================
+   THEME SYSTEM
+   Semantic design tokens as CSS custom properties.
+   All components use these tokens via Tailwind utilities
+   (e.g. bg-surface, text-primary) — never raw color values.
+   ============================================================ */
+
+@theme {
+  /* Surface / Background */
+  --color-surface: var(--theme-surface);
+  --color-surface-alt: var(--theme-surface-alt);
+  --color-surface-raised: var(--theme-surface-raised);
+
+  /* Text */
+  --color-on-surface: var(--theme-on-surface);
+  --color-on-surface-muted: var(--theme-on-surface-muted);
+
+  /* Primary accent */
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-hover);
+  --color-on-primary: var(--theme-on-primary);
+
+  /* Secondary accent */
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-hover: var(--theme-secondary-hover);
+  --color-on-secondary: var(--theme-on-secondary);
+
+  /* Borders & dividers */
+  --color-border: var(--theme-border);
+  --color-border-focus: var(--theme-border-focus);
+
+  /* Status */
+  --color-success: var(--theme-success);
+  --color-destructive: var(--theme-destructive);
+  --color-warning: var(--theme-warning);
+
+  /* Ring (focus outlines) */
+  --color-ring: var(--theme-ring);
+
+  /* Misc */
+  --color-overlay: var(--theme-overlay);
+}
+
+/* ============================================================
+   DEFAULT THEME — Dark (applied when no data-theme is set)
+   ============================================================ */
+:root {
+  --theme-surface: #0a0a0f;
+  --theme-surface-alt: #12121a;
+  --theme-surface-raised: #1c1c28;
+
+  --theme-on-surface: #f0f0f5;
+  --theme-on-surface-muted: #8888a0;
+
+  --theme-primary: #6366f1;
+  --theme-primary-hover: #818cf8;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #a855f7;
+  --theme-secondary-hover: #c084fc;
+  --theme-on-secondary: #ffffff;
+
+  --theme-border: #2a2a3c;
+  --theme-border-focus: #6366f1;
+
+  --theme-success: #22c55e;
+  --theme-destructive: #ef4444;
+  --theme-warning: #f59e0b;
+
+  --theme-ring: #6366f180;
+  --theme-overlay: #00000080;
+}
+
+/* ============================================================
+   LIGHT MODE
+   ============================================================ */
+[data-theme="light"] {
+  --theme-surface: #ffffff;
+  --theme-surface-alt: #f5f5f7;
+  --theme-surface-raised: #eeeef2;
+
+  --theme-on-surface: #111118;
+  --theme-on-surface-muted: #6b6b80;
+
+  --theme-primary: #4f46e5;
+  --theme-primary-hover: #4338ca;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #9333ea;
+  --theme-secondary-hover: #7e22ce;
+  --theme-on-secondary: #ffffff;
+
+  --theme-border: #d4d4dc;
+  --theme-border-focus: #4f46e5;
+
+  --theme-success: #16a34a;
+  --theme-destructive: #dc2626;
+  --theme-warning: #d97706;
+
+  --theme-ring: #4f46e580;
+  --theme-overlay: #00000040;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Midnight Club
+   Deep blues, neon cyan accent — lively nightclub feel
+   ============================================================ */
+[data-theme="midnight"] {
+  --theme-surface: #070b14;
+  --theme-surface-alt: #0d1424;
+  --theme-surface-raised: #151e34;
+
+  --theme-on-surface: #e0e8ff;
+  --theme-on-surface-muted: #6880a8;
+
+  --theme-primary: #06b6d4;
+  --theme-primary-hover: #22d3ee;
+  --theme-on-primary: #050d14;
+
+  --theme-secondary: #3b82f6;
+  --theme-secondary-hover: #60a5fa;
+  --theme-on-secondary: #ffffff;
+
+  --theme-border: #1e2d4a;
+  --theme-border-focus: #06b6d4;
+
+  --theme-success: #34d399;
+  --theme-destructive: #f87171;
+  --theme-warning: #fbbf24;
+
+  --theme-ring: #06b6d480;
+  --theme-overlay: #00000090;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Sunset Lounge
+   Warm oranges and ambers — cozy bar atmosphere
+   ============================================================ */
+[data-theme="sunset"] {
+  --theme-surface: #120c08;
+  --theme-surface-alt: #1a1210;
+  --theme-surface-raised: #261c16;
+
+  --theme-on-surface: #fff0e0;
+  --theme-on-surface-muted: #a08060;
+
+  --theme-primary: #f97316;
+  --theme-primary-hover: #fb923c;
+  --theme-on-primary: #1a0800;
+
+  --theme-secondary: #eab308;
+  --theme-secondary-hover: #facc15;
+  --theme-on-secondary: #1a1000;
+
+  --theme-border: #3a2818;
+  --theme-border-focus: #f97316;
+
+  --theme-success: #4ade80;
+  --theme-destructive: #f87171;
+  --theme-warning: #fbbf24;
+
+  --theme-ring: #f9731680;
+  --theme-overlay: #00000090;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Neon Pulse
+   Hot pink/magenta — energetic, electronic music vibe
+   ============================================================ */
+[data-theme="neon"] {
+  --theme-surface: #0a0010;
+  --theme-surface-alt: #110018;
+  --theme-surface-raised: #1c0028;
+
+  --theme-on-surface: #f5e0ff;
+  --theme-on-surface-muted: #9060b0;
+
+  --theme-primary: #ec4899;
+  --theme-primary-hover: #f472b6;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #a855f7;
+  --theme-secondary-hover: #c084fc;
+  --theme-on-secondary: #ffffff;
+
+  --theme-border: #3a1050;
+  --theme-border-focus: #ec4899;
+
+  --theme-success: #4ade80;
+  --theme-destructive: #ff4444;
+  --theme-warning: #fbbf24;
+
+  --theme-ring: #ec489980;
+  --theme-overlay: #00000090;
+}
+
+/* ============================================================
+   SMOOTH TRANSITIONS for theme switches
+   ============================================================ */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease !important;
+}
