@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Venue {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  email     String
+  phone     String
+  settings  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+  songs Song[]
+  queue QueueEntry[]
+}
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String
+  displayName String?
+  role        String   @default("PATRON")
+  blocked     Boolean  @default(false)
+  venueId     String
+  createdAt   DateTime @default(now())
+
+  venue Venue        @relation(fields: [venueId], references: [id])
+  votes Vote[]
+  queue QueueEntry[]
+
+  @@unique([phone, venueId])
+  @@index([venueId])
+}
+
+model Song {
+  id        String   @id @default(cuid())
+  title     String
+  artist    String
+  album     String   @default("")
+  duration  Int      @default(0)
+  filePath  String
+  blocked   Boolean  @default(false)
+  totalPlays Int     @default(0)
+  totalAdds  Int     @default(0)
+  venueId   String
+  createdAt DateTime @default(now())
+
+  venue Venue        @relation(fields: [venueId], references: [id])
+  queue QueueEntry[]
+
+  @@index([venueId])
+  @@index([title, artist])
+}
+
+model QueueEntry {
+  id        String    @id @default(cuid())
+  songId    String
+  addedById String
+  venueId   String
+  status    String    @default("QUEUED")
+  voteScore Int       @default(0)
+  position  Int?
+  createdAt DateTime  @default(now())
+  playedAt  DateTime?
+
+  song    Song  @relation(fields: [songId], references: [id])
+  addedBy User  @relation(fields: [addedById], references: [id])
+  venue   Venue @relation(fields: [venueId], references: [id])
+  votes   Vote[]
+
+  @@index([venueId, status])
+  @@index([songId])
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  queueEntryId String
+  userId       String
+  value        Int      @db.SmallInt
+  createdAt    DateTime @default(now())
+
+  queueEntry QueueEntry @relation(fields: [queueEntryId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([queueEntryId, userId])
+  @@index([userId])
+}
