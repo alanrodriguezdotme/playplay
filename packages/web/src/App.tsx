@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router";
 import { PatronLayout } from "./pages/patron/PatronLayout";
+import { NowPlayingDisplay } from "./pages/display/NowPlayingDisplay";
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -17,10 +18,7 @@ export function App() {
     <Routes>
       <Route path="/" element={<Placeholder title="PlayPlay Venue" />} />
       <Route path="/venue/:slug" element={<PatronLayout />} />
-      <Route
-        path="/venue/:slug/now-playing"
-        element={<Placeholder title="Now Playing" />}
-      />
+      <Route path="/venue/:slug/now-playing" element={<NowPlayingDisplay />} />
       <Route path="/admin" element={<Placeholder title="Admin Dashboard" />} />
     </Routes>
   );
