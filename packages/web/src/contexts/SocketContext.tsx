@@ -14,6 +14,7 @@ import { getStoredToken } from "../api/client";
 interface SocketContextValue {
   socket: Socket | null;
   isConnected: boolean;
+  hasConnected: boolean;
   joinVenue: (slug: string) => void;
 }
 
@@ -21,13 +22,15 @@ const SocketContext = createContext<SocketContextValue | null>(null);
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
+  const [hasConnected, setHasConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const lastSlugRef = useRef<string | null>(null);
 
   useEffect(() => {
     const token = getStoredToken();
 
-    const socket = io({
+    const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const socket = io(serverUrl, {
       auth: token ? { token } : {},
       autoConnect: true,
       reconnection: true,
@@ -40,6 +43,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     socket.on("connect", () => {
       setIsConnected(true);
+      setHasConnected(true);
       // Rejoin last venue on reconnect
       if (lastSlugRef.current) {
         socket.emit(SOCKET_EVENTS.VENUE_JOIN, lastSlugRef.current);
@@ -63,7 +67,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   return (
     <SocketContext.Provider
-      value={{ socket: socketRef.current, isConnected, joinVenue }}
+      value={{
+        socket: socketRef.current,
+        isConnected,
+        hasConnected,
+        joinVenue,
+      }}
     >
       {children}
     </SocketContext.Provider>

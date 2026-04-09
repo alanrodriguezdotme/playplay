@@ -120,8 +120,8 @@ const TABS: { key: AdminTab; label: string; Icon: typeof DashboardIcon }[] = [
 ];
 
 function ConnectionIndicator() {
-  const { isConnected } = useSocket();
-  if (isConnected) return null;
+  const { isConnected, hasConnected } = useSocket();
+  if (isConnected || !hasConnected) return null;
   return (
     <div className="bg-warning/90 text-center text-xs font-medium text-black py-1">
       Reconnecting…
@@ -261,12 +261,12 @@ export function AdminLayout() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (
+    !isAuthenticated ||
+    (user && user.role !== "ADMIN") ||
+    (user && !user.displayName)
+  ) {
     return <Login isAdmin />;
-  }
-
-  if (user?.role !== "ADMIN") {
-    return <Unauthorized />;
   }
 
   const renderTab = () => {

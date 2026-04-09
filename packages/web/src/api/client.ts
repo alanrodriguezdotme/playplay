@@ -1,6 +1,7 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const TOKEN_KEY = "playplay_token";
+const DEVICE_ID_KEY = "playplay_device_id";
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -12,6 +13,15 @@ export function setStoredToken(token: string): void {
 
 export function clearStoredToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+}
+
+export function getDeviceId(): string {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
 }
 
 export async function apiRequest<T>(

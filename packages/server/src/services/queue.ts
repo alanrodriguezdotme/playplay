@@ -43,6 +43,8 @@ function getVenueSettings(venue: { settings: any }): VenueSettings {
     defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
     displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+    otpDeliveryMode: (s.otpDeliveryMode as string as VenueSettings["otpDeliveryMode"]) ?? DEFAULTS.OTP_DELIVERY_MODE,
+    smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
   };
 }
 

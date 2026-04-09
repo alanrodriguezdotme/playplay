@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useParams } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
@@ -68,8 +68,8 @@ function HistoryIcon({ active }: { active: boolean }) {
 }
 
 function ConnectionIndicator() {
-  const { isConnected } = useSocket();
-  if (isConnected) return null;
+  const { isConnected, hasConnected } = useSocket();
+  if (isConnected || !hasConnected) return null;
   return (
     <div className="bg-warning/90 text-center text-xs font-medium text-black py-1">
       Reconnecting…
@@ -77,8 +77,14 @@ function ConnectionIndicator() {
   );
 }
 
-function TopBar({ onTabSwitch }: { onTabSwitch: (tab: Tab) => void }) {
-  const { user, logout } = useAuth();
+function TopBar({
+  onTabSwitch,
+  onLogout,
+}: {
+  onTabSwitch: (tab: Tab) => void;
+  onLogout: () => void;
+}) {
+  const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { slug } = useParams<{ slug: string }>();
   const [showThemes, setShowThemes] = useState(false);
@@ -93,6 +99,9 @@ function TopBar({ onTabSwitch }: { onTabSwitch: (tab: Tab) => void }) {
               .replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Venue"}
           </h1>
           <p className="text-xs text-on-surface-muted">
+            {user?.avatarEmoji && (
+              <span className="mr-1">{user.avatarEmoji}</span>
+            )}
             {user?.displayName || "Patron"}
           </p>
         </div>
@@ -139,7 +148,7 @@ function TopBar({ onTabSwitch }: { onTabSwitch: (tab: Tab) => void }) {
             )}
           </div>
           <button
-            onClick={logout}
+            onClick={onLogout}
             className="rounded-md border border-border px-3 py-2 text-xs text-on-surface-muted hover:text-on-surface"
           >
             Log out
@@ -187,8 +196,14 @@ function BottomNav({
 
 export function PatronLayout() {
   const { slug } = useParams<{ slug: string }>();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("queue");
+  const didLogout = useRef(false);
+
+  const handleLogout = useCallback(() => {
+    didLogout.current = true;
+    logout();
+  }, [logout]);
 
   if (isLoading) {
     return (
@@ -199,7 +214,7 @@ export function PatronLayout() {
   }
 
   if (!isAuthenticated) {
-    return <Login />;
+    return <Login skipAutoLogin={didLogout.current} />;
   }
 
   const renderTab = () => {
@@ -218,7 +233,7 @@ export function PatronLayout() {
       <QueueProvider venueSlug={slug!}>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
-          <TopBar onTabSwitch={setActiveTab} />
+          <TopBar onTabSwitch={setActiveTab} onLogout={handleLogout} />
           <main className="flex flex-1 flex-col pb-16">{renderTab()}</main>
           <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>

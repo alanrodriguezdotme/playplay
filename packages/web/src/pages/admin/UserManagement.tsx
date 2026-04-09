@@ -54,8 +54,8 @@ export function UserManagement() {
       setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
       showToast(
         updated.blocked
-          ? `Blocked ${user.displayName || user.phone}`
-          : `Unblocked ${user.displayName || user.phone}`,
+          ? `Blocked ${user.displayName || user.deviceId?.slice(0, 8) || "user"}`
+          : `Unblocked ${user.displayName || user.deviceId?.slice(0, 8) || "user"}`,
         "success",
       );
     } catch (err) {
@@ -72,7 +72,7 @@ export function UserManagement() {
 
     if (
       !confirm(
-        `Are you sure you want to ${action} ${user.displayName || user.phone} to ${newRole}?`,
+        `Are you sure you want to ${action} ${user.displayName || user.deviceId?.slice(0, 8) || "this user"} to ${newRole}?`,
       )
     ) {
       return;
@@ -82,7 +82,7 @@ export function UserManagement() {
       const updated = await updateUser(user.id, { role: newRole });
       setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
       showToast(
-        `${user.displayName || user.phone} is now ${newRole}`,
+        `${user.displayName || user.deviceId?.slice(0, 8) || "User"} is now ${newRole}`,
         "success",
       );
     } catch (err) {
@@ -175,6 +175,9 @@ export function UserManagement() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
+                      {user.avatarEmoji && (
+                        <span className="text-lg">{user.avatarEmoji}</span>
+                      )}
                       <p className="truncate text-sm font-semibold">
                         {user.displayName || "No name"}
                       </p>
@@ -185,7 +188,7 @@ export function UserManagement() {
                       )}
                     </div>
                     <p className="truncate text-xs text-on-surface-muted">
-                      {user.phone}
+                      {user.phone || user.deviceId?.slice(0, 8) || "—"}
                     </p>
                   </div>
 

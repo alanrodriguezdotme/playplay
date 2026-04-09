@@ -5,6 +5,7 @@ import { getVenue, updateVenueSettings } from "../../api/admin";
 import type {
   AdminVenueResponse,
   AdminVenueSettingsUpdateBody,
+  OtpDeliveryMode,
 } from "@playplay/shared";
 
 export function SettingsView() {
@@ -20,6 +21,9 @@ export function SettingsView() {
   const [defaultPlaylistPath, setDefaultPlaylistPath] = useState("");
   const [displayQrSize, setDisplayQrSize] = useState(120);
   const [displayShowHeader, setDisplayShowHeader] = useState(true);
+  const [otpDeliveryMode, setOtpDeliveryMode] =
+    useState<OtpDeliveryMode>("none");
+  const [smsGatewayUrl, setSmsGatewayUrl] = useState("");
 
   const fetchVenue = useCallback(async () => {
     try {
@@ -30,6 +34,8 @@ export function SettingsView() {
       setDefaultPlaylistPath(data.settings.defaultPlaylistPath);
       setDisplayQrSize(data.settings.displayQrSize);
       setDisplayShowHeader(data.settings.displayShowHeader);
+      setOtpDeliveryMode(data.settings.otpDeliveryMode);
+      setSmsGatewayUrl(data.settings.smsGatewayUrl);
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Failed to load settings",
@@ -53,6 +59,8 @@ export function SettingsView() {
         defaultPlaylistPath,
         displayQrSize,
         displayShowHeader,
+        otpDeliveryMode,
+        smsGatewayUrl,
       };
       const updated = await updateVenueSettings(body);
       setVenue(updated);
@@ -222,6 +230,105 @@ export function SettingsView() {
             />
           </button>
         </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Settings"}
+        </button>
+      </div>
+
+      {/* Patron Authentication */}
+      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
+          Patron Authentication
+        </h3>
+        <p className="text-xs text-on-surface-muted">
+          Control how new patrons verify when joining. Device ID is always used
+          as the base identity.
+        </p>
+
+        <div className="space-y-2">
+          {(
+            [
+              {
+                value: "none" as const,
+                label: "No Verification",
+                desc: "Patrons join instantly with device ID only.",
+                disabled: false,
+              },
+              {
+                value: "venue-display" as const,
+                label: "Venue Display OTP",
+                desc: "OTP shown on the Now Playing screen. Proves physical presence.",
+                disabled: false,
+              },
+              {
+                value: "sms-gateway" as const,
+                label: "SMS Gateway",
+                desc: "Send OTP via a self-hosted Android SMS gateway.",
+                disabled: false,
+              },
+              {
+                value: "paid" as const,
+                label: "Paid SMS (Coming Soon)",
+                desc: "Twilio / cloud SMS provider.",
+                disabled: true,
+              },
+            ] as const
+          ).map((opt) => (
+            <label
+              key={opt.value}
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                otpDeliveryMode === opt.value
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
+              } ${opt.disabled ? "cursor-not-allowed opacity-50" : ""}`}
+            >
+              <input
+                type="radio"
+                name="otpDeliveryMode"
+                value={opt.value}
+                checked={otpDeliveryMode === opt.value}
+                onChange={() => setOtpDeliveryMode(opt.value)}
+                disabled={opt.disabled}
+                className="mt-0.5 accent-primary"
+              />
+              <div>
+                <p className="text-sm font-medium text-on-surface">
+                  {opt.label}
+                  {opt.disabled && (
+                    <span className="ml-2 rounded bg-surface-alt px-1.5 py-0.5 text-[10px] font-semibold text-on-surface-muted">
+                      COMING SOON
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-on-surface-muted">{opt.desc}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+
+        {otpDeliveryMode === "sms-gateway" && (
+          <div>
+            <label className="block text-sm font-medium text-on-surface mb-1">
+              SMS Gateway URL
+            </label>
+            <p className="text-xs text-on-surface-muted mb-2">
+              The HTTP endpoint of your Android SMS Gateway (e.g.,
+              http://192.168.1.50:8080/message)
+            </p>
+            <input
+              type="url"
+              value={smsGatewayUrl}
+              onChange={(e) => setSmsGatewayUrl(e.target.value)}
+              placeholder="http://192.168.1.50:8080/message"
+              className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
+            />
+          </div>
+        )}
 
         <button
           onClick={handleSave}

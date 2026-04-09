@@ -38,6 +38,8 @@ router.get("/venue", async (req, res, next) => {
         defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
         displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
         displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+        otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
+        smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
       },
     });
   } catch (err) {
@@ -95,6 +97,21 @@ router.patch("/venue/settings", async (req, res, next) => {
       }
       merged.displayShowHeader = body.displayShowHeader;
     }
+    if (body.otpDeliveryMode !== undefined) {
+      const validModes = ["none", "venue-display", "sms-gateway", "paid"];
+      if (!validModes.includes(body.otpDeliveryMode)) {
+        res.status(400).json({ error: "validation", message: "Invalid otpDeliveryMode" });
+        return;
+      }
+      merged.otpDeliveryMode = body.otpDeliveryMode;
+    }
+    if (body.smsGatewayUrl !== undefined) {
+      if (typeof body.smsGatewayUrl !== "string") {
+        res.status(400).json({ error: "validation", message: "smsGatewayUrl must be a string" });
+        return;
+      }
+      merged.smsGatewayUrl = body.smsGatewayUrl;
+    }
 
     const updated = await prisma.venue.update({
       where: { id: venue.id },
@@ -114,6 +131,8 @@ router.patch("/venue/settings", async (req, res, next) => {
         defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
         displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
         displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+        otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
+        smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
       },
     });
   } catch (err) {
@@ -140,6 +159,7 @@ router.get("/users", async (req, res, next) => {
       where.OR = [
         { displayName: { contains: search, mode: "insensitive" } },
         { phone: { contains: search } },
+        { deviceId: { contains: search } },
       ];
     }
     if (roleFilter === "ADMIN" || roleFilter === "PATRON") {
@@ -165,7 +185,9 @@ router.get("/users", async (req, res, next) => {
       users: users.map((u) => ({
         id: u.id,
         phone: u.phone,
+        deviceId: u.deviceId,
         displayName: u.displayName,
+        avatarEmoji: u.avatarEmoji,
         role: u.role,
         blocked: u.blocked,
         createdAt: u.createdAt.toISOString(),
@@ -229,7 +251,9 @@ router.patch("/users/:id", async (req, res, next) => {
     res.json({
       id: updated.id,
       phone: updated.phone,
+      deviceId: updated.deviceId,
       displayName: updated.displayName,
+      avatarEmoji: updated.avatarEmoji,
       role: updated.role,
       blocked: updated.blocked,
       createdAt: updated.createdAt.toISOString(),

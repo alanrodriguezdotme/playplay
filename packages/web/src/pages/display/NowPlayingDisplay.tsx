@@ -125,29 +125,27 @@ export function NowPlayingDisplay() {
       />
 
       {/* Responsive grid: single column portrait, two columns landscape */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 portrait:grid-rows-[1fr_auto_auto] landscape:grid-cols-2 landscape:grid-rows-1">
+      <div className="flex min-h-0 flex-1 flex-col landscape:flex-row">
         {/* Left / Top: Now Playing + QR */}
-        <div className="flex min-h-0 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-auto p-6">
-            <div className="flex h-full items-center justify-center">
-              <DisplayNowPlaying entry={nowPlaying} />
-            </div>
-          </div>
-          <div className="shrink-0 border-t border-border px-6 py-4">
-            <DisplayQRCode
-              venueSlug={slug}
-              size={displaySettings.displayQrSize}
-            />
+        <div className="flex shrink-0 flex-col landscape:flex-1 landscape:min-h-0">
+          <div className="flex flex-1 items-center justify-center p-6 landscape:min-h-0 landscape:overflow-auto">
+            <DisplayNowPlaying entry={nowPlaying} />
           </div>
         </div>
 
         {/* Right / Bottom: Queue + History */}
-        <div className="flex min-h-0 flex-col border-t landscape:border-l landscape:border-t-0 border-border">
+        <div className="flex min-h-0 flex-1 flex-col border-t landscape:border-l landscape:border-t-0 border-border overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <DisplayQueue queue={queue} />
           </div>
           <div className="shrink-0 border-t border-border">
             <DisplayHistory entries={recentHistory} />
+          </div>
+          <div className="shrink-0 border-t border-border px-6 py-4 flex items-center justify-between gap-4">
+            <DisplayQRCode
+              venueSlug={slug}
+              size={displaySettings.displayQrSize}
+            />
           </div>
         </div>
       </div>

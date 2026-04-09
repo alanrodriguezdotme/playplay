@@ -30,6 +30,8 @@ app.use(errorHandler);
 
 initSocket(server);
 
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const port = Number(PORT);
+
+server.listen(port, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
 });

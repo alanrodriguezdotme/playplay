@@ -18,23 +18,21 @@ export function useQueueUpdates(
 ): void {
   const { socket, joinVenue } = useSocketContext();
 
-  // Join venue room when slug is available
+  // Subscribe to queue events AND join venue in a single effect
+  // to ensure listeners are registered before the join response arrives
   useEffect(() => {
-    if (venueSlug) {
-      joinVenue(venueSlug);
-    }
-  }, [venueSlug, joinVenue]);
-
-  // Subscribe to queue events
-  useEffect(() => {
-    if (!socket) return;
+    if (!socket || !venueSlug) return;
 
     const { onQueueUpdated, onNowPlayingChanged, onEntryAdded, onEntryRemoved } = handlers;
 
+    // Register listeners first
     if (onQueueUpdated) socket.on(SOCKET_EVENTS.QUEUE_UPDATED, onQueueUpdated);
     if (onNowPlayingChanged) socket.on(SOCKET_EVENTS.NOW_PLAYING_CHANGED, onNowPlayingChanged);
     if (onEntryAdded) socket.on(SOCKET_EVENTS.QUEUE_ENTRY_ADDED, onEntryAdded);
     if (onEntryRemoved) socket.on(SOCKET_EVENTS.QUEUE_ENTRY_REMOVED, onEntryRemoved);
+
+    // Then join the venue room (server sends QUEUE_UPDATED in response)
+    joinVenue(venueSlug);
 
     return () => {
       if (onQueueUpdated) socket.off(SOCKET_EVENTS.QUEUE_UPDATED, onQueueUpdated);
@@ -42,5 +40,5 @@ export function useQueueUpdates(
       if (onEntryAdded) socket.off(SOCKET_EVENTS.QUEUE_ENTRY_ADDED, onEntryAdded);
       if (onEntryRemoved) socket.off(SOCKET_EVENTS.QUEUE_ENTRY_REMOVED, onEntryRemoved);
     };
-  }, [socket, handlers.onQueueUpdated, handlers.onNowPlayingChanged, handlers.onEntryAdded, handlers.onEntryRemoved]);
+  }, [socket, venueSlug, joinVenue, handlers.onQueueUpdated, handlers.onNowPlayingChanged, handlers.onEntryAdded, handlers.onEntryRemoved]);
 }

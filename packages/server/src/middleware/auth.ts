@@ -49,7 +49,9 @@ export async function authenticate(
   req.user = {
     id: user.id,
     phone: user.phone,
+    deviceId: user.deviceId,
     displayName: user.displayName,
+    avatarEmoji: user.avatarEmoji,
     role: user.role as UserProfile["role"],
     venueId: user.venueId,
     isBlocked: user.blocked,

@@ -7,6 +7,9 @@ export const DEFAULTS = {
   PORT: 3001,
   DISPLAY_QR_SIZE: 120,
   DISPLAY_SHOW_HEADER: true,
+  OTP_DELIVERY_MODE: "none" as const,
+  RATE_LIMIT_MAX_REGISTRATIONS: 3,
+  RATE_LIMIT_WINDOW_MS: 30 * 60 * 1000, // 30 minutes
 } as const;
 
 // ---- Socket.IO Events ----
@@ -30,6 +33,10 @@ export const SOCKET_EVENTS = {
 
   // Display → Server → Admin (playback state sync)
   PLAYBACK_STATE: "playback:state",
+
+  // Venue-displayed OTP
+  VENUE_OTP_SHOW: "venue-otp:show",
+  VENUE_OTP_HIDE: "venue-otp:hide",
 } as const;
 
 // ---- Roles ----

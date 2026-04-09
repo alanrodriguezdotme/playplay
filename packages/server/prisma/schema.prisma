@@ -24,8 +24,10 @@ model Venue {
 
 model User {
   id          String   @id @default(cuid())
-  phone       String
+  phone       String?
+  deviceId    String?
   displayName String?
+  avatarEmoji String?
   role        String   @default("PATRON")
   blocked     Boolean  @default(false)
   venueId     String
@@ -36,6 +38,7 @@ model User {
   queue QueueEntry[]
 
   @@unique([phone, venueId])
+  @@unique([deviceId, venueId])
   @@index([venueId])
 }
 

@@ -32,7 +32,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
         Now Playing
       </p>
       {showFallback ? (
-        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-2xl bg-primary/10 text-5xl">
+        <div className="mb-6 flex h-44 w-44 items-center justify-center rounded-2xl bg-primary/10 text-6xl lg:h-66 lg:w-66">
           <span className="animate-pulse">🎵</span>
         </div>
       ) : (
@@ -40,7 +40,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           src={artworkUrl}
           alt={`${entry.song.title} album art`}
           onError={() => setArtworkError(entry.song.id)}
-          className="mb-6 h-28 w-28 rounded-2xl object-cover shadow-lg lg:h-40 lg:w-40"
+          className="mb-6 h-44 w-44 rounded-2xl object-cover shadow-lg lg:h-66 lg:w-66"
         />
       )}
       <h1 className="max-w-full text-4xl font-extrabold text-on-surface lg:text-5xl">

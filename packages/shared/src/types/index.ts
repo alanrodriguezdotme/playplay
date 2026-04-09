@@ -21,12 +21,16 @@ export interface VenueSettings {
   defaultPlaylistPath: string;
   displayQrSize: number;
   displayShowHeader: boolean;
+  otpDeliveryMode: OtpDeliveryMode;
+  smsGatewayUrl: string;
 }
 
 export interface UserProfile {
   id: string;
-  phone: string;
+  phone: string | null;
+  deviceId: string | null;
   displayName: string | null;
+  avatarEmoji: string | null;
   role: UserRole;
   venueId: string;
   isBlocked: boolean;
@@ -83,6 +87,40 @@ export interface AuthResponse {
 
 export interface SetDisplayNameBody {
   displayName: string;
+}
+
+// ---- Device Auth ----
+
+export interface DeviceRegisterBody {
+  deviceId: string;
+  venueSlug: string;
+  displayName: string;
+  avatarEmoji: string;
+}
+
+export interface DeviceLoginBody {
+  deviceId: string;
+  venueSlug: string;
+}
+
+export interface UpdateProfileBody {
+  displayName?: string;
+  avatarEmoji?: string;
+}
+
+// ---- OTP Delivery Settings ----
+
+export type OtpDeliveryMode = "none" | "venue-display" | "sms-gateway" | "paid";
+
+export interface OtpDeliverySettings {
+  otpDeliveryMode: OtpDeliveryMode;
+  smsGatewayUrl?: string;
+}
+
+export interface VerifyVenueOtpBody {
+  deviceId: string;
+  code: string;
+  venueSlug: string;
 }
 
 export interface AddToQueueBody {
@@ -157,12 +195,16 @@ export interface AdminVenueSettingsUpdateBody {
   defaultPlaylistPath?: string;
   displayQrSize?: number;
   displayShowHeader?: boolean;
+  otpDeliveryMode?: OtpDeliveryMode;
+  smsGatewayUrl?: string;
 }
 
 export interface AdminUser {
   id: string;
-  phone: string;
+  phone: string | null;
+  deviceId: string | null;
   displayName: string | null;
+  avatarEmoji: string | null;
   role: UserRole;
   blocked: boolean;
   createdAt: string;
