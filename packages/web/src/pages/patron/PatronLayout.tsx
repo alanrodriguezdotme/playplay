@@ -4,8 +4,10 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
 import { QueueProvider } from "../../contexts/QueueContext";
+import { ToastProvider } from "../../contexts/ToastContext";
 import { QueueView } from "./QueueView";
 import { SearchView } from "./SearchView";
+import { HistoryView } from "./HistoryView";
 import { Login } from "./Login";
 
 type Tab = "queue" | "search" | "history";
@@ -183,14 +185,6 @@ function BottomNav({
   );
 }
 
-function TabPlaceholder({ title }: { title: string }) {
-  return (
-    <div className="flex flex-1 items-center justify-center">
-      <p className="text-on-surface-muted">{title} — coming next</p>
-    </div>
-  );
-}
-
 export function PatronLayout() {
   const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading } = useAuth();
@@ -215,18 +209,20 @@ export function PatronLayout() {
       case "search":
         return <SearchView />;
       case "history":
-        return <TabPlaceholder title="History" />;
+        return <HistoryView />;
     }
   };
 
   return (
-    <QueueProvider venueSlug={slug!}>
-      <div className="flex min-h-screen flex-col bg-surface text-on-surface">
-        <ConnectionIndicator />
-        <TopBar onTabSwitch={setActiveTab} />
-        <main className="flex flex-1 flex-col pb-16">{renderTab()}</main>
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-      </div>
-    </QueueProvider>
+    <ToastProvider>
+      <QueueProvider venueSlug={slug!}>
+        <div className="flex min-h-screen flex-col bg-surface text-on-surface">
+          <ConnectionIndicator />
+          <TopBar onTabSwitch={setActiveTab} />
+          <main className="flex flex-1 flex-col pb-16">{renderTab()}</main>
+          <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
+      </QueueProvider>
+    </ToastProvider>
   );
 }

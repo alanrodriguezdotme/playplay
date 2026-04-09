@@ -10,6 +10,7 @@ import {
 import type { QueueEntry, QueueResponse } from "@playplay/shared";
 import { getQueue, addToQueue, voteOnEntry } from "../api/queue";
 import { useQueueUpdates } from "../hooks/useSocket";
+import { useToast } from "./ToastContext";
 
 interface QueueContextValue {
   queue: QueueEntry[];
@@ -36,6 +37,7 @@ export function QueueProvider({
   const [nowPlaying, setNowPlaying] = useState<QueueEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -123,19 +125,22 @@ export function QueueProvider({
 
       try {
         await voteOnEntry(entryId, value);
-      } catch {
-        // Revert on failure by re-fetching
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : "Vote failed");
         fetchQueue();
       }
     },
     [fetchQueue],
   );
 
-  const addSong = useCallback(async (songId: string) => {
-    const entry = await addToQueue(songId);
-    return entry;
-    // Socket broadcast will add it to queue state
-  }, []);
+  const addSong = useCallback(
+    async (songId: string) => {
+      const entry = await addToQueue(songId);
+      showToast("Song added to queue!", "success");
+      return entry;
+    },
+    [showToast],
+  );
 
   return (
     <QueueContext.Provider
