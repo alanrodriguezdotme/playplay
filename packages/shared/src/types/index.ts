@@ -176,6 +176,7 @@ export interface ApiError {
 export interface DisplaySettings {
   displayQrSize: number;
   displayShowHeader: boolean;
+  lanIp: string | null;
 }
 
 // ---- Playback State (server → clients) ----

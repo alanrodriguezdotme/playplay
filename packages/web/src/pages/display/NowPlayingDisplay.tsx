@@ -32,6 +32,7 @@ export function NowPlayingDisplay() {
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
     displayQrSize: DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: DEFAULTS.DISPLAY_SHOW_HEADER,
+    lanIp: null,
   });
 
   // Venue OTP overlay state
@@ -65,7 +66,7 @@ export function NowPlayingDisplay() {
     if (!slug) return;
     getDisplaySettings(slug)
       .then(setDisplaySettings)
-      .catch(() => {});
+      .catch(() => { });
   }, [slug]);
 
   // Track the last now-playing ID to detect transitions for history
@@ -171,6 +172,7 @@ export function NowPlayingDisplay() {
             <DisplayQRCode
               venueSlug={slug}
               size={displaySettings.displayQrSize}
+              lanIp={displaySettings.lanIp}
             />
           </div>
         </div>

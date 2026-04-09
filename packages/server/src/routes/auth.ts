@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma.js";
+import { prisma, parseSettings } from "../lib/prisma.js";
 import { generateOtp, verifyOtp, signToken, getVenueCode, verifyVenueCode } from "../services/auth.js";
 import { authenticate } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rateLimit.js";
@@ -65,7 +65,7 @@ router.post("/register", rateLimit(), async (req, res) => {
   }
 
   // Check OTP delivery mode — if venue-display, require venue code
-  const settings = venue.settings as Record<string, unknown>;
+  const settings = parseSettings(venue.settings);
   const otpMode = (settings.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE;
 
   if (otpMode === "venue-display") {
@@ -108,7 +108,7 @@ router.get("/venue-info/:slug", async (req, res) => {
     return;
   }
 
-  const settings = venue.settings as Record<string, unknown>;
+  const settings = parseSettings(venue.settings);
   const otpMode = (settings.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE;
 
   res.json({ requiresVenueCode: otpMode === "venue-display" });
@@ -124,7 +124,7 @@ router.get("/venue-code/:slug", async (req, res) => {
     return;
   }
 
-  const settings = venue.settings as Record<string, unknown>;
+  const settings = parseSettings(venue.settings);
   const otpMode = (settings.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE;
 
   if (otpMode !== "venue-display") {

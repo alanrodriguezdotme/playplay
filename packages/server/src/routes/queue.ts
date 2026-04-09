@@ -10,8 +10,9 @@ import {
   reorderQueue,
   QueueError,
 } from "../services/queue.js";
-import { prisma } from "../lib/prisma.js";
+import { prisma, parseSettings } from "../lib/prisma.js";
 import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
+import { getLocalIp } from "../services/network.js";
 import { broadcastQueueUpdated, broadcastEntryAdded, broadcastEntryRemoved, broadcastNowPlayingChanged } from "../socket/broadcast.js";
 import { advanceQueue } from "../services/playback.js";
 
@@ -88,10 +89,11 @@ router.get("/display-settings", async (req, res, next) => {
       return;
     }
 
-    const s = venue.settings as Record<string, unknown>;
+    const s = parseSettings(venue.settings);
     res.json({
       displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
       displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+      lanIp: getLocalIp(),
     });
   } catch (err) {
     next(err);

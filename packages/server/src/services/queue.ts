@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma, parseSettings } from "../lib/prisma.js";
 import type { QueueEntry, QueueResponse, QueueHistoryResponse, VenueSettings } from "@playplay/shared";
 import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 
@@ -36,7 +36,7 @@ function formatEntry(
 }
 
 function getVenueSettings(venue: { settings: any }): VenueSettings {
-  const s = venue.settings as Record<string, unknown>;
+  const s = parseSettings(venue.settings);
   return {
     voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
     maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,

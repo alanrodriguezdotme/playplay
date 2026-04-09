@@ -73,8 +73,8 @@ router.get("/search", authenticate, async (req, res, next) => {
       venueId: req.user!.venueId,
       blocked: false,
       OR: [
-        { title: { contains: q, mode: "insensitive" as const } },
-        { artist: { contains: q, mode: "insensitive" as const } },
+        { title: { contains: q } },
+        { artist: { contains: q } },
       ],
     };
 

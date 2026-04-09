@@ -1,7 +1,7 @@
 import { readdir, stat, access } from "node:fs/promises";
 import { join, extname, basename, resolve } from "node:path";
 import { parseFile } from "music-metadata";
-import { prisma } from "../lib/prisma.js";
+import { prisma, parseSettings } from "../lib/prisma.js";
 
 const SUPPORTED_EXTENSIONS = new Set([
   ".mp3",
@@ -44,7 +44,7 @@ export async function scanMusicLibrary(
 
   // Get venue settings for default playlist path
   const venue = await prisma.venue.findUnique({ where: { id: venueId } });
-  const settings = venue?.settings as Record<string, unknown> | undefined;
+  const settings = venue ? parseSettings(venue.settings) : undefined;
   const defaultPlaylistPath = (settings?.defaultPlaylistPath as string) || "";
 
   // Collect all audio files

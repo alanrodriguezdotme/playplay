@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { resolve } from "node:path";
 import { scanMusicLibrary } from "../services/music.js";
-import { prisma } from "../lib/prisma.js";
+import { prisma, parseSettings, stringifySettings } from "../lib/prisma.js";
 import { broadcastQueueUpdated } from "../socket/broadcast.js";
 import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 import type {
@@ -25,7 +25,7 @@ router.get("/venue", async (req, res, next) => {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;
     }
-    const s = venue.settings as Record<string, unknown>;
+    const s = parseSettings(venue.settings);
     res.json({
       id: venue.id,
       name: venue.name,
@@ -59,7 +59,7 @@ router.patch("/venue/settings", async (req, res, next) => {
       return;
     }
 
-    const current = venue.settings as Record<string, unknown>;
+    const current = parseSettings(venue.settings);
     const merged: Record<string, unknown> = { ...current };
 
     if (body.voteThreshold !== undefined) {
@@ -115,10 +115,10 @@ router.patch("/venue/settings", async (req, res, next) => {
 
     const updated = await prisma.venue.update({
       where: { id: venue.id },
-      data: { settings: merged as any },
+      data: { settings: stringifySettings(merged) },
     });
 
-    const s = updated.settings as Record<string, unknown>;
+    const s = parseSettings(updated.settings);
     res.json({
       id: updated.id,
       name: updated.name,
@@ -157,7 +157,7 @@ router.get("/users", async (req, res, next) => {
 
     if (search) {
       where.OR = [
-        { displayName: { contains: search, mode: "insensitive" } },
+        { displayName: { contains: search } },
         { phone: { contains: search } },
         { deviceId: { contains: search } },
       ];

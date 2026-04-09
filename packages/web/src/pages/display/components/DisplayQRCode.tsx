@@ -4,10 +4,14 @@ import { DisplayVenueCode } from "./DisplayVenueOtp";
 interface DisplayQRCodeProps {
   venueSlug: string;
   size?: number;
+  lanIp?: string | null;
 }
 
-export function DisplayQRCode({ venueSlug, size = 120 }: DisplayQRCodeProps) {
-  const patronUrl = `${window.location.origin}/venue/${venueSlug}`;
+export function DisplayQRCode({ venueSlug, size = 120, lanIp }: DisplayQRCodeProps) {
+  const origin = lanIp
+    ? `${window.location.protocol}//${lanIp}:${window.location.port}`
+    : window.location.origin;
+  const patronUrl = `${origin}/venue/${venueSlug}`;
 
   return (
     <div className="flex items-center gap-4">

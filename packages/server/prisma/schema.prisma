@@ -1,9 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -13,7 +14,7 @@ model Venue {
   slug      String   @unique
   email     String
   phone     String
-  settings  Json     @default("{}")
+  settings  String   @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -88,7 +89,7 @@ model Vote {
   id           String   @id @default(cuid())
   queueEntryId String
   userId       String
-  value        Int      @db.SmallInt
+  value        Int
   createdAt    DateTime @default(now())
 
   queueEntry QueueEntry @relation(fields: [queueEntryId], references: [id], onDelete: Cascade)
