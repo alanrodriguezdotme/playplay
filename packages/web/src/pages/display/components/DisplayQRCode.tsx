@@ -2,15 +2,16 @@ import { QRCodeSVG } from "qrcode.react";
 
 interface DisplayQRCodeProps {
   venueSlug: string;
+  size?: number;
 }
 
-export function DisplayQRCode({ venueSlug }: DisplayQRCodeProps) {
+export function DisplayQRCode({ venueSlug, size = 120 }: DisplayQRCodeProps) {
   const patronUrl = `${window.location.origin}/venue/${venueSlug}`;
 
   return (
     <div className="flex items-center gap-4">
       <div className="shrink-0 rounded-xl bg-white p-3">
-        <QRCodeSVG value={patronUrl} size={120} level="M" />
+        <QRCodeSVG value={patronUrl} size={size} level="M" />
       </div>
       <div>
         <p className="text-sm font-bold uppercase tracking-widest text-primary">

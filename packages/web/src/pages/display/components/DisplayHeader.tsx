@@ -1,6 +1,7 @@
 interface DisplayHeaderProps {
   venueSlug: string;
   isFullscreen: boolean;
+  show: boolean;
   onToggleFullscreen: () => void;
 }
 
@@ -14,13 +15,20 @@ function formatSlug(slug: string): string {
 export function DisplayHeader({
   venueSlug,
   isFullscreen,
+  show,
   onToggleFullscreen,
 }: DisplayHeaderProps) {
+  if (!show && isFullscreen) return null;
+
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3">
-      <h1 className="text-xl font-bold text-on-surface">
-        {formatSlug(venueSlug)}
-      </h1>
+      {show ? (
+        <h1 className="text-xl font-bold text-on-surface">
+          {formatSlug(venueSlug)}
+        </h1>
+      ) : (
+        <div />
+      )}
       {!isFullscreen && (
         <button
           onClick={onToggleFullscreen}

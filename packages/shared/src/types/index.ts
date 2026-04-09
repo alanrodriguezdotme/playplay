@@ -19,6 +19,8 @@ export interface VenueSettings {
   voteThreshold: number;
   maxSongsPerUser: number;
   defaultPlaylistPath: string;
+  displayQrSize: number;
+  displayShowHeader: boolean;
 }
 
 export interface UserProfile {
@@ -131,6 +133,13 @@ export interface ApiError {
   message: string;
 }
 
+// ---- Display Settings (public) ----
+
+export interface DisplaySettings {
+  displayQrSize: number;
+  displayShowHeader: boolean;
+}
+
 // ---- Admin API Types ----
 
 export interface AdminVenueResponse {
@@ -146,6 +155,8 @@ export interface AdminVenueSettingsUpdateBody {
   voteThreshold?: number;
   maxSongsPerUser?: number;
   defaultPlaylistPath?: string;
+  displayQrSize?: number;
+  displayShowHeader?: boolean;
 }
 
 export interface AdminUser {

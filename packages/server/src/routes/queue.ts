@@ -11,7 +11,7 @@ import {
   QueueError,
 } from "../services/queue.js";
 import { prisma } from "../lib/prisma.js";
-import { QUEUE_STATUS } from "@playplay/shared";
+import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 import { broadcastQueueUpdated, broadcastEntryAdded, broadcastEntryRemoved, broadcastNowPlayingChanged } from "../socket/broadcast.js";
 import { advanceQueue } from "../services/playback.js";
 
@@ -68,6 +68,31 @@ router.get("/", authenticate, async (req, res, next) => {
   try {
     const result = await getQueue(req.user!.venueId, req.user!.id);
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/queue/display-settings — no auth (for display view)
+router.get("/display-settings", async (req, res, next) => {
+  try {
+    const venueSlug = req.query.venue as string;
+    if (!venueSlug) {
+      res.status(400).json({ error: "bad_request", message: "venue query param is required" });
+      return;
+    }
+
+    const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+    if (!venue) {
+      res.status(404).json({ error: "not_found", message: "Venue not found" });
+      return;
+    }
+
+    const s = venue.settings as Record<string, unknown>;
+    res.json({
+      displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
+      displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+    });
   } catch (err) {
     next(err);
   }

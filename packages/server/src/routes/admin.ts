@@ -36,6 +36,8 @@ router.get("/venue", async (req, res, next) => {
         voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
         maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
         defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
+        displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
+        displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
       },
     });
   } catch (err) {
@@ -79,6 +81,20 @@ router.patch("/venue/settings", async (req, res, next) => {
       }
       merged.defaultPlaylistPath = body.defaultPlaylistPath;
     }
+    if (body.displayQrSize !== undefined) {
+      if (typeof body.displayQrSize !== "number" || body.displayQrSize < 60 || body.displayQrSize > 300) {
+        res.status(400).json({ error: "validation", message: "displayQrSize must be between 60 and 300" });
+        return;
+      }
+      merged.displayQrSize = body.displayQrSize;
+    }
+    if (body.displayShowHeader !== undefined) {
+      if (typeof body.displayShowHeader !== "boolean") {
+        res.status(400).json({ error: "validation", message: "displayShowHeader must be a boolean" });
+        return;
+      }
+      merged.displayShowHeader = body.displayShowHeader;
+    }
 
     const updated = await prisma.venue.update({
       where: { id: venue.id },
@@ -96,6 +112,8 @@ router.patch("/venue/settings", async (req, res, next) => {
         voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
         maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
         defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
+        displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
+        displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
       },
     });
   } catch (err) {

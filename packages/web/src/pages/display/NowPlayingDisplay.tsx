@@ -1,10 +1,16 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useParams } from "react-router";
-import type { QueueEntry, QueueResponse } from "@playplay/shared";
+import type {
+  QueueEntry,
+  QueueResponse,
+  DisplaySettings,
+} from "@playplay/shared";
+import { DEFAULTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
 import { useSocketContext } from "../../contexts/SocketContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
+import { getDisplaySettings } from "../../api/queue";
 import { DisplayHeader } from "./components/DisplayHeader";
 import { DisplayNowPlaying } from "./components/DisplayNowPlaying";
 import { DisplayQueue } from "./components/DisplayQueue";
@@ -23,6 +29,18 @@ export function NowPlayingDisplay() {
   const [nowPlaying, setNowPlaying] = useState<QueueEntry | null>(null);
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [recentHistory, setRecentHistory] = useState<QueueEntry[]>([]);
+  const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
+    displayQrSize: DEFAULTS.DISPLAY_QR_SIZE,
+    displayShowHeader: DEFAULTS.DISPLAY_SHOW_HEADER,
+  });
+
+  // Fetch display settings
+  useEffect(() => {
+    if (!slug) return;
+    getDisplaySettings(slug)
+      .then(setDisplaySettings)
+      .catch(() => {});
+  }, [slug]);
 
   // Track the last now-playing ID to detect transitions for history
   const lastNowPlayingIdRef = useRef<string | null>(null);
@@ -102,6 +120,7 @@ export function NowPlayingDisplay() {
       <DisplayHeader
         venueSlug={slug}
         isFullscreen={isFullscreen}
+        show={displaySettings.displayShowHeader}
         onToggleFullscreen={toggleFullscreen}
       />
 
@@ -109,11 +128,16 @@ export function NowPlayingDisplay() {
       <div className="grid min-h-0 flex-1 grid-cols-1 portrait:grid-rows-[1fr_auto_auto] landscape:grid-cols-2 landscape:grid-rows-1">
         {/* Left / Top: Now Playing + QR */}
         <div className="flex min-h-0 flex-col overflow-hidden">
-          <div className="flex flex-1 items-center justify-center p-6">
-            <DisplayNowPlaying entry={nowPlaying} />
+          <div className="min-h-0 flex-1 overflow-auto p-6">
+            <div className="flex h-full items-center justify-center">
+              <DisplayNowPlaying entry={nowPlaying} />
+            </div>
           </div>
           <div className="shrink-0 border-t border-border px-6 py-4">
-            <DisplayQRCode venueSlug={slug} />
+            <DisplayQRCode
+              venueSlug={slug}
+              size={displaySettings.displayQrSize}
+            />
           </div>
         </div>
 

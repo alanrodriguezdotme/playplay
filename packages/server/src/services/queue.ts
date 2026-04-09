@@ -41,6 +41,8 @@ function getVenueSettings(venue: { settings: any }): VenueSettings {
     voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
     maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
     defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
+    displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
+    displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
   };
 }
 

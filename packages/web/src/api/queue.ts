@@ -1,5 +1,5 @@
 import { apiRequest } from "./client.js";
-import type { QueueEntry, QueueResponse, QueueHistoryResponse } from "@playplay/shared";
+import type { QueueEntry, QueueResponse, QueueHistoryResponse, DisplaySettings } from "@playplay/shared";
 
 export async function addToQueue(songId: string): Promise<QueueEntry> {
   return apiRequest<QueueEntry>("/api/queue/add", {
@@ -41,6 +41,14 @@ export async function getNowPlaying(
 
 export async function removeFromQueue(entryId: string): Promise<void> {
   await apiRequest(`/api/queue/${entryId}`, { method: "DELETE" });
+}
+
+export async function getDisplaySettings(
+  venueSlug: string
+): Promise<DisplaySettings> {
+  return apiRequest<DisplaySettings>(
+    `/api/queue/display-settings?venue=${encodeURIComponent(venueSlug)}`
+  );
 }
 
 export async function playNow(entryId: string): Promise<QueueEntry> {

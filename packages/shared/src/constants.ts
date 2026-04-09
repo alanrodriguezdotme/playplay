@@ -5,6 +5,8 @@ export const DEFAULTS = {
   VOTE_THRESHOLD: -5,
   OTP_TTL_SECONDS: 300,
   PORT: 3001,
+  DISPLAY_QR_SIZE: 120,
+  DISPLAY_SHOW_HEADER: true,
 } as const;
 
 // ---- Socket.IO Events ----

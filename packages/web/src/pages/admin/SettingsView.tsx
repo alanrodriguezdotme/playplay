@@ -18,6 +18,8 @@ export function SettingsView() {
   const [voteThreshold, setVoteThreshold] = useState(-5);
   const [maxSongsPerUser, setMaxSongsPerUser] = useState(3);
   const [defaultPlaylistPath, setDefaultPlaylistPath] = useState("");
+  const [displayQrSize, setDisplayQrSize] = useState(120);
+  const [displayShowHeader, setDisplayShowHeader] = useState(true);
 
   const fetchVenue = useCallback(async () => {
     try {
@@ -26,6 +28,8 @@ export function SettingsView() {
       setVoteThreshold(data.settings.voteThreshold);
       setMaxSongsPerUser(data.settings.maxSongsPerUser);
       setDefaultPlaylistPath(data.settings.defaultPlaylistPath);
+      setDisplayQrSize(data.settings.displayQrSize);
+      setDisplayShowHeader(data.settings.displayShowHeader);
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Failed to load settings",
@@ -47,6 +51,8 @@ export function SettingsView() {
         voteThreshold,
         maxSongsPerUser,
         defaultPlaylistPath,
+        displayQrSize,
+        displayShowHeader,
       };
       const updated = await updateVenueSettings(body);
       setVenue(updated);
@@ -153,6 +159,68 @@ export function SettingsView() {
             placeholder="./music/default"
             className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
           />
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Settings"}
+        </button>
+      </div>
+
+      {/* Display Settings */}
+      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
+          Display Settings
+        </h3>
+
+        <div>
+          <label className="block text-sm font-medium text-on-surface mb-1">
+            QR Code Size
+          </label>
+          <p className="text-xs text-on-surface-muted mb-2">
+            Size of the QR code on the Now Playing display (60–300 pixels).
+          </p>
+          <input
+            type="range"
+            min={60}
+            max={300}
+            step={10}
+            value={displayQrSize}
+            onChange={(e) => setDisplayQrSize(parseInt(e.target.value))}
+            className="w-full accent-primary"
+          />
+          <p className="mt-1 text-xs tabular-nums text-on-surface-muted">
+            {displayQrSize}px
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="block text-sm font-medium text-on-surface">
+              Show Venue Name Header
+            </label>
+            <p className="text-xs text-on-surface-muted">
+              Show the top bar with the venue name on the Now Playing display.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={displayShowHeader}
+            onClick={() => setDisplayShowHeader(!displayShowHeader)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+              displayShowHeader ? "bg-primary" : "bg-surface-alt"
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                displayShowHeader ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
         </div>
 
         <button

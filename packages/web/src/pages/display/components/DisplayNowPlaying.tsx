@@ -27,7 +27,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
       <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-2xl bg-primary/10 text-5xl">
         <span className="animate-pulse">🎵</span>
       </div>
-      <h1 className="max-w-full truncate text-4xl font-extrabold text-on-surface lg:text-5xl">
+      <h1 className="max-w-full text-4xl font-extrabold text-on-surface lg:text-5xl">
         {entry.song.title}
       </h1>
       <p className="mt-2 max-w-full truncate text-2xl text-on-surface-muted lg:text-3xl">
