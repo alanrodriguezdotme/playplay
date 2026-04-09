@@ -16,4 +16,4 @@ Thumbs.db
 # Prisma
 packages/server/prisma/*.db
 packages/server/prisma/migrations/**/migration_lock.toml
-pacakges/server/music/*.mp3
+packages/server/music/*.mp3
