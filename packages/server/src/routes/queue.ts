@@ -43,8 +43,8 @@ router.post("/add", authenticate, async (req, res, next) => {
 router.post("/:entryId/vote", authenticate, async (req, res, next) => {
   try {
     const { value } = req.body;
-    if (value !== 1 && value !== -1) {
-      res.status(400).json({ error: "bad_request", message: "value must be 1 or -1" });
+    if (value !== 1 && value !== -1 && value !== 0) {
+      res.status(400).json({ error: "bad_request", message: "value must be 1, -1, or 0" });
       return;
     }
 

@@ -113,7 +113,7 @@ export async function addToQueue(
 export async function voteOnEntry(
   userId: string,
   entryId: string,
-  value: 1 | -1
+  value: 1 | -1 | 0
 ): Promise<QueueEntry> {
   return prisma.$transaction(async (tx) => {
     const entry = await tx.queueEntry.findUnique({
@@ -128,11 +128,18 @@ export async function voteOnEntry(
       throw new QueueError(400, "invalid_status", "Can only vote on queued entries");
     }
 
-    await tx.vote.upsert({
-      where: { queueEntryId_userId: { queueEntryId: entryId, userId } },
-      create: { queueEntryId: entryId, userId, value },
-      update: { value },
-    });
+    if (value === 0) {
+      // Remove the vote (cancel/undo)
+      await tx.vote.deleteMany({
+        where: { queueEntryId: entryId, userId },
+      });
+    } else {
+      await tx.vote.upsert({
+        where: { queueEntryId_userId: { queueEntryId: entryId, userId } },
+        create: { queueEntryId: entryId, userId, value },
+        update: { value },
+      });
+    }
 
     // Recalculate score
     const agg = await tx.vote.aggregate({

@@ -10,7 +10,7 @@ export async function addToQueue(songId: string): Promise<QueueEntry> {
 
 export async function voteOnEntry(
   entryId: string,
-  value: 1 | -1
+  value: 1 | -1 | 0
 ): Promise<QueueEntry> {
   return apiRequest<QueueEntry>(`/api/queue/${entryId}/vote`, {
     method: "POST",
