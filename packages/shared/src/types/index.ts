@@ -178,6 +178,17 @@ export interface DisplaySettings {
   displayShowHeader: boolean;
 }
 
+// ---- Playback State (server → clients) ----
+
+export interface PlaybackSyncState {
+  audioOwnerSocketId: string | null;
+  audioOwnerDeviceHint: string | null;
+  isPlaying: boolean;
+  currentSongId: string | null;
+  currentTime: number;
+  duration: number;
+}
+
 // ---- Admin API Types ----
 
 export interface AdminVenueResponse {

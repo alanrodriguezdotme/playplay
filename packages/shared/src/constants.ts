@@ -26,13 +26,21 @@ export const SOCKET_EVENTS = {
 
   // Client → Server (playback)
   PLAYBACK_ENDED: "playback:ended",
+  PLAYBACK_START: "playback:start",
 
-  // Admin → Server → Display (playback control)
+  // Admin audio ownership
+  PLAYBACK_CLAIM: "playback:claim",
+  PLAYBACK_RELEASE: "playback:release",
+
+  // Admin → Server (playback control)
   PLAYBACK_PLAY: "playback:play",
   PLAYBACK_PAUSE: "playback:pause",
 
-  // Display → Server → Admin (playback state sync)
+  // Audio owner → Server (playback position sync)
   PLAYBACK_STATE: "playback:state",
+
+  // Server → All clients (authoritative playback state)
+  PLAYBACK_SYNC: "playback:sync",
 
   // Venue-displayed OTP
   VENUE_OTP_SHOW: "venue-otp:show",

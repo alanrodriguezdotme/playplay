@@ -64,3 +64,36 @@ export function DisplayVenueCode({ venueSlug }: DisplayVenueCodeProps) {
     </div>
   );
 }
+
+interface DisplayVenueOtpProps {
+  code: string;
+  deviceHint: string;
+  onExpired: () => void;
+}
+
+export function DisplayVenueOtp({
+  code,
+  deviceHint,
+  onExpired,
+}: DisplayVenueOtpProps) {
+  useEffect(() => {
+    const timer = setTimeout(onExpired, 60_000);
+    return () => clearTimeout(timer);
+  }, [onExpired]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div className="rounded-2xl bg-surface-raised p-8 text-center shadow-2xl">
+        <p className="mb-2 text-sm text-on-surface-muted">
+          {deviceHint} is requesting access
+        </p>
+        <p className="font-mono text-5xl font-bold tracking-[0.3em] text-primary">
+          {code}
+        </p>
+        <p className="mt-4 text-xs text-on-surface-muted">
+          Enter this code on the device to continue
+        </p>
+      </div>
+    </div>
+  );
+}

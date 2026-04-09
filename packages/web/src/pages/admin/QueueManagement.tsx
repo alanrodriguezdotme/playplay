@@ -18,6 +18,7 @@ import { useQueue } from "../../contexts/QueueContext";
 import { useToast } from "../../contexts/ToastContext";
 import { useSocket } from "../../hooks/useSocket";
 import { SOCKET_EVENTS } from "@playplay/shared";
+import type { PlaybackSyncState } from "@playplay/shared";
 import {
   removeFromQueue,
   playNow,
@@ -43,28 +44,26 @@ export function QueueManagement() {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyLoading, setHistoryLoading] = useState(false);
 
-  // Remote playback state (from Display view via socket)
+  // Remote playback state (from audio owner via PLAYBACK_SYNC)
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [audioOwnerDevice, setAudioOwnerDevice] = useState<string | null>(null);
 
-  // Listen for playback state from Display
+  // Listen for playback sync from server
   useEffect(() => {
     if (!socket) return;
 
-    const onPlaybackState = (state: {
-      isPlaying: boolean;
-      currentTime: number;
-      duration: number;
-    }) => {
+    const onSync = (state: PlaybackSyncState) => {
       setIsPlaying(state.isPlaying);
       setCurrentTime(state.currentTime);
       setDuration(state.duration);
+      setAudioOwnerDevice(state.audioOwnerDeviceHint);
     };
 
-    socket.on(SOCKET_EVENTS.PLAYBACK_STATE, onPlaybackState);
+    socket.on(SOCKET_EVENTS.PLAYBACK_SYNC, onSync);
     return () => {
-      socket.off(SOCKET_EVENTS.PLAYBACK_STATE, onPlaybackState);
+      socket.off(SOCKET_EVENTS.PLAYBACK_SYNC, onSync);
     };
   }, [socket]);
 
@@ -236,7 +235,7 @@ export function QueueManagement() {
                 Skip
               </button>
             </div>
-            {/* Progress bar (read-only, shows Display state) */}
+            {/* Progress bar (shows audio owner state) */}
             <div className="flex items-center gap-2">
               <span className="text-[10px] tabular-nums text-on-surface-muted w-10 text-right">
                 {formatDuration(Math.floor(currentTime))}
@@ -255,6 +254,11 @@ export function QueueManagement() {
                 {formatDuration(Math.floor(duration))}
               </span>
             </div>
+            {audioOwnerDevice && (
+              <p className="text-[10px] text-on-surface-muted">
+                Audio playing on: {audioOwnerDevice}
+              </p>
+            )}
           </div>
         ) : (
           <p className="text-sm text-on-surface-muted">Nothing playing</p>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
-import { QueueProvider } from "../../contexts/QueueContext";
+import { QueueProvider, useQueue } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "../patron/Login";
 import { DashboardView } from "./DashboardView";
@@ -10,6 +10,7 @@ import { QueueManagement } from "./QueueManagement";
 import { MusicLibrary } from "./MusicLibrary";
 import { UserManagement } from "./UserManagement";
 import { SettingsView } from "./SettingsView";
+import { AdminAudioPlayer } from "./AdminAudioPlayer";
 
 type AdminTab = "dashboard" | "queue" | "music" | "users" | "settings";
 
@@ -248,6 +249,18 @@ function Unauthorized() {
   );
 }
 
+function AudioPlayerBridge() {
+  const { nowPlaying, queue } = useQueue();
+  const { socket } = useSocket();
+  return (
+    <AdminAudioPlayer
+      nowPlaying={nowPlaying}
+      queueLength={queue.length}
+      socket={socket}
+    />
+  );
+}
+
 export function AdminLayout() {
   const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -296,6 +309,7 @@ export function AdminLayout() {
               {renderTab()}
             </main>
           </div>
+          <AudioPlayerBridge />
           <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
       </QueueProvider>

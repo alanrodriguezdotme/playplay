@@ -5,7 +5,7 @@ import type {
   QueueResponse,
   DisplaySettings,
 } from "@playplay/shared";
-import { DEFAULTS } from "@playplay/shared";
+import { DEFAULTS, SOCKET_EVENTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
 import { useSocketContext } from "../../contexts/SocketContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
@@ -16,7 +16,7 @@ import { DisplayNowPlaying } from "./components/DisplayNowPlaying";
 import { DisplayQueue } from "./components/DisplayQueue";
 import { DisplayHistory } from "./components/DisplayHistory";
 import { DisplayQRCode } from "./components/DisplayQRCode";
-import { DisplayAudioPlayer } from "./components/DisplayAudioPlayer";
+import { DisplayVenueOtp } from "./components/DisplayVenueOtp";
 
 const MAX_HISTORY = 10;
 
@@ -33,6 +33,32 @@ export function NowPlayingDisplay() {
     displayQrSize: DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: DEFAULTS.DISPLAY_SHOW_HEADER,
   });
+
+  // Venue OTP overlay state
+  const [venueOtp, setVenueOtp] = useState<{
+    code: string;
+    deviceHint: string;
+  } | null>(null);
+
+  // Listen for venue OTP socket events
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleShow = (data: { code: string; deviceHint: string }) => {
+      setVenueOtp(data);
+    };
+    const handleHide = () => {
+      setVenueOtp(null);
+    };
+
+    socket.on(SOCKET_EVENTS.VENUE_OTP_SHOW, handleShow);
+    socket.on(SOCKET_EVENTS.VENUE_OTP_HIDE, handleHide);
+
+    return () => {
+      socket.off(SOCKET_EVENTS.VENUE_OTP_SHOW, handleShow);
+      socket.off(SOCKET_EVENTS.VENUE_OTP_HIDE, handleHide);
+    };
+  }, [socket]);
 
   // Fetch display settings
   useEffect(() => {
@@ -141,7 +167,7 @@ export function NowPlayingDisplay() {
           <div className="shrink-0 border-t border-border">
             <DisplayHistory entries={recentHistory} />
           </div>
-          <div className="shrink-0 border-t border-border px-6 py-4 flex items-center justify-between gap-4">
+          <div className="shrink-0 border-t border-border px-6 py-4">
             <DisplayQRCode
               venueSlug={slug}
               size={displaySettings.displayQrSize}
@@ -150,11 +176,13 @@ export function NowPlayingDisplay() {
         </div>
       </div>
 
-      <DisplayAudioPlayer
-        nowPlaying={nowPlaying}
-        queueLength={queue.length}
-        socket={socket}
-      />
+      {venueOtp && (
+        <DisplayVenueOtp
+          code={venueOtp.code}
+          deviceHint={venueOtp.deviceHint}
+          onExpired={() => setVenueOtp(null)}
+        />
+      )}
     </div>
   );
 }
