@@ -39,6 +39,7 @@ export async function apiRequest<T>(
     throw new ApiRequestError(res.status, body.error, body.message);
   }
 
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
