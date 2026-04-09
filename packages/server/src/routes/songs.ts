@@ -2,6 +2,7 @@ import { Router } from "express";
 import { createReadStream, statSync } from "node:fs";
 import { access } from "node:fs/promises";
 import { join, resolve, extname } from "node:path";
+import { parseFile } from "music-metadata";
 import { prisma } from "../lib/prisma.js";
 import { authenticate } from "../middleware/auth.js";
 
@@ -157,6 +158,45 @@ router.get("/:id/stream", async (req, res, next) => {
 
       createReadStream(filePath).pipe(res);
     }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/songs/:id/artwork — album art extracted from embedded metadata (no auth)
+router.get("/:id/artwork", async (req, res, next) => {
+  try {
+    const song = await prisma.song.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!song) {
+      res.status(404).json({ error: "not_found", message: "Song not found" });
+      return;
+    }
+
+    const libraryPath = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    const filePath = join(libraryPath, song.filePath);
+
+    try {
+      await access(filePath);
+    } catch {
+      res.status(404).json({ error: "file_not_found", message: "Audio file not found on disk" });
+      return;
+    }
+
+    const metadata = await parseFile(filePath);
+    const picture = metadata.common.picture?.[0];
+
+    if (!picture) {
+      res.status(404).json({ error: "no_artwork", message: "No embedded artwork found" });
+      return;
+    }
+
+    res.setHeader("Content-Type", picture.format);
+    res.setHeader("Content-Length", picture.data.length);
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.end(picture.data);
   } catch (err) {
     next(err);
   }

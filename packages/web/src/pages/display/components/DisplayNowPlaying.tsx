@@ -1,10 +1,14 @@
+import { useState } from "react";
 import type { QueueEntry } from "@playplay/shared";
+import { getSongArtworkUrl } from "../../../api/songs";
 
 interface DisplayNowPlayingProps {
   entry: QueueEntry | null;
 }
 
 export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
+  const [artworkError, setArtworkError] = useState<string | null>(null);
+
   if (!entry) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center text-center">
@@ -19,14 +23,26 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
     );
   }
 
+  const artworkUrl = getSongArtworkUrl(entry.song.id);
+  const showFallback = artworkError === entry.song.id;
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center text-center">
       <p className="mb-4 text-sm font-bold uppercase tracking-widest text-primary">
         Now Playing
       </p>
-      <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-2xl bg-primary/10 text-5xl">
-        <span className="animate-pulse">🎵</span>
-      </div>
+      {showFallback ? (
+        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-2xl bg-primary/10 text-5xl">
+          <span className="animate-pulse">🎵</span>
+        </div>
+      ) : (
+        <img
+          src={artworkUrl}
+          alt={`${entry.song.title} album art`}
+          onError={() => setArtworkError(entry.song.id)}
+          className="mb-6 h-28 w-28 rounded-2xl object-cover shadow-lg lg:h-40 lg:w-40"
+        />
+      )}
       <h1 className="max-w-full text-4xl font-extrabold text-on-surface lg:text-5xl">
         {entry.song.title}
       </h1>

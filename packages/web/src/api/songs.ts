@@ -29,6 +29,11 @@ export function getSongStreamUrl(songId: string): string {
   return `${base}/api/songs/${songId}/stream`;
 }
 
+export function getSongArtworkUrl(songId: string): string {
+  const base = import.meta.env.VITE_API_URL || "";
+  return `${base}/api/songs/${songId}/artwork`;
+}
+
 export async function triggerMusicScan(): Promise<{
   added: number;
   updated: number;

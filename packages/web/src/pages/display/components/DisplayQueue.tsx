@@ -1,4 +1,27 @@
+import { useState } from "react";
 import type { QueueEntry } from "@playplay/shared";
+import { getSongArtworkUrl } from "../../../api/songs";
+
+function QueueItemArt({ songId }: { songId: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-base">
+        🎵
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={getSongArtworkUrl(songId)}
+      alt=""
+      className="h-9 w-9 shrink-0 rounded-lg object-cover"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 interface DisplayQueueProps {
   queue: QueueEntry[];
@@ -27,6 +50,7 @@ export function DisplayQueue({ queue }: DisplayQueueProps) {
             <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-on-surface-muted">
               {i + 1}
             </span>
+            <QueueItemArt songId={entry.song.id} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-on-surface">
                 {entry.song.title}
