@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router";
 import { PatronLayout } from "./pages/patron/PatronLayout";
 import { NowPlayingDisplay } from "./pages/display/NowPlayingDisplay";
+import { AdminLayout } from "./pages/admin/AdminLayout";
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -19,7 +20,7 @@ export function App() {
       <Route path="/" element={<Placeholder title="PlayPlay Venue" />} />
       <Route path="/venue/:slug" element={<PatronLayout />} />
       <Route path="/venue/:slug/now-playing" element={<NowPlayingDisplay />} />
-      <Route path="/admin" element={<Placeholder title="Admin Dashboard" />} />
+      <Route path="/venue/:slug/admin" element={<AdminLayout />} />
     </Routes>
   );
 }

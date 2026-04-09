@@ -130,3 +130,70 @@ export interface ApiError {
   error: string;
   message: string;
 }
+
+// ---- Admin API Types ----
+
+export interface AdminVenueResponse {
+  id: string;
+  name: string;
+  slug: string;
+  email: string;
+  phone: string;
+  settings: VenueSettings;
+}
+
+export interface AdminVenueSettingsUpdateBody {
+  voteThreshold?: number;
+  maxSongsPerUser?: number;
+  defaultPlaylistPath?: string;
+}
+
+export interface AdminUser {
+  id: string;
+  phone: string;
+  displayName: string | null;
+  role: UserRole;
+  blocked: boolean;
+  createdAt: string;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface AdminUserUpdateBody {
+  blocked?: boolean;
+  role?: UserRole;
+}
+
+export interface AdminSongUpdateBody {
+  blocked: boolean;
+}
+
+export interface AdminSong {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  filePath: string;
+  blocked: boolean;
+  isDefault: boolean;
+  totalPlays: number;
+  totalAdds: number;
+  createdAt: string;
+}
+
+export interface AdminStatsResponse {
+  totalSongs: number;
+  totalUnblockedSongs: number;
+  totalUsers: number;
+  activeUsersToday: number;
+  totalPlayed: number;
+  totalQueued: number;
+  topSongs: { id: string; title: string; artist: string; totalPlays: number }[];
+  recentActivity: QueueEntry[];
+}

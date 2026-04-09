@@ -6,13 +6,14 @@ import { ApiRequestError } from "../../api/client";
 
 type Step = "phone" | "otp" | "display-name";
 
-export function Login() {
+export function Login({ isAdmin = false }: { isAdmin?: boolean } = {}) {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { login, updateUser } = useAuth();
 
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -25,7 +26,7 @@ export function Login() {
     setLoading(true);
 
     try {
-      await requestOtp(phone, slug);
+      await requestOtp(phone, slug, isAdmin ? email : undefined);
       setStep("otp");
     } catch (err) {
       setError(
@@ -49,7 +50,7 @@ export function Login() {
       if (!res.user.displayName) {
         setStep("display-name");
       } else {
-        navigate(`/venue/${slug}`);
+        navigate(isAdmin ? `/venue/${slug}/admin` : `/venue/${slug}`);
       }
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : "Invalid OTP");
@@ -67,7 +68,7 @@ export function Login() {
     try {
       const updated = await setDisplayName(name);
       updateUser(updated);
-      navigate(`/venue/${slug}`);
+      navigate(isAdmin ? `/venue/${slug}/admin` : `/venue/${slug}`);
     } catch (err) {
       setError(
         err instanceof ApiRequestError ? err.message : "Failed to set name",
@@ -105,9 +106,24 @@ export function Login() {
                 className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
+            {isAdmin && (
+              <label className="block">
+                <span className="text-sm text-on-surface-muted">
+                  Venue Email
+                </span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@venue.local"
+                  required
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </label>
+            )}
             <button
               type="submit"
-              disabled={loading || !phone.trim()}
+              disabled={loading || !phone.trim() || (isAdmin && !email.trim())}
               className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Code"}

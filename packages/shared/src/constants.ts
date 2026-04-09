@@ -21,6 +21,13 @@ export const SOCKET_EVENTS = {
 
   // Client → Server (playback)
   PLAYBACK_ENDED: "playback:ended",
+
+  // Admin → Server → Display (playback control)
+  PLAYBACK_PLAY: "playback:play",
+  PLAYBACK_PAUSE: "playback:pause",
+
+  // Display → Server → Admin (playback state sync)
+  PLAYBACK_STATE: "playback:state",
 } as const;
 
 // ---- Roles ----

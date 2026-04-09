@@ -83,6 +83,26 @@ export function initSocket(server: HttpServer): Server {
       }
     });
 
+    // Admin → Display: playback control relay
+    socket.on(SOCKET_EVENTS.PLAYBACK_PLAY, () => {
+      const slug = socket.data.venueSlug;
+      if (!slug || socket.data.role !== "ADMIN") return;
+      socket.to(`venue:${slug}`).emit(SOCKET_EVENTS.PLAYBACK_PLAY);
+    });
+
+    socket.on(SOCKET_EVENTS.PLAYBACK_PAUSE, () => {
+      const slug = socket.data.venueSlug;
+      if (!slug || socket.data.role !== "ADMIN") return;
+      socket.to(`venue:${slug}`).emit(SOCKET_EVENTS.PLAYBACK_PAUSE);
+    });
+
+    // Display → Admin: playback state relay
+    socket.on(SOCKET_EVENTS.PLAYBACK_STATE, (state: { isPlaying: boolean; currentTime: number; duration: number }) => {
+      const slug = socket.data.venueSlug;
+      if (!slug) return;
+      socket.to(`venue:${slug}`).emit(SOCKET_EVENTS.PLAYBACK_STATE, state);
+    });
+
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}`);
     });

@@ -30,6 +30,17 @@ export function DisplayAudioPlayer({
     return () => clearTimeout(timer);
   }, [socket, nowPlaying, queueLength]);
 
+  // Broadcast playback state to admin periodically and on changes
+  const broadcastState = useCallback(() => {
+    const audio = audioRef.current;
+    if (!socket || !audio) return;
+    socket.emit(SOCKET_EVENTS.PLAYBACK_STATE, {
+      isPlaying: !audio.paused,
+      currentTime: audio.currentTime,
+      duration: audio.duration || 0,
+    });
+  }, [socket]);
+
   const playCurrent = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !nowPlaying) return;
@@ -70,8 +81,42 @@ export function DisplayAudioPlayer({
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     };
 
+    const onPlay = () => broadcastState();
+    const onPause = () => broadcastState();
+
+    // Periodic state sync every 2 seconds while playing
+    const interval = setInterval(() => {
+      if (!audio.paused) broadcastState();
+    }, 2000);
+
     audio.addEventListener("ended", onEnded);
-    return () => audio.removeEventListener("ended", onEnded);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+    return () => {
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      clearInterval(interval);
+    };
+  }, [socket, broadcastState]);
+
+  // Listen for admin playback control commands
+  useEffect(() => {
+    if (!socket) return;
+
+    const onPlay = () => {
+      audioRef.current?.play().catch(() => {});
+    };
+    const onPause = () => {
+      audioRef.current?.pause();
+    };
+
+    socket.on(SOCKET_EVENTS.PLAYBACK_PLAY, onPlay);
+    socket.on(SOCKET_EVENTS.PLAYBACK_PAUSE, onPause);
+    return () => {
+      socket.off(SOCKET_EVENTS.PLAYBACK_PLAY, onPlay);
+      socket.off(SOCKET_EVENTS.PLAYBACK_PAUSE, onPause);
+    };
   }, [socket]);
 
   const handleUnlock = () => {
