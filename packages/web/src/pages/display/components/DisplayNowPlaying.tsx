@@ -23,7 +23,10 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
     );
   }
 
-  const artworkUrl = getSongArtworkUrl(entry.song.id);
+  const artworkUrl =
+    entry.song.source === "spotify" && entry.song.artworkUrl
+      ? entry.song.artworkUrl
+      : getSongArtworkUrl(entry.song.id);
   const showFallback = artworkError === entry.song.id;
 
   return (

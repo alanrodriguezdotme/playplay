@@ -2,10 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { useToast } from "../../contexts/ToastContext";
 import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
 import { getVenue, updateVenueSettings } from "../../api/admin";
+import {
+  getSpotifyStatus,
+  getSpotifyAuthUrl,
+  disconnectSpotify,
+} from "../../api/spotify";
 import type {
   AdminVenueResponse,
   AdminVenueSettingsUpdateBody,
   OtpDeliveryMode,
+  MusicSource,
+  SpotifyStatus,
 } from "@playplay/shared";
 
 export function SettingsView() {
@@ -24,6 +31,10 @@ export function SettingsView() {
   const [otpDeliveryMode, setOtpDeliveryMode] =
     useState<OtpDeliveryMode>("none");
   const [smsGatewayUrl, setSmsGatewayUrl] = useState("");
+  const [musicSource, setMusicSource] = useState<MusicSource>("local");
+  const [allowFullCatalogSearch, setAllowFullCatalogSearch] = useState(false);
+  const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus | null>(null);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
 
   const fetchVenue = useCallback(async () => {
     try {
@@ -36,6 +47,15 @@ export function SettingsView() {
       setDisplayShowHeader(data.settings.displayShowHeader);
       setOtpDeliveryMode(data.settings.otpDeliveryMode);
       setSmsGatewayUrl(data.settings.smsGatewayUrl);
+      setMusicSource(data.settings.musicSource);
+      setAllowFullCatalogSearch(data.settings.allowFullCatalogSearch);
+      // Fetch Spotify status
+      try {
+        const status = await getSpotifyStatus();
+        setSpotifyStatus(status);
+      } catch {
+        // Spotify not configured — ignore
+      }
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : "Failed to load settings",
@@ -61,6 +81,8 @@ export function SettingsView() {
         displayShowHeader,
         otpDeliveryMode,
         smsGatewayUrl,
+        musicSource,
+        allowFullCatalogSearch,
       };
       const updated = await updateVenueSettings(body);
       setVenue(updated);
@@ -181,6 +203,172 @@ export function SettingsView() {
       {/* Display Settings */}
       <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
         <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
+          Music Source
+        </h3>
+        <p className="text-xs text-on-surface-muted">
+          Choose where songs come from. You can switch between local files and
+          Spotify at any time.
+        </p>
+
+        <div className="space-y-2">
+          {(
+            [
+              {
+                value: "local" as const,
+                label: "Local Files",
+                desc: "Play audio files from the server's music library.",
+              },
+              {
+                value: "spotify" as const,
+                label: "Spotify",
+                desc: "Stream music from Spotify (Premium required).",
+              },
+            ] as const
+          ).map((opt) => (
+            <label
+              key={opt.value}
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${musicSource === opt.value
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
+                }`}
+            >
+              <input
+                type="radio"
+                name="musicSource"
+                value={opt.value}
+                checked={musicSource === opt.value}
+                onChange={() => setMusicSource(opt.value)}
+                className="mt-0.5 accent-primary"
+              />
+              <div>
+                <p className="text-sm font-medium text-on-surface">
+                  {opt.label}
+                </p>
+                <p className="text-xs text-on-surface-muted">{opt.desc}</p>
+              </div>
+            </label>
+          ))}
+        </div>
+
+        {musicSource === "spotify" && (
+          <div className="space-y-3 rounded-lg border border-border bg-surface p-3">
+            <h4 className="text-sm font-medium text-on-surface">
+              Spotify Connection
+            </h4>
+
+            {spotifyStatus?.connected ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-success" />
+                  <span className="text-sm text-on-surface">
+                    Connected as{" "}
+                    <strong>{spotifyStatus.displayName}</strong>
+                  </span>
+                  {spotifyStatus.isPremium && (
+                    <span className="rounded bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
+                      PREMIUM
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={async () => {
+                    setSpotifyLoading(true);
+                    try {
+                      await disconnectSpotify();
+                      setSpotifyStatus({
+                        connected: false,
+                        spotifyUserId: null,
+                        displayName: null,
+                        isPremium: false,
+                      });
+                      showToast("Spotify disconnected", "success");
+                    } catch (err) {
+                      showToast(
+                        err instanceof Error
+                          ? err.message
+                          : "Failed to disconnect",
+                        "error",
+                      );
+                    } finally {
+                      setSpotifyLoading(false);
+                    }
+                  }}
+                  disabled={spotifyLoading}
+                  className="rounded-lg border border-error/50 px-4 py-2 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-50"
+                >
+                  {spotifyLoading ? "..." : "Disconnect Spotify"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-on-surface-muted">
+                  Connect your Spotify Premium account to enable streaming.
+                </p>
+                <button
+                  onClick={async () => {
+                    setSpotifyLoading(true);
+                    try {
+                      const { url } = await getSpotifyAuthUrl();
+                      window.location.href = url;
+                    } catch (err) {
+                      showToast(
+                        err instanceof Error
+                          ? err.message
+                          : "Failed to get auth URL",
+                        "error",
+                      );
+                      setSpotifyLoading(false);
+                    }
+                  }}
+                  disabled={spotifyLoading}
+                  className="rounded-lg bg-[#1DB954] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1ed760] disabled:opacity-50"
+                >
+                  {spotifyLoading ? "Connecting..." : "Connect Spotify"}
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <div>
+                <label className="block text-sm font-medium text-on-surface">
+                  Allow Full Catalog Search
+                </label>
+                <p className="text-xs text-on-surface-muted">
+                  Let patrons search the entire Spotify catalog (not just your
+                  curated library).
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={allowFullCatalogSearch}
+                onClick={() =>
+                  setAllowFullCatalogSearch(!allowFullCatalogSearch)
+                }
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${allowFullCatalogSearch ? "bg-primary" : "bg-surface-alt"
+                  }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${allowFullCatalogSearch ? "translate-x-5" : "translate-x-0"
+                    }`}
+                />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save Settings"}
+        </button>
+      </div>
+
+      {/* Display Settings */}
+      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
           Display Settings
         </h3>
 
@@ -219,14 +407,12 @@ export function SettingsView() {
             role="switch"
             aria-checked={displayShowHeader}
             onClick={() => setDisplayShowHeader(!displayShowHeader)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-              displayShowHeader ? "bg-primary" : "bg-surface-alt"
-            }`}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${displayShowHeader ? "bg-primary" : "bg-surface-alt"
+              }`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                displayShowHeader ? "translate-x-5" : "translate-x-0"
-              }`}
+              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${displayShowHeader ? "translate-x-5" : "translate-x-0"
+                }`}
             />
           </button>
         </div>
@@ -281,11 +467,10 @@ export function SettingsView() {
           ).map((opt) => (
             <label
               key={opt.value}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
-                otpDeliveryMode === opt.value
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${otpDeliveryMode === opt.value
                   ? "border-primary bg-primary/5"
                   : "border-border"
-              } ${opt.disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                } ${opt.disabled ? "cursor-not-allowed opacity-50" : ""}`}
             >
               <input
                 type="radio"
@@ -352,11 +537,10 @@ export function SettingsView() {
             <button
               key={t}
               onClick={() => setTheme(t)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                theme === t
+              className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${theme === t
                   ? "bg-primary text-on-primary"
                   : "border border-border text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
-              }`}
+                }`}
             >
               {t}
             </button>

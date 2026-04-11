@@ -23,13 +23,15 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
     "music-metadata": "^11.12.3",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.14",
+    "@types/spotify-web-api-node": "^5.0.11",
     "prisma": "^6.5.0",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"

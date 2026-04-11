@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.js";
 import songsRouter from "./routes/songs.js";
 import adminRouter from "./routes/admin.js";
 import queueRouter from "./routes/queue.js";
+import spotifyRouter from "./routes/spotify.js";
 import { authenticate, requireAdmin } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/error.js";
 import { initSocket } from "./socket/index.js";
@@ -24,6 +25,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/songs", songsRouter);
 app.use("/api/queue", queueRouter);
+app.use("/api/spotify", spotifyRouter);
 app.use("/api/admin", authenticate, requireAdmin, adminRouter);
 
 app.use(errorHandler);

@@ -59,7 +59,7 @@ function PauseIcon({ className }: { className?: string }) {
 }
 
 export function SongCard({ song }: SongCardProps) {
-  const { queuedSongIds, addSong } = useQueue();
+  const { queuedSongIds, queuedSpotifyTrackIds, addSong } = useQueue();
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -80,7 +80,12 @@ export function SongCard({ song }: SongCardProps) {
     }
 
     stopSharedAudio();
-    const audio = new Audio(getSongStreamUrl(song.id));
+    // For Spotify songs, use previewUrl (30s preview) if available; for local, stream from server
+    const url =
+      song.source === "spotify" && song.previewUrl
+        ? song.previewUrl
+        : getSongStreamUrl(song.id);
+    const audio = new Audio(url);
     sharedAudio = audio;
     currentPlayingSongId = song.id;
     notifyListeners();
@@ -88,15 +93,22 @@ export function SongCard({ song }: SongCardProps) {
     audio.addEventListener("ended", stopSharedAudio);
     audio.addEventListener("error", stopSharedAudio);
     audio.play().catch(stopSharedAudio);
-  }, [song.id]);
+  }, [song.id, song.source, song.previewUrl]);
 
-  const isInQueue = queuedSongIds.has(song.id);
+  const isInQueue =
+    (song.id && queuedSongIds.has(song.id)) ||
+    (song.spotifyTrackId && queuedSpotifyTrackIds.has(song.spotifyTrackId)) ||
+    false;
 
   const handleAdd = async () => {
     setIsAdding(true);
     setError(null);
     try {
-      await addSong(song.id);
+      if (song.id) {
+        await addSong(song.id);
+      } else if (song.spotifyTrackId) {
+        await addSong(undefined, song.spotifyTrackId);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add");
     } finally {
@@ -106,21 +118,43 @@ export function SongCard({ song }: SongCardProps) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <button
-        onClick={togglePreview}
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-          isPlaying
+      {/* Artwork for Spotify songs */}
+      {song.source === "spotify" && song.artworkUrl ? (
+        <button
+          onClick={togglePreview}
+          className="relative h-10 w-10 shrink-0 rounded overflow-hidden group"
+          aria-label={isPlaying ? "Stop preview" : "Preview song"}
+        >
+          <img
+            src={song.artworkUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+          <span className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}>
+            {isPlaying ? (
+              <PauseIcon className="h-4 w-4 text-white" />
+            ) : (
+              <PlayIcon className="h-4 w-4 text-white" />
+            )}
+          </span>
+        </button>
+      ) : (
+        <button
+          onClick={togglePreview}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${isPlaying
             ? "bg-primary text-on-primary"
             : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
-        }`}
-        aria-label={isPlaying ? "Stop preview" : "Preview song"}
-      >
-        {isPlaying ? (
-          <PauseIcon className="h-4 w-4" />
-        ) : (
-          <PlayIcon className="h-4 w-4" />
-        )}
-      </button>
+            }`}
+          aria-label={isPlaying ? "Stop preview" : "Preview song"}
+        >
+          {isPlaying ? (
+            <PauseIcon className="h-4 w-4" />
+          ) : (
+            <PlayIcon className="h-4 w-4" />
+          )}
+        </button>
+      )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-on-surface">
           {song.title}

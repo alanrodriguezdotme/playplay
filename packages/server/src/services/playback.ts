@@ -20,6 +20,11 @@ function formatEntry(entry: any): QueueEntry {
       totalPlays: entry.song.totalPlays,
       totalAdds: entry.song.totalAdds,
       isBlocked: entry.song.blocked,
+      source: entry.song.source ?? "local",
+      spotifyTrackId: entry.song.spotifyTrackId ?? null,
+      artworkUrl: entry.song.artworkUrl ?? null,
+      previewUrl: entry.song.previewUrl ?? null,
+      spotifyUri: entry.song.spotifyUri ?? null,
     },
     addedBy: entry.addedBy
       ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName }

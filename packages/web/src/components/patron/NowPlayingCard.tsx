@@ -25,9 +25,17 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
         Now Playing
       </p>
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl">
-          🎵
-        </div>
+        {entry.song.source === "spotify" && entry.song.artworkUrl ? (
+          <img
+            src={entry.song.artworkUrl}
+            alt=""
+            className="h-16 w-16 shrink-0 rounded-xl object-cover"
+          />
+        ) : (
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl">
+            🎵
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-lg font-bold text-on-surface">
             {entry.song.title}

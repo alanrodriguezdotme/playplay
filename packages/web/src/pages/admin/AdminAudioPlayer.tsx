@@ -3,6 +3,8 @@ import { SOCKET_EVENTS } from "@playplay/shared";
 import type { QueueEntry, PlaybackSyncState } from "@playplay/shared";
 import type { Socket } from "socket.io-client";
 import { getSongStreamUrl } from "../../api/songs";
+import { useSpotifyPlayer } from "../../hooks/useSpotifyPlayer";
+import { useSpotifyConnect } from "../../hooks/useSpotifyConnect";
 
 function getDeviceHint(): string {
   const ua = navigator.userAgent;
@@ -32,8 +34,17 @@ export function AdminAudioPlayer({
   const [playbackSync, setPlaybackSync] = useState<PlaybackSyncState | null>(
     null,
   );
+  const [showConnectDevices, setShowConnectDevices] = useState(false);
 
   const isOwner = playbackSync?.audioOwnerSocketId === socket?.id;
+  const musicSource = playbackSync?.musicSource ?? "local";
+  const isSpotify = musicSource === "spotify";
+  const currentSongSource = nowPlaying?.song?.source ?? "local";
+
+  // Spotify Web Playback SDK
+  const spotify = useSpotifyPlayer(isOwner && isSpotify);
+  const spotifyConnect = useSpotifyConnect(isOwner && isSpotify && !spotify.isReady);
+  const prevSpotifyStateRef = useRef<any>(null);
 
   // Listen for PLAYBACK_SYNC
   useEffect(() => {
@@ -51,10 +62,18 @@ export function AdminAudioPlayer({
   useEffect(() => {
     if (!socket) return;
     const onPlay = () => {
-      audioRef.current?.play().catch(() => {});
+      if (currentSongSource === "spotify") {
+        spotify.resume();
+      } else {
+        audioRef.current?.play().catch(() => { });
+      }
     };
     const onPause = () => {
-      audioRef.current?.pause();
+      if (currentSongSource === "spotify") {
+        spotify.pause();
+      } else {
+        audioRef.current?.pause();
+      }
     };
     socket.on(SOCKET_EVENTS.PLAYBACK_PLAY, onPlay);
     socket.on(SOCKET_EVENTS.PLAYBACK_PAUSE, onPause);
@@ -62,10 +81,10 @@ export function AdminAudioPlayer({
       socket.off(SOCKET_EVENTS.PLAYBACK_PLAY, onPlay);
       socket.off(SOCKET_EVENTS.PLAYBACK_PAUSE, onPause);
     };
-  }, [socket]);
+  }, [socket, currentSongSource, spotify]);
 
-  // Broadcast playback state periodically
-  const broadcastState = useCallback(() => {
+  // Broadcast playback state periodically (local audio)
+  const broadcastLocalState = useCallback(() => {
     const audio = audioRef.current;
     if (!socket || !audio) return;
     socket.emit(SOCKET_EVENTS.PLAYBACK_STATE, {
@@ -75,8 +94,36 @@ export function AdminAudioPlayer({
     });
   }, [socket]);
 
-  // Play the current song when we're the owner and nowPlaying changes
-  const playCurrent = useCallback(() => {
+  // Broadcast playback state from Spotify SDK
+  useEffect(() => {
+    if (!socket || !isOwner || !isSpotify || !spotify.playerState) return;
+    const state = spotify.playerState;
+    const interval = setInterval(() => {
+      socket.emit(SOCKET_EVENTS.PLAYBACK_STATE, {
+        isPlaying: !state.paused,
+        currentTime: state.position / 1000,
+        duration: state.duration / 1000,
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [socket, isOwner, isSpotify, spotify.playerState]);
+
+  // Detect Spotify track end
+  useEffect(() => {
+    if (!socket || !isOwner || !isSpotify) return;
+    const prev = prevSpotifyStateRef.current;
+    const curr = spotify.playerState;
+    prevSpotifyStateRef.current = curr;
+
+    if (prev && !prev.paused && curr && curr.paused && curr.position === 0) {
+      // Track ended — Spotify resets position to 0 when paused at end
+      lastSongIdRef.current = null;
+      socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
+    }
+  }, [spotify.playerState, socket, isOwner, isSpotify]);
+
+  // Play the current song (local)
+  const playCurrentLocal = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !nowPlaying) return;
 
@@ -89,6 +136,17 @@ export function AdminAudioPlayer({
       setNeedsInteraction(true);
     });
   }, [nowPlaying]);
+
+  // Play the current song (Spotify)
+  const playCurrentSpotify = useCallback(async () => {
+    if (!nowPlaying?.song.spotifyUri || !spotify.isReady) return;
+
+    const songId = nowPlaying.song.id;
+    if (lastSongIdRef.current === songId) return;
+    lastSongIdRef.current = songId;
+
+    await spotify.play(nowPlaying.song.spotifyUri);
+  }, [nowPlaying, spotify]);
 
   // When ownership or nowPlaying changes, start/stop audio
   useEffect(() => {
@@ -104,7 +162,11 @@ export function AdminAudioPlayer({
     }
 
     if (nowPlaying) {
-      playCurrent();
+      if (currentSongSource === "spotify") {
+        playCurrentSpotify();
+      } else {
+        playCurrentLocal();
+      }
     } else {
       const audio = audioRef.current;
       if (audio) {
@@ -113,9 +175,9 @@ export function AdminAudioPlayer({
         lastSongIdRef.current = null;
       }
     }
-  }, [isOwner, nowPlaying, playCurrent]);
+  }, [isOwner, nowPlaying, currentSongSource, playCurrentLocal, playCurrentSpotify]);
 
-  // Audio event listeners (ended, play, pause, periodic sync)
+  // Audio event listeners for local playback (ended, play, pause, periodic sync)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !socket || !isOwner) return;
@@ -124,11 +186,11 @@ export function AdminAudioPlayer({
       lastSongIdRef.current = null;
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     };
-    const onPlay = () => broadcastState();
-    const onPause = () => broadcastState();
+    const onPlay = () => broadcastLocalState();
+    const onPause = () => broadcastLocalState();
 
     const interval = setInterval(() => {
-      if (!audio.paused) broadcastState();
+      if (!audio.paused) broadcastLocalState();
     }, 2000);
 
     audio.addEventListener("ended", onEnded);
@@ -140,7 +202,7 @@ export function AdminAudioPlayer({
       audio.removeEventListener("pause", onPause);
       clearInterval(interval);
     };
-  }, [socket, isOwner, broadcastState]);
+  }, [socket, isOwner, broadcastLocalState]);
 
   // ---- Actions ----
 
@@ -161,7 +223,7 @@ export function AdminAudioPlayer({
 
   const handleUnlock = () => {
     setNeedsInteraction(false);
-    audioRef.current?.play().catch(() => {});
+    audioRef.current?.play().catch(() => { });
   };
 
   // ---- Render ----
@@ -181,8 +243,13 @@ export function AdminAudioPlayer({
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 shrink-0 rounded-full bg-success animate-pulse" />
                 <span className="text-xs font-medium text-on-surface">
-                  Audio playing on this device
+                  {isSpotify ? "Spotify" : "Audio"} playing on this device
                 </span>
+                {isSpotify && spotify.error && (
+                  <span className="text-xs text-error truncate max-w-[200px]">
+                    {spotify.error}
+                  </span>
+                )}
               </div>
             ) : hasOwner ? (
               <div className="flex items-center gap-2">
@@ -197,6 +264,19 @@ export function AdminAudioPlayer({
               </span>
             )}
           </div>
+
+          {/* Spotify Connect fallback button */}
+          {isOwner && isSpotify && !spotify.isReady && (
+            <button
+              onClick={() => {
+                setShowConnectDevices(!showConnectDevices);
+                if (!showConnectDevices) spotifyConnect.refreshDevices();
+              }}
+              className="rounded-lg border border-[#1DB954] px-3 py-1.5 text-xs font-medium text-[#1DB954] hover:bg-[#1DB954]/10"
+            >
+              Spotify Connect
+            </button>
+          )}
 
           {/* Start playback button (when owner, queue has songs, nothing playing) */}
           {showStartButton && (
@@ -225,6 +305,50 @@ export function AdminAudioPlayer({
             </button>
           )}
         </div>
+
+        {/* Spotify Connect device picker */}
+        {showConnectDevices && isOwner && isSpotify && (
+          <div className="mt-2 rounded-lg border border-border bg-surface p-3">
+            <p className="text-xs font-medium text-on-surface mb-2">
+              Spotify Connect Devices
+            </p>
+            {spotifyConnect.loading ? (
+              <p className="text-xs text-on-surface-muted">Loading devices...</p>
+            ) : spotifyConnect.devices.length === 0 ? (
+              <p className="text-xs text-on-surface-muted">
+                No devices found. Open Spotify on another device first.
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {spotifyConnect.devices.map((d) => (
+                  <button
+                    key={d.id}
+                    onClick={() => {
+                      spotifyConnect.transferPlayback(d.id);
+                      setShowConnectDevices(false);
+                    }}
+                    className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-surface-alt ${d.isActive ? "border border-[#1DB954]" : "border border-border"
+                      }`}
+                  >
+                    <span className="font-medium">{d.name}</span>
+                    <span className="text-on-surface-muted">({d.type})</span>
+                    {d.isActive && (
+                      <span className="ml-auto text-[10px] font-semibold text-[#1DB954]">
+                        ACTIVE
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => spotifyConnect.refreshDevices()}
+              className="mt-2 text-xs text-primary hover:underline"
+            >
+              Refresh
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Autoplay unlock overlay */}

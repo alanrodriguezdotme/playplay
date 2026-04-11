@@ -7,6 +7,7 @@ interface PlaybackState {
   currentSongId: string | null;
   currentTime: number;
   duration: number;
+  musicSource: "local" | "spotify";
 }
 
 const venuePlayback = new Map<string, PlaybackState>();
@@ -21,6 +22,7 @@ function getOrCreate(venueId: string): PlaybackState {
       currentSongId: null,
       currentTime: 0,
       duration: 0,
+      musicSource: "local",
     };
     venuePlayback.set(venueId, state);
   }
@@ -85,11 +87,12 @@ export function updatePlaybackPosition(
   s.duration = duration;
 }
 
-export function setCurrentSong(venueId: string, songId: string | null): void {
+export function setCurrentSong(venueId: string, songId: string | null, source?: "local" | "spotify"): void {
   const s = getOrCreate(venueId);
   s.currentSongId = songId;
   s.currentTime = 0;
   s.duration = 0;
+  if (source) s.musicSource = source;
   if (!songId) {
     s.isPlaying = false;
   }

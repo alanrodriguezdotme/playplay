@@ -158,7 +158,8 @@ export function initSocket(server: HttpServer): Server {
         if (socket.data.role !== "ADMIN" || !isAudioOwner(venueId, socket.id)) return;
 
         const newEntry = await advanceQueue(venueId);
-        setCurrentSong(venueId, newEntry?.song.id ?? null);
+        const source = (newEntry?.song as any)?.source ?? "local";
+        setCurrentSong(venueId, newEntry?.song.id ?? null, source as "local" | "spotify");
         if (newEntry) setPlaying(venueId, true);
 
         await broadcastNowPlayingChanged(venueId, newEntry);
@@ -177,7 +178,8 @@ export function initSocket(server: HttpServer): Server {
         if (socket.data.role !== "ADMIN" || !isAudioOwner(venueId, socket.id)) return;
 
         const newEntry = await advanceQueue(venueId);
-        setCurrentSong(venueId, newEntry?.song.id ?? null);
+        const source = (newEntry?.song as any)?.source ?? "local";
+        setCurrentSong(venueId, newEntry?.song.id ?? null, source as "local" | "spotify");
         if (newEntry) setPlaying(venueId, true);
 
         await broadcastNowPlayingChanged(venueId, newEntry);

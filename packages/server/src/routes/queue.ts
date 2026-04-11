@@ -10,6 +10,7 @@ import {
   reorderQueue,
   QueueError,
 } from "../services/queue.js";
+import { importSpotifyTrack } from "../services/spotify.js";
 import { prisma, parseSettings } from "../lib/prisma.js";
 import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 import { getLocalIp } from "../services/network.js";
@@ -21,9 +22,21 @@ const router = Router();
 // POST /api/queue/add — add a song to the queue
 router.post("/add", authenticate, async (req, res, next) => {
   try {
-    const { songId } = req.body;
+    let { songId } = req.body;
+    const { spotifyTrackId } = req.body;
+
+    // If spotifyTrackId provided, auto-import it first
+    if (!songId && spotifyTrackId && typeof spotifyTrackId === "string") {
+      try {
+        songId = await importSpotifyTrack(req.user!.venueId, spotifyTrackId);
+      } catch (err) {
+        res.status(400).json({ error: "spotify_import_failed", message: (err as Error).message });
+        return;
+      }
+    }
+
     if (!songId || typeof songId !== "string") {
-      res.status(400).json({ error: "bad_request", message: "songId is required" });
+      res.status(400).json({ error: "bad_request", message: "songId or spotifyTrackId is required" });
       return;
     }
 

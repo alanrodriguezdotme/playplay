@@ -23,6 +23,11 @@ function formatEntry(
       totalPlays: entry.song.totalPlays,
       totalAdds: entry.song.totalAdds,
       isBlocked: entry.song.blocked,
+      source: entry.song.source ?? "local",
+      spotifyTrackId: entry.song.spotifyTrackId ?? null,
+      artworkUrl: entry.song.artworkUrl ?? null,
+      previewUrl: entry.song.previewUrl ?? null,
+      spotifyUri: entry.song.spotifyUri ?? null,
     },
     addedBy: entry.addedBy
       ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName }
@@ -45,6 +50,8 @@ function getVenueSettings(venue: { settings: any }): VenueSettings {
     displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
     otpDeliveryMode: (s.otpDeliveryMode as string as VenueSettings["otpDeliveryMode"]) ?? DEFAULTS.OTP_DELIVERY_MODE,
     smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
+    musicSource: (s.musicSource as string as VenueSettings["musicSource"]) ?? DEFAULTS.MUSIC_SOURCE,
+    allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
   };
 }
 

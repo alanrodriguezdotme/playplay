@@ -34,6 +34,13 @@ export function getSongArtworkUrl(songId: string): string {
   return `${base}/api/songs/${songId}/artwork`;
 }
 
+export async function getMusicSource(): Promise<{
+  musicSource: "local" | "spotify";
+  allowFullCatalogSearch: boolean;
+}> {
+  return apiRequest("/api/songs/music-source");
+}
+
 export async function triggerMusicScan(): Promise<{
   added: number;
   updated: number;

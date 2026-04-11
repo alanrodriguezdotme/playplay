@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { searchSongs } from "../../api/songs";
+import { searchSongs, getMusicSource } from "../../api/songs";
+import { searchSpotifyCatalog } from "../../api/spotify";
 import { useDebounce } from "../../hooks/useDebounce";
+import { useQueue } from "../../contexts/QueueContext";
 import { SongCard } from "../../components/patron/SongCard";
-import type { Song } from "@playplay/shared";
+import type { Song, MusicSource } from "@playplay/shared";
 
 export function SearchView() {
   const [query, setQuery] = useState("");
@@ -12,8 +14,22 @@ export function SearchView() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [musicSource, setMusicSource] = useState<MusicSource>("local");
+  const [allowFullCatalog, setAllowFullCatalog] = useState(false);
 
-  const LIMIT = 20;
+  const LIMIT = 10;
+
+  // Fetch music source settings
+  useEffect(() => {
+    getMusicSource()
+      .then((data) => {
+        setMusicSource(data.musicSource);
+        setAllowFullCatalog(data.allowFullCatalogSearch);
+      })
+      .catch(() => { });
+  }, []);
+
+  const useSpotifySearch = musicSource === "spotify" && allowFullCatalog;
 
   const doSearch = useCallback(
     async (q: string, p: number, append: boolean) => {
@@ -25,9 +41,33 @@ export function SearchView() {
       }
       setIsLoading(true);
       try {
-        const data = await searchSongs(q, p, LIMIT);
-        setResults((prev) => (append ? [...prev, ...data.songs] : data.songs));
-        setTotal(data.total);
+        if (useSpotifySearch) {
+          // Search Spotify catalog directly
+          const offset = (p - 1) * LIMIT;
+          const data = await searchSpotifyCatalog(q, LIMIT, offset);
+          const songs: Song[] = data.tracks.map((t) => ({
+            id: "", // no local ID yet — SongCard will use spotifyTrackId
+            title: t.title,
+            artist: t.artist,
+            album: t.album,
+            duration: t.duration,
+            totalPlays: 0,
+            totalAdds: 0,
+            isBlocked: false,
+            source: "spotify" as const,
+            spotifyTrackId: t.spotifyTrackId,
+            artworkUrl: t.artworkUrl,
+            previewUrl: t.previewUrl,
+            spotifyUri: t.spotifyUri,
+          }));
+          setResults((prev) => (append ? [...prev, ...songs] : songs));
+          setTotal(data.total);
+        } else {
+          // Search local library
+          const data = await searchSongs(q, p, LIMIT);
+          setResults((prev) => (append ? [...prev, ...data.songs] : data.songs));
+          setTotal(data.total);
+        }
         setHasSearched(true);
       } catch {
         // keep existing results on error
@@ -35,10 +75,10 @@ export function SearchView() {
         setIsLoading(false);
       }
     },
-    [],
+    [useSpotifySearch],
   );
 
-  // Search when debounced query changes
+  // Search when debounced query or music source settings change
   useEffect(() => {
     setPage(1);
     doSearch(debouncedQuery, 1, false);
@@ -122,8 +162,8 @@ export function SearchView() {
 
       {results.length > 0 && (
         <div className="divide-y divide-border">
-          {results.map((song) => (
-            <SongCard key={song.id} song={song} />
+          {results.map((song, i) => (
+            <SongCard key={song.id || song.spotifyTrackId || i} song={song} />
           ))}
         </div>
       )}

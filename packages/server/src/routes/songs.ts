@@ -3,8 +3,9 @@ import { createReadStream, statSync } from "node:fs";
 import { access } from "node:fs/promises";
 import { join, resolve, extname } from "node:path";
 import { parseFile } from "music-metadata";
-import { prisma } from "../lib/prisma.js";
+import { prisma, parseSettings } from "../lib/prisma.js";
 import { authenticate } from "../middleware/auth.js";
+import { DEFAULTS } from "@playplay/shared";
 
 const router = Router();
 
@@ -15,6 +16,26 @@ const MIME_TYPES: Record<string, string> = {
   ".ogg": "audio/ogg",
   ".wav": "audio/wav",
 };
+
+// GET /api/songs/music-source — public: returns music source settings for the venue
+router.get("/music-source", authenticate, async (req, res, next) => {
+  try {
+    const venue = await prisma.venue.findUnique({
+      where: { id: req.user!.venueId },
+    });
+    if (!venue) {
+      res.json({ musicSource: "local", allowFullCatalogSearch: false });
+      return;
+    }
+    const s = parseSettings(venue.settings);
+    res.json({
+      musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
+      allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/songs — paginated song list
 router.get("/", authenticate, async (req, res, next) => {
@@ -40,6 +61,11 @@ router.get("/", authenticate, async (req, res, next) => {
           totalPlays: true,
           totalAdds: true,
           blocked: true,
+          source: true,
+          spotifyTrackId: true,
+          artworkUrl: true,
+          previewUrl: true,
+          spotifyUri: true,
         },
       }),
       prisma.song.count({ where }),
@@ -93,6 +119,11 @@ router.get("/search", authenticate, async (req, res, next) => {
           totalPlays: true,
           totalAdds: true,
           blocked: true,
+          source: true,
+          spotifyTrackId: true,
+          artworkUrl: true,
+          previewUrl: true,
+          spotifyUri: true,
         },
       }),
       prisma.song.count({ where }),
@@ -113,6 +144,17 @@ router.get("/:id/stream", async (req, res, next) => {
 
     if (!song) {
       res.status(404).json({ error: "not_found", message: "Song not found" });
+      return;
+    }
+
+    // Spotify songs are streamed via the Spotify SDK, not via the server
+    if (song.source === "spotify") {
+      res.status(403).json({ error: "spotify_stream", message: "Spotify songs are played via the Spotify SDK" });
+      return;
+    }
+
+    if (!song.filePath) {
+      res.status(404).json({ error: "file_not_found", message: "No audio file for this song" });
       return;
     }
 
@@ -172,6 +214,21 @@ router.get("/:id/artwork", async (req, res, next) => {
 
     if (!song) {
       res.status(404).json({ error: "not_found", message: "Song not found" });
+      return;
+    }
+
+    // For Spotify songs, redirect to the artwork URL
+    if (song.source === "spotify") {
+      if (song.artworkUrl) {
+        res.redirect(song.artworkUrl);
+      } else {
+        res.status(404).json({ error: "no_artwork", message: "No artwork available" });
+      }
+      return;
+    }
+
+    if (!song.filePath) {
+      res.status(404).json({ error: "file_not_found", message: "No audio file for this song" });
       return;
     }
 

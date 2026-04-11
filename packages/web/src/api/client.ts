@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 const TOKEN_KEY = "playplay_token";
 const DEVICE_ID_KEY = "playplay_device_id";
@@ -18,7 +18,19 @@ export function clearStoredToken(): void {
 export function getDeviceId(): string {
   let id = localStorage.getItem(DEVICE_ID_KEY);
   if (!id) {
-    id = crypto.randomUUID();
+    // crypto.randomUUID() requires a secure context (HTTPS or localhost).
+    // Fall back for LAN/HTTP access.
+    id =
+      typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)))
+          .map((b, i) =>
+            ([4, 6, 8, 10].includes(i) ? "-" : "") +
+            (i === 6 ? (b & 0x0f) | 0x40 : i === 8 ? (b & 0x3f) | 0x80 : b)
+              .toString(16)
+              .padStart(2, "0")
+          )
+          .join("");
     localStorage.setItem(DEVICE_ID_KEY, id);
   }
   return id;

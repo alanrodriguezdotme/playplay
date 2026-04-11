@@ -1,10 +1,10 @@
 import { apiRequest } from "./client.js";
 import type { QueueEntry, QueueResponse, QueueHistoryResponse, DisplaySettings } from "@playplay/shared";
 
-export async function addToQueue(songId: string): Promise<QueueEntry> {
+export async function addToQueue(songId?: string, spotifyTrackId?: string): Promise<QueueEntry> {
   return apiRequest<QueueEntry>("/api/queue/add", {
     method: "POST",
-    body: JSON.stringify({ songId }),
+    body: JSON.stringify({ songId, spotifyTrackId }),
   });
 }
 

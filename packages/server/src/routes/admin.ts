@@ -40,6 +40,8 @@ router.get("/venue", async (req, res, next) => {
         displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
         otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
         smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
+        musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
+        allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
       },
     });
   } catch (err) {
@@ -112,6 +114,21 @@ router.patch("/venue/settings", async (req, res, next) => {
       }
       merged.smsGatewayUrl = body.smsGatewayUrl;
     }
+    if (body.musicSource !== undefined) {
+      const validSources = ["local", "spotify"];
+      if (!validSources.includes(body.musicSource)) {
+        res.status(400).json({ error: "validation", message: "musicSource must be 'local' or 'spotify'" });
+        return;
+      }
+      merged.musicSource = body.musicSource;
+    }
+    if (body.allowFullCatalogSearch !== undefined) {
+      if (typeof body.allowFullCatalogSearch !== "boolean") {
+        res.status(400).json({ error: "validation", message: "allowFullCatalogSearch must be a boolean" });
+        return;
+      }
+      merged.allowFullCatalogSearch = body.allowFullCatalogSearch;
+    }
 
     const updated = await prisma.venue.update({
       where: { id: venue.id },
@@ -133,6 +150,8 @@ router.patch("/venue/settings", async (req, res, next) => {
         displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
         otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
         smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
+        musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
+        allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
       },
     });
   } catch (err) {
@@ -313,6 +332,9 @@ router.patch("/songs/:id", async (req, res, next) => {
       totalPlays: updated.totalPlays,
       totalAdds: updated.totalAdds,
       createdAt: updated.createdAt.toISOString(),
+      source: updated.source,
+      spotifyTrackId: updated.spotifyTrackId,
+      artworkUrl: updated.artworkUrl,
     });
   } catch (err) {
     next(err);

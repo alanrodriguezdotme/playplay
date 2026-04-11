@@ -19,8 +19,10 @@ interface QueueContextValue {
   error: string | null;
   /** Set of song IDs currently in the queue (for "Already in Queue" checks) */
   queuedSongIds: Set<string>;
+  /** Set of Spotify track IDs currently in the queue */
+  queuedSpotifyTrackIds: Set<string>;
   vote: (entryId: string, value: 1 | -1 | 0) => Promise<void>;
-  addSong: (songId: string) => Promise<QueueEntry>;
+  addSong: (songId?: string, spotifyTrackId?: string) => Promise<QueueEntry>;
   refresh: () => Promise<void>;
 }
 
@@ -106,6 +108,15 @@ export function QueueProvider({
     return ids;
   }, [queue, nowPlaying]);
 
+  const queuedSpotifyTrackIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (nowPlaying?.song.spotifyTrackId) ids.add(nowPlaying.song.spotifyTrackId);
+    for (const entry of queue) {
+      if (entry.song.spotifyTrackId) ids.add(entry.song.spotifyTrackId);
+    }
+    return ids;
+  }, [queue, nowPlaying]);
+
   const vote = useCallback(
     async (entryId: string, value: 1 | -1 | 0) => {
       // Optimistically update local state
@@ -134,8 +145,8 @@ export function QueueProvider({
   );
 
   const addSong = useCallback(
-    async (songId: string) => {
-      const entry = await addToQueue(songId);
+    async (songId?: string, spotifyTrackId?: string) => {
+      const entry = await addToQueue(songId, spotifyTrackId);
       showToast("Song added to queue!", "success");
       return entry;
     },
@@ -150,6 +161,7 @@ export function QueueProvider({
         isLoading,
         error,
         queuedSongIds,
+        queuedSpotifyTrackIds,
         vote,
         addSong,
         refresh: fetchQueue,

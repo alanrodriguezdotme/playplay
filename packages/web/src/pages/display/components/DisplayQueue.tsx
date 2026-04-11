@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { QueueEntry } from "@playplay/shared";
+import type { QueueEntry, Song } from "@playplay/shared";
 import { getSongArtworkUrl } from "../../../api/songs";
 
-function QueueItemArt({ songId }: { songId: string }) {
+function QueueItemArt({ song }: { song: Song }) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -13,9 +13,14 @@ function QueueItemArt({ songId }: { songId: string }) {
     );
   }
 
+  const url =
+    song.source === "spotify" && song.artworkUrl
+      ? song.artworkUrl
+      : getSongArtworkUrl(song.id);
+
   return (
     <img
-      src={getSongArtworkUrl(songId)}
+      src={url}
       alt=""
       className="h-9 w-9 shrink-0 rounded-lg object-cover"
       onError={() => setFailed(true)}
@@ -50,7 +55,7 @@ export function DisplayQueue({ queue }: DisplayQueueProps) {
             <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-on-surface-muted">
               {i + 1}
             </span>
-            <QueueItemArt songId={entry.song.id} />
+            <QueueItemArt song={entry.song} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-on-surface">
                 {entry.song.title}

@@ -107,14 +107,15 @@ export async function scanMusicLibrary(
     }
   }
 
-  // Mark songs whose files no longer exist on disk
+  // Mark songs whose files no longer exist on disk (local songs only)
   const existingSongs = await prisma.song.findMany({
-    where: { venueId, blocked: false },
+    where: { venueId, blocked: false, source: "local" },
     select: { id: true, filePath: true },
   });
 
   for (const song of existingSongs) {
-    if (!foundPaths.has(song.filePath)) {
+    if (!song.filePath || !foundPaths.has(song.filePath)) {
+      if (!song.filePath) continue; // Spotify songs don't have file paths
       // Verify the file really doesn't exist (it might have been added via seed with a different path)
       const absolutePath = join(resolvedPath, song.filePath);
       try {

@@ -29,7 +29,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = getStoredToken();
 
-    const serverUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const serverUrl = import.meta.env.VITE_API_URL || window.location.origin;
     const socket = io(serverUrl, {
       auth: token ? { token } : {},
       autoConnect: true,

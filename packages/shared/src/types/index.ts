@@ -2,6 +2,7 @@
 
 export type UserRole = "PATRON" | "ADMIN";
 export type QueueEntryStatus = "QUEUED" | "PLAYING" | "PLAYED" | "REMOVED";
+export type MusicSource = "local" | "spotify";
 
 // ---- Models (mirroring Prisma, used on the client) ----
 
@@ -23,6 +24,8 @@ export interface VenueSettings {
   displayShowHeader: boolean;
   otpDeliveryMode: OtpDeliveryMode;
   smsGatewayUrl: string;
+  musicSource: MusicSource;
+  allowFullCatalogSearch: boolean;
 }
 
 export interface UserProfile {
@@ -45,6 +48,11 @@ export interface Song {
   totalPlays: number;
   totalAdds: number;
   isBlocked: boolean;
+  source: MusicSource;
+  spotifyTrackId?: string | null;
+  artworkUrl?: string | null;
+  previewUrl?: string | null;
+  spotifyUri?: string | null;
 }
 
 export interface QueueEntry {
@@ -124,7 +132,8 @@ export interface VerifyVenueOtpBody {
 }
 
 export interface AddToQueueBody {
-  songId: string;
+  songId?: string;
+  spotifyTrackId?: string;
 }
 
 export interface VoteBody {
@@ -188,6 +197,7 @@ export interface PlaybackSyncState {
   currentSongId: string | null;
   currentTime: number;
   duration: number;
+  musicSource: MusicSource;
 }
 
 // ---- Admin API Types ----
@@ -209,6 +219,8 @@ export interface AdminVenueSettingsUpdateBody {
   displayShowHeader?: boolean;
   otpDeliveryMode?: OtpDeliveryMode;
   smsGatewayUrl?: string;
+  musicSource?: MusicSource;
+  allowFullCatalogSearch?: boolean;
 }
 
 export interface AdminUser {
@@ -244,12 +256,15 @@ export interface AdminSong {
   artist: string;
   album: string;
   duration: number;
-  filePath: string;
+  filePath: string | null;
   blocked: boolean;
   isDefault: boolean;
   totalPlays: number;
   totalAdds: number;
   createdAt: string;
+  source: MusicSource;
+  spotifyTrackId: string | null;
+  artworkUrl: string | null;
 }
 
 export interface AdminStatsResponse {
@@ -261,4 +276,34 @@ export interface AdminStatsResponse {
   totalQueued: number;
   topSongs: { id: string; title: string; artist: string; totalPlays: number }[];
   recentActivity: QueueEntry[];
+}
+
+// ---- Spotify Types ----
+
+export interface SpotifyStatus {
+  connected: boolean;
+  spotifyUserId: string | null;
+  displayName: string | null;
+  isPremium: boolean;
+}
+
+export interface SpotifyTrack {
+  spotifyTrackId: string;
+  spotifyUri: string;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  artworkUrl: string | null;
+  previewUrl: string | null;
+}
+
+export interface SpotifySearchResult {
+  tracks: SpotifyTrack[];
+  total: number;
+}
+
+export interface SpotifyTokenResponse {
+  accessToken: string;
+  expiresIn: number;
 }
