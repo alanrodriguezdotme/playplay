@@ -46,9 +46,10 @@ export function QueueManagement() {
 
   // Remote playback state (from audio owner via PLAYBACK_SYNC)
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [syncedTime, setSyncedTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [audioOwnerDevice, setAudioOwnerDevice] = useState<string | null>(null);
+  const [localTime, setLocalTime] = useState(0);
 
   // Listen for playback sync from server
   useEffect(() => {
@@ -56,7 +57,7 @@ export function QueueManagement() {
 
     const onSync = (state: PlaybackSyncState) => {
       setIsPlaying(state.isPlaying);
-      setCurrentTime(state.currentTime);
+      setSyncedTime(state.currentTime);
       setDuration(state.duration);
       setAudioOwnerDevice(state.audioOwnerDeviceHint);
     };
@@ -67,11 +68,34 @@ export function QueueManagement() {
     };
   }, [socket]);
 
+  // Sync localTime from server
+  useEffect(() => {
+    setLocalTime(syncedTime);
+  }, [syncedTime]);
+
+  // Reset on song change
+  useEffect(() => {
+    setLocalTime(0);
+  }, [nowPlaying?.song?.id]);
+
+  // Interpolate localTime while playing
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setLocalTime((prev) => {
+        const next = prev + 0.25;
+        return duration > 0 ? Math.min(next, duration) : next;
+      });
+    }, 250);
+    return () => clearInterval(interval);
+  }, [isPlaying, duration]);
+
   // Reset state when nothing is playing
   useEffect(() => {
     if (!nowPlaying) {
       setIsPlaying(false);
-      setCurrentTime(0);
+      setSyncedTime(0);
+      setLocalTime(0);
       setDuration(0);
     }
   }, [nowPlaying]);
@@ -238,14 +262,14 @@ export function QueueManagement() {
             {/* Progress bar (shows audio owner state) */}
             <div className="flex items-center gap-2">
               <span className="text-[10px] tabular-nums text-on-surface-muted w-10 text-right">
-                {formatDuration(Math.floor(currentTime))}
+                {formatDuration(Math.floor(localTime))}
               </span>
               <div className="h-1 flex-1 rounded-full bg-border overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-1000 ease-linear"
+                  className="h-full rounded-full bg-primary"
                   style={{
                     width: duration
-                      ? `${(currentTime / duration) * 100}%`
+                      ? `${(localTime / duration) * 100}%`
                       : "0%",
                   }}
                 />
@@ -321,11 +345,10 @@ export function QueueManagement() {
                   </p>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
-                    entry.status === "PLAYED"
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${entry.status === "PLAYED"
                       ? "bg-on-surface-muted/15 text-on-surface-muted"
                       : "bg-destructive/15 text-destructive"
-                  }`}
+                    }`}
                 >
                   {entry.status}
                 </span>

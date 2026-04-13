@@ -185,11 +185,10 @@ function Sidebar({
           <button
             key={key}
             onClick={() => onTabChange(key)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-              activeTab === key
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${activeTab === key
                 ? "bg-primary/15 text-primary"
                 : "text-on-surface-muted hover:bg-surface hover:text-on-surface"
-            }`}
+              }`}
           >
             <Icon active={activeTab === key} />
             {label}
@@ -208,17 +207,16 @@ function BottomNav({
   onTabChange: (tab: AdminTab) => void;
 }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)] md:hidden">
+    <nav className="border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)] md:hidden">
       <div className="flex">
         {TABS.map(({ key, label, Icon }) => (
           <button
             key={key}
             onClick={() => onTabChange(key)}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
-              activeTab === key
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${activeTab === key
                 ? "text-primary"
                 : "text-on-surface-muted hover:text-on-surface"
-            }`}
+              }`}
           >
             <Icon active={activeTab === key} />
             {label}
@@ -255,7 +253,7 @@ function AudioPlayerBridge() {
   return (
     <AdminAudioPlayer
       nowPlaying={nowPlaying}
-      queueLength={queue.length}
+      queue={queue}
       socket={socket}
     />
   );
@@ -305,12 +303,14 @@ export function AdminLayout() {
           <AdminTopBar />
           <div className="flex flex-1">
             <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-            <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+            <main className="flex-1 overflow-y-auto pb-32 md:pb-24">
               {renderTab()}
             </main>
           </div>
-          <AudioPlayerBridge />
-          <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="fixed bottom-0 left-0 right-0 z-30">
+            <AudioPlayerBridge />
+            <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
         </div>
       </QueueProvider>
     </ToastProvider>
