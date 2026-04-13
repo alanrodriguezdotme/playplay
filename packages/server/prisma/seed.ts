@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,8 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.venue.deleteMany();
 
+  const passwordHash = await bcrypt.hash("admin", 10);
+
   // Create venue
   const venue = await prisma.venue.create({
     data: {
@@ -17,6 +20,7 @@ async function main() {
       slug: "underground-lounge",
       email: "admin@underground.local",
       phone: "+1234567890",
+      passwordHash,
       settings: JSON.stringify({
         voteThreshold: -5,
         maxSongsPerUser: 3,
@@ -28,7 +32,6 @@ async function main() {
   // Create admin user
   const admin = await prisma.user.create({
     data: {
-      phone: "+1999999999",
       displayName: "Admin",
       role: "ADMIN",
       venueId: venue.id,
@@ -37,7 +40,8 @@ async function main() {
 
   console.log("Seed complete:");
   console.log(`  Venue: ${venue.name} (${venue.slug})`);
-  console.log(`  Admin: ${admin.displayName} (${admin.phone})`);
+  console.log(`  Admin: ${admin.displayName}`);
+  console.log(`  Admin password: admin`);
 }
 
 main()

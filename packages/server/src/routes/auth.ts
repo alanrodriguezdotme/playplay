@@ -1,6 +1,7 @@
 import { Router } from "express";
+import bcrypt from "bcryptjs";
 import { prisma, parseSettings } from "../lib/prisma.js";
-import { generateOtp, verifyOtp, signToken, getVenueCode, verifyVenueCode } from "../services/auth.js";
+import { signToken, getVenueCode, verifyVenueCode } from "../services/auth.js";
 import { authenticate } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rateLimit.js";
 import { DEFAULTS } from "@playplay/shared";
@@ -206,68 +207,44 @@ router.post("/update-profile", authenticate, async (req, res) => {
   res.json(toUserProfile(user));
 });
 
-// ---- Legacy OTP Auth (kept for admin login) ----
+// ---- Admin Login ----
 
-// POST /api/auth/request-otp
-router.post("/request-otp", async (req, res) => {
-  const { phone, venueSlug, email } = req.body;
+// POST /api/auth/admin-login
+router.post("/admin-login", rateLimit(), async (req, res) => {
+  const { email, password, venueSlug } = req.body;
 
-  if (!phone || !venueSlug) {
-    res.status(400).json({ error: "BAD_REQUEST", message: "phone and venueSlug are required" });
+  if (!email || !password || !venueSlug) {
+    res.status(400).json({ error: "BAD_REQUEST", message: "email, password, and venueSlug are required" });
     return;
   }
 
   const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
   if (!venue) {
-    res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
+    res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid email or password" });
     return;
   }
 
-  // Admin path: verify email matches venue email
-  const isAdmin = !!email;
-  if (isAdmin && venue.email !== email) {
-    res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid venue email" });
+  if (venue.email !== email) {
+    res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid email or password" });
     return;
   }
 
-  generateOtp(phone, venue.id, isAdmin);
-
-  res.json({ message: "OTP sent" });
-});
-
-// POST /api/auth/verify-otp
-router.post("/verify-otp", async (req, res) => {
-  const { phone, code, venueSlug } = req.body;
-
-  if (!phone || !code || !venueSlug) {
-    res.status(400).json({ error: "BAD_REQUEST", message: "phone, code, and venueSlug are required" });
+  const valid = await bcrypt.compare(password, venue.passwordHash);
+  if (!valid) {
+    res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid email or password" });
     return;
   }
 
-  const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
-  if (!venue) {
-    res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
-    return;
-  }
-
-  const otpEntry = verifyOtp(phone, code);
-  if (!otpEntry) {
-    res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid or expired OTP" });
-    return;
-  }
-
-  if (otpEntry.venueId !== venue.id) {
-    res.status(401).json({ error: "UNAUTHORIZED", message: "OTP venue mismatch" });
-    return;
-  }
-
-  const role = otpEntry.isAdmin ? "ADMIN" : "PATRON";
-
-  const user = await prisma.user.upsert({
-    where: { phone_venueId: { phone, venueId: venue.id } },
-    create: { phone, venueId: venue.id, role },
-    update: { role },
+  // Upsert the admin user for this venue
+  let user = await prisma.user.findFirst({
+    where: { venueId: venue.id, role: "ADMIN" },
   });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: { venueId: venue.id, role: "ADMIN" },
+    });
+  }
 
   if (user.blocked) {
     res.status(403).json({ error: "FORBIDDEN", message: "User is blocked" });

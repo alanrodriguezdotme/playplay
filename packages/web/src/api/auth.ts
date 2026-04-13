@@ -45,19 +45,12 @@ export function updateProfile(data: { displayName?: string; avatarEmoji?: string
   });
 }
 
-// ---- Legacy OTP Auth (admin login) ----
+// ---- Admin Login ----
 
-export function requestOtp(phone: string, venueSlug: string, email?: string) {
-  return apiRequest<{ message: string }>("/api/auth/request-otp", {
+export function adminLogin(email: string, password: string, venueSlug: string) {
+  return apiRequest<AuthResponse>("/api/auth/admin-login", {
     method: "POST",
-    body: JSON.stringify({ phone, venueSlug, email }),
-  });
-}
-
-export function verifyOtp(phone: string, code: string, venueSlug: string) {
-  return apiRequest<AuthResponse>("/api/auth/verify-otp", {
-    method: "POST",
-    body: JSON.stringify({ phone, code, venueSlug }),
+    body: JSON.stringify({ email, password, venueSlug }),
   });
 }
 

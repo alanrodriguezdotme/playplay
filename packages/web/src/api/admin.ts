@@ -69,3 +69,10 @@ export async function triggerMusicScan(): Promise<ScanResult> {
     method: "POST",
   });
 }
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>("/api/admin/change-password", {
+    method: "PATCH",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}

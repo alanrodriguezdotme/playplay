@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { resolve } from "node:path";
+import bcrypt from "bcryptjs";
 import { scanMusicLibrary } from "../services/music.js";
 import { prisma, parseSettings, stringifySettings } from "../lib/prisma.js";
 import { broadcastQueueUpdated } from "../socket/broadcast.js";
@@ -450,6 +451,49 @@ router.post("/music/scan", async (req, res, next) => {
     );
 
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---- Password ----
+
+// PATCH /api/admin/change-password
+router.patch("/change-password", async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: "BAD_REQUEST", message: "currentPassword and newPassword are required" });
+      return;
+    }
+
+    if (typeof newPassword !== "string" || newPassword.length < 4) {
+      res.status(400).json({ error: "BAD_REQUEST", message: "newPassword must be at least 4 characters" });
+      return;
+    }
+
+    const venue = await prisma.venue.findUnique({
+      where: { id: req.user!.venueId },
+    });
+    if (!venue) {
+      res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
+      return;
+    }
+
+    const valid = await bcrypt.compare(currentPassword, venue.passwordHash);
+    if (!valid) {
+      res.status(401).json({ error: "UNAUTHORIZED", message: "Current password is incorrect" });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.venue.update({
+      where: { id: venue.id },
+      data: { passwordHash },
+    });
+
+    res.json({ message: "Password changed successfully" });
   } catch (err) {
     next(err);
   }

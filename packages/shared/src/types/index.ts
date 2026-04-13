@@ -76,15 +76,9 @@ export interface Vote {
 
 // ---- API Request/Response Types ----
 
-export interface RequestOtpBody {
-  phone: string;
-  venueSlug: string;
-  email?: string;
-}
-
-export interface VerifyOtpBody {
-  phone: string;
-  code: string;
+export interface AdminLoginBody {
+  email: string;
+  password: string;
   venueSlug: string;
 }
 

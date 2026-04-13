@@ -4,8 +4,7 @@ import {
   deviceRegister,
   deviceLogin,
   getVenueInfo,
-  requestOtp,
-  verifyOtp,
+  adminLogin,
   setDisplayName,
 } from "../../api/auth";
 import { getDeviceId } from "../../api/client";
@@ -14,13 +13,13 @@ import { ApiRequestError } from "../../api/client";
 import { EmojiAvatarPicker } from "../../components/patron/EmojiAvatarPicker";
 import type { AuthResponse } from "@playplay/shared";
 
-type Step = "register" | "admin-phone" | "admin-otp" | "admin-name";
+type Step = "register" | "admin-login" | "admin-name";
 
 function getInitialAdminStep(
   user: { displayName?: string | null; role?: string } | null,
 ): Step {
   if (user?.role === "ADMIN" && !user.displayName) return "admin-name";
-  return "admin-phone";
+  return "admin-login";
 }
 
 export function Login({
@@ -38,9 +37,8 @@ export function Login({
   const [avatarEmoji, setAvatarEmoji] = useState("🎤");
   const [venueCode, setVenueCode] = useState("");
   const [requiresVenueCode, setRequiresVenueCode] = useState(false);
-  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [otpCode, setOtpCode] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [autoLoginAttempted, setAutoLoginAttempted] = useState(false);
@@ -58,7 +56,7 @@ export function Login({
         .then((info) => {
           if (info.requiresVenueCode) setRequiresVenueCode(true);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     // Auto-login with existing device
@@ -126,34 +124,16 @@ export function Login({
     }
   }
 
-  // ---- Admin OTP flow (unchanged) ----
+  // ---- Admin login ----
 
-  async function handleRequestOtp(e: React.FormEvent) {
+  async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault();
     if (!slug) return;
     setError("");
     setLoading(true);
 
     try {
-      await requestOtp(phone, slug, email);
-      setStep("admin-otp");
-    } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Failed to send OTP",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerifyAdminOtp(e: React.FormEvent) {
-    e.preventDefault();
-    if (!slug) return;
-    setError("");
-    setLoading(true);
-
-    try {
-      const res = await verifyOtp(phone, otpCode, slug);
+      const res = await adminLogin(email, password, slug);
       login(res.token, res.user);
 
       if (!res.user.displayName) {
@@ -162,7 +142,9 @@ export function Login({
         navigate(`/venue/${slug}/admin`);
       }
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : "Invalid OTP");
+      setError(
+        err instanceof ApiRequestError ? err.message : "Login failed",
+      );
     } finally {
       setLoading(false);
     }
@@ -251,22 +233,9 @@ export function Login({
           </form>
         )}
 
-        {/* Admin phone step */}
-        {step === "admin-phone" && (
-          <form onSubmit={handleRequestOtp} className="space-y-4">
-            <label className="block">
-              <span className="text-sm text-on-surface-muted">
-                Phone Number
-              </span>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 555 123 4567"
-                required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </label>
+        {/* Admin login */}
+        {step === "admin-login" && (
+          <form onSubmit={handleAdminLogin} className="space-y-4">
             <label className="block">
               <span className="text-sm text-on-surface-muted">Venue Email</span>
               <input
@@ -278,49 +247,23 @@ export function Login({
                 className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
+            <label className="block">
+              <span className="text-sm text-on-surface-muted">Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </label>
             <button
               type="submit"
-              disabled={loading || !phone.trim() || !email.trim()}
+              disabled={loading || !email.trim() || !password}
               className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
-              {loading ? "Sending..." : "Send Code"}
-            </button>
-          </form>
-        )}
-
-        {/* Admin OTP step */}
-        {step === "admin-otp" && (
-          <form onSubmit={handleVerifyAdminOtp} className="space-y-4">
-            <p className="text-center text-sm text-on-surface-muted">
-              Enter the 6-digit code sent to {phone}
-            </p>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="000000"
-              required
-              className="block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-center text-2xl tracking-widest text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <button
-              type="submit"
-              disabled={loading || otpCode.length !== 6}
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
-            >
-              {loading ? "Verifying..." : "Verify"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setStep("admin-phone");
-                setOtpCode("");
-                setError("");
-              }}
-              className="w-full text-sm text-on-surface-muted hover:text-on-surface"
-            >
-              Use a different number
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         )}
