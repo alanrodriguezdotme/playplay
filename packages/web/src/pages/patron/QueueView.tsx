@@ -1,12 +1,11 @@
+import { useNavigate } from "react-router";
 import { useQueue } from "../../contexts/QueueContext";
 import { NowPlayingCard } from "../../components/patron/NowPlayingCard";
 import { QueueEntryCard } from "../../components/patron/QueueEntryCard";
 
-interface QueueViewProps {
-  onSwitchToSearch: () => void;
-}
-
-export function QueueView({ onSwitchToSearch }: QueueViewProps) {
+export function QueueView() {
+  const navigate = useNavigate();
+  const onSwitchToSearch = () => navigate("../search");
   const { queue, nowPlaying, isLoading, error, vote } = useQueue();
 
   if (isLoading) {

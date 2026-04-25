@@ -1,15 +1,9 @@
-import { useState } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, useLocation, Link, Outlet } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import { QueueProvider, useQueue } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "../patron/Login";
-import { DashboardView } from "./DashboardView";
-import { QueueManagement } from "./QueueManagement";
-import { MusicLibrary } from "./MusicLibrary";
-import { UserManagement } from "./UserManagement";
-import { SettingsView } from "./SettingsView";
 import { AdminAudioPlayer } from "./AdminAudioPlayer";
 
 type AdminTab = "dashboard" | "queue" | "music" | "users" | "settings";
@@ -171,56 +165,44 @@ function AdminTopBar() {
   );
 }
 
-function Sidebar({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: AdminTab;
-  onTabChange: (tab: AdminTab) => void;
-}) {
+function Sidebar({ activeTab }: { activeTab: AdminTab }) {
   return (
     <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface-alt">
       <nav className="flex flex-1 flex-col gap-1 p-3">
         {TABS.map(({ key, label, Icon }) => (
-          <button
+          <Link
             key={key}
-            onClick={() => onTabChange(key)}
+            to={key}
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${activeTab === key
-                ? "bg-primary/15 text-primary"
-                : "text-on-surface-muted hover:bg-surface hover:text-on-surface"
+              ? "bg-primary/15 text-primary"
+              : "text-on-surface-muted hover:bg-surface hover:text-on-surface"
               }`}
           >
             <Icon active={activeTab === key} />
             {label}
-          </button>
+          </Link>
         ))}
       </nav>
     </aside>
   );
 }
 
-function BottomNav({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: AdminTab;
-  onTabChange: (tab: AdminTab) => void;
-}) {
+function BottomNav({ activeTab }: { activeTab: AdminTab }) {
   return (
     <nav className="border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)] md:hidden">
       <div className="flex">
         {TABS.map(({ key, label, Icon }) => (
-          <button
+          <Link
             key={key}
-            onClick={() => onTabChange(key)}
+            to={key}
             className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${activeTab === key
-                ? "text-primary"
-                : "text-on-surface-muted hover:text-on-surface"
+              ? "text-primary"
+              : "text-on-surface-muted hover:text-on-surface"
               }`}
           >
             <Icon active={activeTab === key} />
             {label}
-          </button>
+          </Link>
         ))}
       </div>
     </nav>
@@ -262,7 +244,8 @@ function AudioPlayerBridge() {
 export function AdminLayout() {
   const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
+  const location = useLocation();
+  const activeTab = (location.pathname.split("/").pop() || "dashboard") as AdminTab;
 
   if (isLoading) {
     return (
@@ -280,21 +263,6 @@ export function AdminLayout() {
     return <Login isAdmin />;
   }
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <DashboardView />;
-      case "queue":
-        return <QueueManagement />;
-      case "music":
-        return <MusicLibrary />;
-      case "users":
-        return <UserManagement />;
-      case "settings":
-        return <SettingsView />;
-    }
-  };
-
   return (
     <ToastProvider>
       <QueueProvider venueSlug={slug!}>
@@ -302,14 +270,14 @@ export function AdminLayout() {
           <ConnectionIndicator />
           <AdminTopBar />
           <div className="flex flex-1">
-            <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+            <Sidebar activeTab={activeTab} />
             <main className="flex-1 overflow-y-auto pb-32 md:pb-24">
-              {renderTab()}
+              <Outlet />
             </main>
           </div>
           <div className="fixed bottom-0 left-0 right-0 z-30">
             <AudioPlayerBridge />
-            <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+            <BottomNav activeTab={activeTab} />
           </div>
         </div>
       </QueueProvider>

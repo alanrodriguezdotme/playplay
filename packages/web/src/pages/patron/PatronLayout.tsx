@@ -1,13 +1,10 @@
 import { useState, useRef, useCallback } from "react";
-import { useParams } from "react-router";
+import { useParams, useLocation, Outlet, Link } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
 import { QueueProvider } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
-import { QueueView } from "./QueueView";
-import { SearchView } from "./SearchView";
-import { HistoryView } from "./HistoryView";
 import { Login } from "./Login";
 
 type Tab = "queue" | "search" | "history";
@@ -78,10 +75,8 @@ function ConnectionIndicator() {
 }
 
 function TopBar({
-  onTabSwitch,
   onLogout,
 }: {
-  onTabSwitch: (tab: Tab) => void;
   onLogout: () => void;
 }) {
   const { user } = useAuth();
@@ -135,11 +130,10 @@ function TopBar({
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                      theme === t
+                    className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${theme === t
                         ? "bg-primary text-on-primary"
                         : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
-                    }`}
+                      }`}
                   >
                     {t}
                   </button>
@@ -165,29 +159,22 @@ const TABS: { key: Tab; label: string; Icon: typeof QueueIcon }[] = [
   { key: "history", label: "History", Icon: HistoryIcon },
 ];
 
-function BottomNav({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
-}) {
+function BottomNav({ activeTab }: { activeTab: Tab }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
       <div className="flex">
         {TABS.map(({ key, label, Icon }) => (
-          <button
+          <Link
             key={key}
-            onClick={() => onTabChange(key)}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
-              activeTab === key
+            to={key}
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${activeTab === key
                 ? "text-primary"
                 : "text-on-surface-muted hover:text-on-surface"
-            }`}
+              }`}
           >
             <Icon active={activeTab === key} />
             {label}
-          </button>
+          </Link>
         ))}
       </div>
     </nav>
@@ -197,7 +184,8 @@ function BottomNav({
 export function PatronLayout() {
   const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>("queue");
+  const location = useLocation();
+  const activeTab = (location.pathname.split("/").pop() || "queue") as Tab;
   const didLogout = useRef(false);
 
   const handleLogout = useCallback(() => {
@@ -217,25 +205,16 @@ export function PatronLayout() {
     return <Login skipAutoLogin={didLogout.current} />;
   }
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case "queue":
-        return <QueueView onSwitchToSearch={() => setActiveTab("search")} />;
-      case "search":
-        return <SearchView />;
-      case "history":
-        return <HistoryView />;
-    }
-  };
-
   return (
     <ToastProvider>
       <QueueProvider venueSlug={slug!}>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
-          <TopBar onTabSwitch={setActiveTab} onLogout={handleLogout} />
-          <main className="flex flex-1 flex-col pb-16">{renderTab()}</main>
-          <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+          <TopBar onLogout={handleLogout} />
+          <main className="flex flex-1 flex-col pb-16">
+            <Outlet />
+          </main>
+          <BottomNav activeTab={activeTab} />
         </div>
       </QueueProvider>
     </ToastProvider>
