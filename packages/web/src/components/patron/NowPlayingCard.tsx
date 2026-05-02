@@ -1,5 +1,6 @@
 import type { QueueEntry } from "@playplay/shared";
 import { VoteButtons } from "./VoteButtons";
+import SectionHeader from "../common/SectionHeader";
 
 interface NowPlayingCardProps {
   entry: QueueEntry | null;
@@ -20,11 +21,16 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
   }
 
   return (
-    <div className="mx-4 mt-4 rounded-2xl border border-border bg-surface-alt p-4">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
-        Now Playing
-      </p>
-      <div className="flex items-center gap-4">
+    <div className="bg-surface-alt">
+      <SectionHeader
+        title="Now Playing"
+        subtitle={
+          entry.addedBy
+            ? `Added by ${entry.addedBy.displayName || "Someone"}`
+            : undefined
+        }
+      />
+      <div className="flex items-center gap-4 p-4 pt-2">
         {entry.song.source === "spotify" && entry.song.artworkUrl ? (
           <img
             src={entry.song.artworkUrl}
@@ -46,14 +52,6 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
           {entry.song.album && (
             <p className="truncate text-xs text-on-surface-muted">
               {entry.song.album}
-            </p>
-          )}
-          {entry.addedBy && (
-            <p className="mt-1 text-xs text-on-surface-muted">
-              Added by{" "}
-              <span className="font-medium text-on-surface">
-                {entry.addedBy.displayName || "Someone"}
-              </span>
             </p>
           )}
         </div>

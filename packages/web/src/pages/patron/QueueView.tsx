@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { useQueue } from "../../contexts/QueueContext";
 import { NowPlayingCard } from "../../components/patron/NowPlayingCard";
 import { QueueEntryCard } from "../../components/patron/QueueEntryCard";
+import SectionHeader from "../../components/common/SectionHeader";
 
 export function QueueView() {
   const navigate = useNavigate();
@@ -36,11 +37,12 @@ export function QueueView() {
     <div className="flex flex-1 flex-col">
       <NowPlayingCard entry={nowPlaying} onVote={vote} />
 
-      <div className="mt-4 flex items-center justify-between px-4">
-        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Up Next{queue.length > 0 && ` (${queue.length})`}
-        </h3>
-      </div>
+      <SectionHeader
+        title="Up Next"
+        subtitle={
+          queue.length > 0 ? `${queue.length} song(s)` : "Queue is empty"
+        }
+      />
 
       {queue.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">

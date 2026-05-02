@@ -74,18 +74,14 @@ function ConnectionIndicator() {
   );
 }
 
-function TopBar({
-  onLogout,
-}: {
-  onLogout: () => void;
-}) {
+function TopBar({ onLogout }: { onLogout: () => void }) {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { slug } = useParams<{ slug: string }>();
   const [showThemes, setShowThemes] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
+    <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold text-on-surface">
@@ -130,10 +126,11 @@ function TopBar({
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${theme === t
+                    className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                      theme === t
                         ? "bg-primary text-on-primary"
                         : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
-                      }`}
+                    }`}
                   >
                     {t}
                   </button>
@@ -167,10 +164,11 @@ function BottomNav({ activeTab }: { activeTab: Tab }) {
           <Link
             key={key}
             to={key}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${activeTab === key
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+              activeTab === key
                 ? "text-primary"
                 : "text-on-surface-muted hover:text-on-surface"
-              }`}
+            }`}
           >
             <Icon active={activeTab === key} />
             {label}
