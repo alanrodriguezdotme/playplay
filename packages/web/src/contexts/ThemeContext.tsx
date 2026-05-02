@@ -39,6 +39,42 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = "playplay-theme";
 
+/**
+ * Google Font URLs per theme. Only the active theme's font is loaded.
+ * Themes sharing the same font (dark/light → Inter) share a URL so
+ * switching between them doesn't trigger a redundant load.
+ */
+const THEME_FONT_URL: Record<BuiltInTheme, string> = {
+  dark: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+  light:
+    "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+  midnight:
+    "https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap",
+  sunset:
+    "https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap",
+  neon: "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap",
+};
+
+const FONT_LINK_ID = "playplay-theme-font";
+
+function loadThemeFont(theme: BuiltInTheme) {
+  const url = THEME_FONT_URL[theme];
+  const existing = document.getElementById(FONT_LINK_ID) as HTMLLinkElement | null;
+
+  // If the correct font is already loaded, do nothing
+  if (existing && existing.href === url) return;
+
+  // Remove old font link if present
+  if (existing) existing.remove();
+
+  // Create and inject the new font link
+  const link = document.createElement("link");
+  link.id = FONT_LINK_ID;
+  link.rel = "stylesheet";
+  link.href = url;
+  document.head.appendChild(link);
+}
+
 /** Maps theme names to the data-theme attribute value (dark = root default, no attribute) */
 function getDataThemeValue(theme: BuiltInTheme): string | null {
   return theme === "dark" ? null : theme;
@@ -123,14 +159,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Apply theme to DOM whenever it changes
   useEffect(() => {
     applyThemeToDOM(theme);
+    loadThemeFont(theme);
   }, [theme]);
 
   // Apply initial theme immediately (avoid flash)
   useEffect(() => {
-    const value = getDataThemeValue(getStoredTheme());
+    const initial = getStoredTheme();
+    const value = getDataThemeValue(initial);
     if (value) {
       document.documentElement.setAttribute("data-theme", value);
     }
+    loadThemeFont(initial);
   }, []);
 
   return (

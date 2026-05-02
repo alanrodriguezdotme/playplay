@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================================
@@ -46,6 +53,10 @@
 
   /* Misc */
   --color-overlay: var(--theme-overlay);
+
+  /* Typography */
+  --font-family-theme: var(--theme-font-family);
+  --font-family-accent: var(--theme-font-accent);
 }
 
 /* ============================================================
@@ -76,6 +87,9 @@
 
   --theme-ring: #6366f180;
   --theme-overlay: #00000080;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Space Grotesk", sans-serif;
 }
 
 /* ============================================================
@@ -106,6 +120,9 @@
 
   --theme-ring: #4f46e580;
   --theme-overlay: #00000040;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Space Grotesk", sans-serif;
 }
 
 /* ============================================================
@@ -137,6 +154,9 @@
 
   --theme-ring: #06b6d480;
   --theme-overlay: #00000090;
+
+  --theme-font-family: "Exo 2", sans-serif;
+  --theme-font-accent: "Rajdhani", sans-serif;
 }
 
 /* ============================================================
@@ -168,6 +188,9 @@
 
   --theme-ring: #f9731680;
   --theme-overlay: #00000090;
+
+  --theme-font-family: "Nunito", sans-serif;
+  --theme-font-accent: "Playfair Display", serif;
 }
 
 /* ============================================================
@@ -199,6 +222,16 @@
 
   --theme-ring: #ec489980;
   --theme-overlay: #00000090;
+
+  --theme-font-family: "Orbitron", sans-serif;
+  --theme-font-accent: "Syncopate", sans-serif;
+}
+
+/* ============================================================
+   THEME FONT APPLICATION
+   ============================================================ */
+body {
+  font-family: var(--theme-font-family);
 }
 
 /* ============================================================
