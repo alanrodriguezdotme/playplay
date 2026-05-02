@@ -18,9 +18,9 @@ export function QueueEntryCard({
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <span className="w-6 shrink-0 text-center text-sm font-medium text-on-surface-muted">
+      {/* <span className="w-6 shrink-0 text-center text-sm font-medium text-on-surface-muted">
         {position}
-      </span>
+      </span> */}
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-on-surface">
           {entry.song.title}
