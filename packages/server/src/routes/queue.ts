@@ -168,9 +168,20 @@ router.get("/history", authenticate, async (req, res, next) => {
   }
 });
 
-// DELETE /api/queue/:entryId — admin remove from queue
-router.delete("/:entryId", authenticate, requireAdmin, async (req, res, next) => {
+// DELETE /api/queue/:entryId — remove from queue (admin or the patron who added it)
+router.delete("/:entryId", authenticate, async (req, res, next) => {
   try {
+    const entry = await prisma.queueEntry.findFirst({
+      where: { id: req.params.entryId as string, venueId: req.user!.venueId, status: QUEUE_STATUS.QUEUED },
+    });
+    if (!entry) {
+      res.status(404).json({ error: "entry_not_found", message: "Queued entry not found" });
+      return;
+    }
+    if (req.user!.role !== "admin" && entry.addedById !== req.user!.id) {
+      res.status(403).json({ error: "forbidden", message: "You can only remove your own songs" });
+      return;
+    }
     await removeEntry(req.params.entryId as string, req.user!.venueId);
     res.status(204).end();
     broadcastEntryRemoved(req.user!.venueId, req.params.entryId as string).catch(console.error);

@@ -60,14 +60,14 @@ export function HistoryView() {
       <div className="divide-y divide-border">
         {entries.map((entry) => (
           <div key={entry.id} className="flex items-center gap-3 px-4 py-4">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-on-surface">
+            <div className="min-w-0 flex-1 flex flex-col gap-1">
+              <p className="truncate text-md font-semibold text-on-surface">
                 {entry.song.title}
               </p>
-              <p className="truncate text-xs text-on-surface-muted">
+              <p className="truncate text-sm text-on-surface-muted">
                 {entry.song.artist}
               </p>
-              <div className="flex gap-1 mt-0.5 text-xs text-on-surface-muted">
+              <div className="flex gap-1 mt-0.5 text-xs text-on-surface-subtle">
                 {entry.addedBy && (
                   <p>
                     {entry.addedBy.avatarEmoji && (
@@ -79,7 +79,9 @@ export function HistoryView() {
                   </p>
                 )}
                 <p>•</p>
-                <p>{entry.playedAt ? timeAgo(entry.playedAt) : "—"}</p>
+                <p className="uppercase">
+                  {entry.playedAt ? timeAgo(entry.playedAt) : "—"}
+                </p>
               </div>
             </div>
             <div className="flex flex-col items-center gap-1">

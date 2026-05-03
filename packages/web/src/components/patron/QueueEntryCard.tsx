@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import type { QueueEntry } from "@playplay/shared";
 import { useAuth } from "../../contexts/AuthContext";
 import { VoteButtons } from "./VoteButtons";
@@ -6,15 +8,28 @@ interface QueueEntryCardProps {
   entry: QueueEntry;
   position: number;
   onVote: (entryId: string, value: 1 | -1 | 0) => void;
+  onRemove?: (entryId: string) => void;
 }
 
 export function QueueEntryCard({
   entry,
   position,
   onVote,
+  onRemove,
 }: QueueEntryCardProps) {
   const { user } = useAuth();
   const isOwnEntry = user && entry.addedBy?.id === user.id;
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  const handleRemove = async () => {
+    if (!onRemove) return;
+    setIsRemoving(true);
+    try {
+      await onRemove(entry.id);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">
@@ -43,6 +58,16 @@ export function QueueEntryCard({
           ) : null}
         </div>
       </div>
+      {isOwnEntry && onRemove && (
+        <button
+          onClick={handleRemove}
+          disabled={isRemoving}
+          className="shrink-0 p-1.5 rounded-full text-on-surface-muted hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+          aria-label="Remove from queue"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
       <VoteButtons
         voteScore={entry.voteScore}
         currentUserVote={entry.currentUserVote}

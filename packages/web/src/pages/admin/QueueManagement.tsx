@@ -29,6 +29,7 @@ import {
 import { DraggableQueueItem } from "../../components/admin/DraggableQueueItem";
 import { timeAgo } from "../../utils/time";
 import type { QueueEntry } from "@playplay/shared";
+import { Link } from "react-router";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -202,7 +203,23 @@ export function QueueManagement() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <h2 className="text-xl font-bold">Queue Management</h2>
+      <div className="flex items-center">
+        <h2 className="text-xl font-bold flex-1">Queue Management</h2>
+        {/* <div className="flex gap-1">
+          <Link
+            to="/"
+            className="rounded-md border border-border px-3 py-2 text-xs text-on-surface-muted hover:text-on-surface"
+          >
+            Patron
+          </Link>
+          <Link
+            to="/now-playing"
+            className="rounded-md border border-border px-3 py-2 text-xs text-on-surface-muted hover:text-on-surface"
+          >
+            Now Playing
+          </Link>
+        </div> */}
+      </div>
 
       {/* Now Playing + Remote Playback Controls */}
       <div className="rounded-xl border border-border bg-surface-raised p-4">

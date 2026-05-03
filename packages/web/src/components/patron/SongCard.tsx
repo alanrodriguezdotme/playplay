@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Play, Pause } from "lucide-react";
 import type { Song } from "@playplay/shared";
 import { useQueue } from "../../contexts/QueueContext";
+import { useToast } from "../../contexts/ToastContext";
 import { getSongStreamUrl } from "../../api/songs";
 
 interface SongCardProps {
@@ -34,9 +35,17 @@ function stopSharedAudio() {
 }
 
 export function SongCard({ song }: SongCardProps) {
-  const { queuedSongIds, queuedSpotifyTrackIds, addSong } = useQueue();
+  const {
+    queuedSongIds,
+    queuedSpotifyTrackIds,
+    userQueueEntryMap,
+    userSpotifyEntryMap,
+    addSong,
+    removeSong,
+  } = useQueue();
+  const { showToast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Subscribe to shared audio state changes
@@ -75,9 +84,14 @@ export function SongCard({ song }: SongCardProps) {
     (song.spotifyTrackId && queuedSpotifyTrackIds.has(song.spotifyTrackId)) ||
     false;
 
+  // Find entry ID if this is the current user's queued song
+  const userEntryId =
+    (song.id && userQueueEntryMap.get(song.id)) ||
+    (song.spotifyTrackId && userSpotifyEntryMap.get(song.spotifyTrackId)) ||
+    null;
+
   const handleAdd = async () => {
     setIsAdding(true);
-    setError(null);
     try {
       if (song.id) {
         await addSong(song.id);
@@ -85,9 +99,21 @@ export function SongCard({ song }: SongCardProps) {
         await addSong(undefined, song.spotifyTrackId);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add");
+      showToast(err instanceof Error ? err.message : "Failed to add");
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!userEntryId) return;
+    setIsRemoving(true);
+    try {
+      await removeSong(userEntryId);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to remove");
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -97,7 +123,7 @@ export function SongCard({ song }: SongCardProps) {
       {song.source === "spotify" && song.artworkUrl ? (
         <button
           onClick={togglePreview}
-          className="relative h-10 w-10 shrink-0 rounded overflow-hidden group"
+          className="relative h-10 w-10 shrink-0 overflow-hidden group"
           aria-label={isPlaying ? "Stop preview" : "Preview song"}
         >
           <img
@@ -142,7 +168,7 @@ export function SongCard({ song }: SongCardProps) {
           )}
         </button>
       )}
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 flex flex-col gap-1">
         <p className="truncate text-sm font-semibold text-on-surface">
           {song.title}
         </p>
@@ -150,15 +176,24 @@ export function SongCard({ song }: SongCardProps) {
           {song.artist}
           {song.album ? ` · ${song.album}` : ""}
         </p>
-        {error && <p className="mt-0.5 text-xs text-destructive">{error}</p>}
       </div>
       <span className="shrink-0 text-xs tabular-nums text-on-surface-muted">
         {formatDuration(song.duration)}
       </span>
       {isInQueue ? (
-        <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
-          In Queue
-        </span>
+        userEntryId ? (
+          <button
+            onClick={handleRemove}
+            disabled={isRemoving}
+            className="shrink-0 rounded-full bg-destructive/15 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/25 disabled:opacity-50"
+          >
+            {isRemoving ? "Removing…" : "Remove"}
+          </button>
+        ) : (
+          <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
+            In Queue
+          </span>
+        )
       ) : (
         <button
           onClick={handleAdd}

@@ -8,9 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import type { QueueEntry, QueueResponse } from "@playplay/shared";
-import { getQueue, addToQueue, voteOnEntry } from "../api/queue";
+import {
+  getQueue,
+  addToQueue,
+  voteOnEntry,
+  removeFromQueue,
+} from "../api/queue";
 import { useQueueUpdates } from "../hooks/useSocket";
 import { useToast } from "./ToastContext";
+import { useAuth } from "./AuthContext";
 
 interface QueueContextValue {
   queue: QueueEntry[];
@@ -21,8 +27,13 @@ interface QueueContextValue {
   queuedSongIds: Set<string>;
   /** Set of Spotify track IDs currently in the queue */
   queuedSpotifyTrackIds: Set<string>;
+  /** Maps song ID to entry ID for entries added by the current user */
+  userQueueEntryMap: Map<string, string>;
+  /** Maps Spotify track ID to entry ID for entries added by the current user */
+  userSpotifyEntryMap: Map<string, string>;
   vote: (entryId: string, value: 1 | -1 | 0) => Promise<void>;
   addSong: (songId?: string, spotifyTrackId?: string) => Promise<QueueEntry>;
+  removeSong: (entryId: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -34,6 +45,7 @@ export function QueueProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -112,6 +124,28 @@ export function QueueProvider({ children }: { children: ReactNode }) {
     return ids;
   }, [queue, nowPlaying]);
 
+  const userQueueEntryMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!user) return map;
+    for (const entry of queue) {
+      if (entry.addedBy?.id === user.id) {
+        map.set(entry.song.id, entry.id);
+      }
+    }
+    return map;
+  }, [queue, user]);
+
+  const userSpotifyEntryMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!user) return map;
+    for (const entry of queue) {
+      if (entry.addedBy?.id === user.id && entry.song.spotifyTrackId) {
+        map.set(entry.song.spotifyTrackId, entry.id);
+      }
+    }
+    return map;
+  }, [queue, user]);
+
   const vote = useCallback(
     async (entryId: string, value: 1 | -1 | 0) => {
       // Optimistically update local state
@@ -148,6 +182,20 @@ export function QueueProvider({ children }: { children: ReactNode }) {
     [showToast],
   );
 
+  const removeSong = useCallback(
+    async (entryId: string) => {
+      setQueue((prev) => prev.filter((e) => e.id !== entryId));
+      try {
+        await removeFromQueue(entryId);
+        showToast("Song removed from queue", "success");
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : "Failed to remove");
+        fetchQueue();
+      }
+    },
+    [fetchQueue, showToast],
+  );
+
   return (
     <QueueContext.Provider
       value={{
@@ -157,8 +205,11 @@ export function QueueProvider({ children }: { children: ReactNode }) {
         error,
         queuedSongIds,
         queuedSpotifyTrackIds,
+        userQueueEntryMap,
+        userSpotifyEntryMap,
         vote,
         addSong,
+        removeSong,
         refresh: fetchQueue,
       }}
     >

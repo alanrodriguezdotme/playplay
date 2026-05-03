@@ -8,7 +8,7 @@ import SectionHeader from "../../components/common/SectionHeader";
 export function QueueView() {
   const navigate = useNavigate();
   const onSwitchToSearch = () => navigate("../search");
-  const { queue, nowPlaying, isLoading, error, vote } = useQueue();
+  const { queue, nowPlaying, isLoading, error, vote, removeSong } = useQueue();
 
   if (isLoading) {
     return (
@@ -65,6 +65,7 @@ export function QueueView() {
               entry={entry}
               position={i + 1}
               onVote={vote}
+              onRemove={removeSong}
             />
           ))}
         </div>
