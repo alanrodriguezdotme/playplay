@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   deviceRegister,
   deviceLogin,
-  getVenueInfo,
   adminLogin,
   setDisplayName,
 } from "../../api/auth";
 import { getDeviceId } from "../../api/client";
 import { useAuth } from "../../contexts/AuthContext";
+import { useVenue } from "../../contexts/VenueContext";
 import { ApiRequestError } from "../../api/client";
 import { EmojiAvatarPicker } from "../../components/patron/EmojiAvatarPicker";
 import type { AuthResponse } from "@playplay/shared";
@@ -26,9 +26,9 @@ export function Login({
   isAdmin = false,
   skipAutoLogin = false,
 }: { isAdmin?: boolean; skipAutoLogin?: boolean } = {}) {
-  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { login, updateUser, user: currentUser } = useAuth();
+  const { venue } = useVenue();
 
   const [step, setStep] = useState<Step>(
     isAdmin ? getInitialAdminStep(currentUser) : "register",
@@ -47,49 +47,43 @@ export function Login({
 
   // Check if venue requires a code & auto-login
   useEffect(() => {
-    if (!slug || autoLoginAttempted) return;
+    if (autoLoginAttempted) return;
     setAutoLoginAttempted(true);
 
-    // Fetch venue auth requirements
-    if (!isAdmin) {
-      getVenueInfo(slug)
-        .then((info) => {
-          if (info.requiresVenueCode) setRequiresVenueCode(true);
-        })
-        .catch(() => { });
+    // Set venue code requirement from context
+    if (!isAdmin && venue?.requiresVenueCode) {
+      setRequiresVenueCode(true);
     }
 
     // Auto-login with existing device
     if (!isAdmin && !skipAutoLogin) {
-      deviceLogin(deviceId, slug)
+      deviceLogin(deviceId)
         .then((res) => {
           login(res.token, res.user);
-          navigate(`/venue/${slug}`);
+          navigate("/queue");
         })
         .catch(() => {
           // Not registered yet — stay on registration form
         });
     }
   }, [
-    slug,
     deviceId,
     isAdmin,
     skipAutoLogin,
     autoLoginAttempted,
     login,
     navigate,
+    venue,
   ]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (!slug) return;
     setError("");
     setLoading(true);
 
     try {
       const res = await deviceRegister(
         deviceId,
-        slug,
         name,
         avatarEmoji,
         requiresVenueCode ? venueCode : undefined,
@@ -97,20 +91,19 @@ export function Login({
 
       const authRes = res as AuthResponse;
       login(authRes.token, authRes.user);
-      navigate(`/venue/${slug}`);
+      navigate("/queue");
     } catch (err) {
       if (
         err instanceof ApiRequestError &&
         err.code === "VENUE_CODE_REQUIRED"
       ) {
-        // Field should already be visible from venue-info, but handle just in case
         setRequiresVenueCode(true);
       } else if (err instanceof ApiRequestError && err.status === 409) {
         // Already registered — try login
         try {
-          const loginRes = await deviceLogin(deviceId, slug);
+          const loginRes = await deviceLogin(deviceId);
           login(loginRes.token, loginRes.user);
-          navigate(`/venue/${slug}`);
+          navigate("/queue");
           return;
         } catch {
           // Fall through to show error
@@ -128,23 +121,20 @@ export function Login({
 
   async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!slug) return;
     setError("");
     setLoading(true);
 
     try {
-      const res = await adminLogin(email, password, slug);
+      const res = await adminLogin(email, password);
       login(res.token, res.user);
 
       if (!res.user.displayName) {
         setStep("admin-name");
       } else {
-        navigate(`/venue/${slug}/admin`);
+        navigate("/admin");
       }
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Login failed",
-      );
+      setError(err instanceof ApiRequestError ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -152,14 +142,13 @@ export function Login({
 
   async function handleSetName(e: React.FormEvent) {
     e.preventDefault();
-    if (!slug) return;
     setError("");
     setLoading(true);
 
     try {
       const updated = await setDisplayName(name);
       updateUser(updated);
-      navigate(`/venue/${slug}/admin`);
+      navigate("/admin");
     } catch (err) {
       setError(
         err instanceof ApiRequestError ? err.message : "Failed to set name",

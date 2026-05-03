@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, Link } from "react-router";
+import { Link } from "react-router";
 import { Play } from "lucide-react";
 import { getAdminStats } from "../../api/admin";
 import { useQueue } from "../../contexts/QueueContext";
@@ -22,7 +22,6 @@ function formatDuration(seconds: number): string {
 }
 
 export function DashboardView() {
-  const { slug } = useParams<{ slug: string }>();
   const { nowPlaying, queue } = useQueue();
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,13 +72,13 @@ export function DashboardView() {
         <h2 className="text-xl font-bold">Dashboard</h2>
         <div className="flex gap-2">
           <Link
-            to={`/venue/${slug}`}
+            to="/"
             className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface-muted hover:text-on-surface"
           >
             Patron View
           </Link>
           <Link
-            to={`/venue/${slug}/now-playing`}
+            to="/now-playing"
             className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface-muted hover:text-on-surface"
           >
             Display View

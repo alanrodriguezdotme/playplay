@@ -1,21 +1,14 @@
 import { Maximize } from "lucide-react";
 
 interface DisplayHeaderProps {
-  venueSlug: string;
+  venueName: string;
   isFullscreen: boolean;
   show: boolean;
   onToggleFullscreen: () => void;
 }
 
-function formatSlug(slug: string): string {
-  return slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 export function DisplayHeader({
-  venueSlug,
+  venueName,
   isFullscreen,
   show,
   onToggleFullscreen,
@@ -25,9 +18,7 @@ export function DisplayHeader({
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3">
       {show ? (
-        <h1 className="text-xl font-bold text-on-surface">
-          {formatSlug(venueSlug)}
-        </h1>
+        <h1 className="text-xl font-bold text-on-surface">{venueName}</h1>
       ) : (
         <div />
       )}

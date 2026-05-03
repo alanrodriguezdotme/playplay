@@ -15,7 +15,7 @@ interface SocketContextValue {
   socket: Socket | null;
   isConnected: boolean;
   hasConnected: boolean;
-  joinVenue: (slug: string) => void;
+  joinVenue: () => void;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
@@ -24,7 +24,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [hasConnected, setHasConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const lastSlugRef = useRef<string | null>(null);
+  const hasJoinedRef = useRef(false);
 
   useEffect(() => {
     const token = getStoredToken();
@@ -44,9 +44,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     socket.on("connect", () => {
       setIsConnected(true);
       setHasConnected(true);
-      // Rejoin last venue on reconnect
-      if (lastSlugRef.current) {
-        socket.emit(SOCKET_EVENTS.VENUE_JOIN, lastSlugRef.current);
+      // Rejoin venue on reconnect
+      if (hasJoinedRef.current) {
+        socket.emit(SOCKET_EVENTS.VENUE_JOIN);
       }
     });
 
@@ -60,9 +60,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const joinVenue = useCallback((slug: string) => {
-    lastSlugRef.current = slug;
-    socketRef.current?.emit(SOCKET_EVENTS.VENUE_JOIN, slug);
+  const joinVenue = useCallback(() => {
+    hasJoinedRef.current = true;
+    socketRef.current?.emit(SOCKET_EVENTS.VENUE_JOIN);
   }, []);
 
   return (

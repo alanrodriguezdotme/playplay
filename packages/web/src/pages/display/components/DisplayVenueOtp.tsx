@@ -1,17 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { getVenueCode } from "../../../api/auth";
 
-interface DisplayVenueCodeProps {
-  venueSlug: string;
-}
-
-export function DisplayVenueCode({ venueSlug }: DisplayVenueCodeProps) {
+export function DisplayVenueCode() {
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<number>(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   const fetchCode = useCallback(() => {
-    getVenueCode(venueSlug)
+    getVenueCode()
       .then((data) => {
         setCode(data.code);
         setExpiresAt(data.expiresAt);
@@ -19,7 +15,7 @@ export function DisplayVenueCode({ venueSlug }: DisplayVenueCodeProps) {
       .catch(() => {
         setCode(null);
       });
-  }, [venueSlug]);
+  }, []);
 
   // Fetch code on mount and refresh before expiry
   useEffect(() => {

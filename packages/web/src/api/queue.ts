@@ -31,11 +31,9 @@ export async function getQueueHistory(
   );
 }
 
-export async function getNowPlaying(
-  venueSlug: string
-): Promise<QueueEntry | null> {
+export async function getNowPlaying(): Promise<QueueEntry | null> {
   return apiRequest<QueueEntry | null>(
-    `/api/queue/now-playing?venue=${encodeURIComponent(venueSlug)}`
+    "/api/queue/now-playing"
   );
 }
 
@@ -43,11 +41,9 @@ export async function removeFromQueue(entryId: string): Promise<void> {
   await apiRequest(`/api/queue/${entryId}`, { method: "DELETE" });
 }
 
-export async function getDisplaySettings(
-  venueSlug: string
-): Promise<DisplaySettings> {
+export async function getDisplaySettings(): Promise<DisplaySettings> {
   return apiRequest<DisplaySettings>(
-    `/api/queue/display-settings?venue=${encodeURIComponent(venueSlug)}`
+    "/api/queue/display-settings"
   );
 }
 

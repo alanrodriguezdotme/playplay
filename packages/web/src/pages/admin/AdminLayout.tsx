@@ -1,8 +1,9 @@
-import { useParams, useLocation, Link, Outlet } from "react-router";
+import { useLocation, Link, Outlet } from "react-router";
 import { LayoutGrid, Music, ListMusic, Users, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
+import { useVenue } from "../../contexts/VenueContext";
 import { QueueProvider, useQueue } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "../patron/Login";
@@ -30,7 +31,7 @@ function ConnectionIndicator() {
 
 function AdminTopBar() {
   const { user, logout } = useAuth();
-  const { slug } = useParams<{ slug: string }>();
+  const { venue } = useVenue();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
@@ -38,9 +39,7 @@ function AdminTopBar() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-lg font-bold text-on-surface">
-              {slug
-                ?.replace(/-/g, " ")
-                .replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Venue"}
+              {venue?.name ?? "Venue"}
             </h1>
             <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
               Admin
@@ -52,7 +51,7 @@ function AdminTopBar() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            to={`/venue/${slug}`}
+            to="/"
             className="rounded-md border border-border px-3 py-2 text-xs text-on-surface-muted hover:text-on-surface"
           >
             Patron View
@@ -116,7 +115,6 @@ function BottomNav({ activeTab }: { activeTab: AdminTab }) {
 }
 
 function Unauthorized() {
-  const { slug } = useParams<{ slug: string }>();
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface text-on-surface">
       <div className="text-center">
@@ -125,7 +123,7 @@ function Unauthorized() {
           You need admin access to view this page.
         </p>
         <Link
-          to={`/venue/${slug}`}
+          to="/"
           className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
         >
           Go to Patron View
@@ -144,7 +142,6 @@ function AudioPlayerBridge() {
 }
 
 export function AdminLayout() {
-  const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
   const activeTab = (location.pathname.split("/").pop() ||
@@ -168,7 +165,7 @@ export function AdminLayout() {
 
   return (
     <ToastProvider>
-      <QueueProvider venueSlug={slug!}>
+      <QueueProvider>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
           <AdminTopBar />

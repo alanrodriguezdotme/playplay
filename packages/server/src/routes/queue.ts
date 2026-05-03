@@ -16,6 +16,7 @@ import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 import { getLocalIp } from "../services/network.js";
 import { broadcastQueueUpdated, broadcastEntryAdded, broadcastEntryRemoved, broadcastNowPlayingChanged } from "../socket/broadcast.js";
 import { advanceQueue } from "../services/playback.js";
+import { getDefaultVenue } from "../lib/venue.js";
 
 const router = Router();
 
@@ -90,13 +91,7 @@ router.get("/", authenticate, async (req, res, next) => {
 // GET /api/queue/display-settings — no auth (for display view)
 router.get("/display-settings", async (req, res, next) => {
   try {
-    const venueSlug = req.query.venue as string;
-    if (!venueSlug) {
-      res.status(400).json({ error: "bad_request", message: "venue query param is required" });
-      return;
-    }
-
-    const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+    const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
     if (!venue) {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;
@@ -116,13 +111,7 @@ router.get("/display-settings", async (req, res, next) => {
 // GET /api/queue/now-playing — no auth (for display view)
 router.get("/now-playing", async (req, res, next) => {
   try {
-    const venueSlug = req.query.venue as string;
-    if (!venueSlug) {
-      res.status(400).json({ error: "bad_request", message: "venue query param is required" });
-      return;
-    }
-
-    const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+    const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
     if (!venue) {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;

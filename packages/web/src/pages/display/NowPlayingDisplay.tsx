@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useParams } from "react-router";
 import type {
   QueueEntry,
   QueueResponse,
@@ -8,6 +7,7 @@ import type {
 import { DEFAULTS, SOCKET_EVENTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
 import { useSocketContext } from "../../contexts/SocketContext";
+import { useVenue } from "../../contexts/VenueContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
 import { getDisplaySettings } from "../../api/queue";
@@ -21,7 +21,7 @@ import { DisplayVenueOtp } from "./components/DisplayVenueOtp";
 const MAX_HISTORY = 10;
 
 export function NowPlayingDisplay() {
-  const { slug } = useParams<{ slug: string }>();
+  const { venue } = useVenue();
   const { socket } = useSocketContext();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   useWakeLock();
@@ -63,11 +63,10 @@ export function NowPlayingDisplay() {
 
   // Fetch display settings
   useEffect(() => {
-    if (!slug) return;
-    getDisplaySettings(slug)
+    getDisplaySettings()
       .then(setDisplaySettings)
-      .catch(() => { });
-  }, [slug]);
+      .catch(() => {});
+  }, []);
 
   // Track the last now-playing ID to detect transitions for history
   const lastNowPlayingIdRef = useRef<string | null>(null);
@@ -127,17 +126,17 @@ export function NowPlayingDisplay() {
     setQueue((prev) => prev.filter((e) => e.id !== entryId));
   }, []);
 
-  useQueueUpdates(slug, {
+  useQueueUpdates({
     onQueueUpdated,
     onNowPlayingChanged,
     onEntryAdded,
     onEntryRemoved,
   });
 
-  if (!slug) {
+  if (!venue) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface text-on-surface">
-        <p className="text-xl text-on-surface-muted">Venue not found</p>
+        <p className="text-xl text-on-surface-muted">Loading venue...</p>
       </div>
     );
   }
@@ -145,7 +144,7 @@ export function NowPlayingDisplay() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface text-on-surface">
       <DisplayHeader
-        venueSlug={slug}
+        venueName={venue.name}
         isFullscreen={isFullscreen}
         show={displaySettings.displayShowHeader}
         onToggleFullscreen={toggleFullscreen}
@@ -170,7 +169,6 @@ export function NowPlayingDisplay() {
           </div>
           <div className="shrink-0 border-t border-border px-6 py-4">
             <DisplayQRCode
-              venueSlug={slug}
               size={displaySettings.displayQrSize}
               lanIp={displaySettings.lanIp}
             />

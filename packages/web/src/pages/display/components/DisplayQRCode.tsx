@@ -2,16 +2,15 @@ import { QRCodeSVG } from "qrcode.react";
 import { DisplayVenueCode } from "./DisplayVenueOtp";
 
 interface DisplayQRCodeProps {
-  venueSlug: string;
   size?: number;
   lanIp?: string | null;
 }
 
-export function DisplayQRCode({ venueSlug, size = 120, lanIp }: DisplayQRCodeProps) {
+export function DisplayQRCode({ size = 120, lanIp }: DisplayQRCodeProps) {
   const origin = lanIp
     ? `${window.location.protocol}//${lanIp}:${window.location.port}`
     : window.location.origin;
-  const patronUrl = `${origin}/venue/${venueSlug}`;
+  const patronUrl = origin;
 
   return (
     <div className="flex items-center gap-4">
@@ -25,7 +24,7 @@ export function DisplayQRCode({ venueSlug, size = 120, lanIp }: DisplayQRCodePro
           </p>
           <p className="mt-1 text-xs text-on-surface-muted">{patronUrl}</p>
         </div>
-        <DisplayVenueCode venueSlug={venueSlug} />
+        <DisplayVenueCode />
       </div>
     </div>
   );

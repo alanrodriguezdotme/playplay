@@ -28,13 +28,7 @@ interface QueueContextValue {
 
 const QueueContext = createContext<QueueContextValue | null>(null);
 
-export function QueueProvider({
-  venueSlug,
-  children,
-}: {
-  venueSlug: string;
-  children: ReactNode;
-}) {
+export function QueueProvider({ children }: { children: ReactNode }) {
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [nowPlaying, setNowPlaying] = useState<QueueEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,7 +54,7 @@ export function QueueProvider({
 
   // Real-time updates via Socket.IO
   // Broadcasts don't include per-user vote state, so preserve it from current state
-  useQueueUpdates(venueSlug, {
+  useQueueUpdates({
     onQueueUpdated: useCallback((data: QueueResponse) => {
       setQueue((prev) => {
         const voteMap = new Map<string, number | null>();
@@ -110,7 +104,8 @@ export function QueueProvider({
 
   const queuedSpotifyTrackIds = useMemo(() => {
     const ids = new Set<string>();
-    if (nowPlaying?.song.spotifyTrackId) ids.add(nowPlaying.song.spotifyTrackId);
+    if (nowPlaying?.song.spotifyTrackId)
+      ids.add(nowPlaying.song.spotifyTrackId);
     for (const entry of queue) {
       if (entry.song.spotifyTrackId) ids.add(entry.song.spotifyTrackId);
     }

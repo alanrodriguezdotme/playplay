@@ -6,6 +6,7 @@ import { authenticate } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rateLimit.js";
 import { DEFAULTS } from "@playplay/shared";
 import type { UserProfile, OtpDeliveryMode } from "@playplay/shared";
+import { getDefaultVenue } from "../lib/venue.js";
 
 const router = Router();
 
@@ -35,12 +36,12 @@ function toUserProfile(user: {
 
 // POST /api/auth/register — new device registration
 router.post("/register", rateLimit(), async (req, res) => {
-  const { deviceId, venueSlug, displayName, avatarEmoji } = req.body;
+  const { deviceId, displayName, avatarEmoji } = req.body;
 
-  if (!deviceId || !venueSlug || !displayName || !avatarEmoji) {
+  if (!deviceId || !displayName || !avatarEmoji) {
     res.status(400).json({
       error: "BAD_REQUEST",
-      message: "deviceId, venueSlug, displayName, and avatarEmoji are required",
+      message: "deviceId, displayName, and avatarEmoji are required",
     });
     return;
   }
@@ -50,7 +51,7 @@ router.post("/register", rateLimit(), async (req, res) => {
     return;
   }
 
-  const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+  const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
   if (!venue) {
     res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
     return;
@@ -99,11 +100,9 @@ router.post("/register", rateLimit(), async (req, res) => {
   res.json({ token, user: toUserProfile(user) });
 });
 
-// GET /api/auth/venue-info/:slug — public venue auth requirements
-router.get("/venue-info/:slug", async (req, res) => {
-  const { slug: venueSlug } = req.params;
-
-  const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+// GET /api/auth/venue-info — public venue auth requirements
+router.get("/venue-info", async (req, res) => {
+  const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
   if (!venue) {
     res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
     return;
@@ -112,14 +111,12 @@ router.get("/venue-info/:slug", async (req, res) => {
   const settings = parseSettings(venue.settings);
   const otpMode = (settings.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE;
 
-  res.json({ requiresVenueCode: otpMode === "venue-display" });
+  res.json({ name: venue.name, slug: venue.slug, requiresVenueCode: otpMode === "venue-display" });
 });
 
-// GET /api/auth/venue-code/:slug — get current venue code for display screen
-router.get("/venue-code/:slug", async (req, res) => {
-  const { slug: venueSlug } = req.params;
-
-  const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+// GET /api/auth/venue-code — get current venue code for display screen
+router.get("/venue-code", async (req, res) => {
+  const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
   if (!venue) {
     res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
     return;
@@ -139,14 +136,14 @@ router.get("/venue-code/:slug", async (req, res) => {
 
 // POST /api/auth/device-login — returning device
 router.post("/device-login", async (req, res) => {
-  const { deviceId, venueSlug } = req.body;
+  const { deviceId } = req.body;
 
-  if (!deviceId || !venueSlug) {
-    res.status(400).json({ error: "BAD_REQUEST", message: "deviceId and venueSlug are required" });
+  if (!deviceId) {
+    res.status(400).json({ error: "BAD_REQUEST", message: "deviceId is required" });
     return;
   }
 
-  const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+  const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
   if (!venue) {
     res.status(404).json({ error: "NOT_FOUND", message: "Venue not found" });
     return;
@@ -211,14 +208,14 @@ router.post("/update-profile", authenticate, async (req, res) => {
 
 // POST /api/auth/admin-login
 router.post("/admin-login", rateLimit(), async (req, res) => {
-  const { email, password, venueSlug } = req.body;
+  const { email, password } = req.body;
 
-  if (!email || !password || !venueSlug) {
-    res.status(400).json({ error: "BAD_REQUEST", message: "email, password, and venueSlug are required" });
+  if (!email || !password) {
+    res.status(400).json({ error: "BAD_REQUEST", message: "email and password are required" });
     return;
   }
 
-  const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+  const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
   if (!venue) {
     res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid email or password" });
     return;

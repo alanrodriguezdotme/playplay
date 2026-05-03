@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback } from "react";
-import { useParams, useLocation, Outlet, Link } from "react-router";
+import { useLocation, Outlet, Link } from "react-router";
 import { Music, Search, Clock, Sun } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
+import { useVenue } from "../../contexts/VenueContext";
 import { QueueProvider } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "./Login";
@@ -24,7 +25,7 @@ function ConnectionIndicator() {
 function TopBar({ onLogout }: { onLogout: () => void }) {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
-  const { slug } = useParams<{ slug: string }>();
+  const { venue } = useVenue();
   const [showThemes, setShowThemes] = useState(false);
 
   return (
@@ -32,9 +33,7 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
       <div className="flex items-center justify-between px-4 py-3">
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold text-on-surface">
-            {slug
-              ?.replace(/-/g, " ")
-              .replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Venue"}
+            {venue?.name ?? "Venue"}
           </h1>
           <p className="text-xs text-on-surface-muted">
             {user?.avatarEmoji && (
@@ -115,7 +114,6 @@ function BottomNav({ activeTab }: { activeTab: Tab }) {
 }
 
 export function PatronLayout() {
-  const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading, logout } = useAuth();
   const location = useLocation();
   const activeTab = (location.pathname.split("/").pop() || "queue") as Tab;
@@ -140,7 +138,7 @@ export function PatronLayout() {
 
   return (
     <ToastProvider>
-      <QueueProvider venueSlug={slug!}>
+      <QueueProvider>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
           <TopBar onLogout={handleLogout} />
