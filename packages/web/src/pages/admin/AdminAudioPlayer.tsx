@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { Play, Pause, SkipForward, Volume2, Volume1, VolumeX } from "lucide-react";
 import { SOCKET_EVENTS } from "@playplay/shared";
 import type { QueueEntry, PlaybackSyncState } from "@playplay/shared";
 import type { Socket } from "socket.io-client";
@@ -396,14 +397,9 @@ export function AdminAudioPlayer({
                       title={isPlaying ? "Pause" : "Play"}
                     >
                       {isPlaying ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-on-primary">
-                          <rect x="6" y="4" width="4" height="16" rx="1" />
-                          <rect x="14" y="4" width="4" height="16" rx="1" />
-                        </svg>
+                        <Pause fill="currentColor" stroke="none" className="h-4 w-4 text-on-primary" />
                       ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-on-primary">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
+                        <Play fill="currentColor" stroke="none" className="h-4 w-4 text-on-primary" />
                       )}
                     </button>
                     <button
@@ -412,10 +408,7 @@ export function AdminAudioPlayer({
                       className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-alt transition-colors disabled:opacity-40"
                       title="Skip"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-on-surface">
-                        <path d="M5 5v14l11-7z" />
-                        <rect x="17" y="5" width="2" height="14" rx="0.5" />
-                      </svg>
+                      <SkipForward fill="currentColor" stroke="none" className="h-4 w-4 text-on-surface" />
                     </button>
                   </>
                 )}
@@ -423,26 +416,13 @@ export function AdminAudioPlayer({
 
               {/* Volume slider */}
               <div className="hidden sm:flex items-center gap-2 w-32">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-on-surface-muted">
-                  {volume === 0 ? (
-                    <>
-                      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
-                      <line x1="22" x2="16" y1="9" y2="15" />
-                      <line x1="16" x2="22" y1="9" y2="15" />
-                    </>
-                  ) : volume < 0.5 ? (
-                    <>
-                      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </>
-                  ) : (
-                    <>
-                      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                    </>
-                  )}
-                </svg>
+                {volume === 0 ? (
+                  <VolumeX className="h-4 w-4 shrink-0 text-on-surface-muted" />
+                ) : volume < 0.5 ? (
+                  <Volume1 className="h-4 w-4 shrink-0 text-on-surface-muted" />
+                ) : (
+                  <Volume2 className="h-4 w-4 shrink-0 text-on-surface-muted" />
+                )}
                 <input
                   type="range"
                   min="0"

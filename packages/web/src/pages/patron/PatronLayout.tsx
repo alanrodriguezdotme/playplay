@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useParams, useLocation, Outlet, Link } from "react-router";
+import { Music, Search, Clock, Sun } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
@@ -8,61 +10,6 @@ import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "./Login";
 
 type Tab = "queue" | "search" | "history";
-
-function QueueIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6"
-    >
-      <path d="M9 18V5l12-2v13" />
-      <circle cx="6" cy="18" r="3" />
-      <circle cx="18" cy="16" r="3" />
-    </svg>
-  );
-}
-
-function SearchIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
-function HistoryIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
 
 function ConnectionIndicator() {
   const { isConnected, hasConnected } = useSocket();
@@ -103,19 +50,7 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
               className="rounded-md border border-border p-2 text-on-surface-muted hover:text-on-surface"
               aria-label="Change theme"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-              </svg>
+              <Sun className="h-4 w-4" />
             </button>
             {showThemes && (
               <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-lg">
@@ -150,10 +85,10 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-const TABS: { key: Tab; label: string; Icon: typeof QueueIcon }[] = [
-  { key: "queue", label: "Queue", Icon: QueueIcon },
-  { key: "search", label: "Search", Icon: SearchIcon },
-  { key: "history", label: "History", Icon: HistoryIcon },
+const TABS: { key: Tab; label: string; Icon: LucideIcon }[] = [
+  { key: "queue", label: "Queue", Icon: Music },
+  { key: "search", label: "Search", Icon: Search },
+  { key: "history", label: "History", Icon: Clock },
 ];
 
 function BottomNav({ activeTab }: { activeTab: Tab }) {
@@ -170,7 +105,7 @@ function BottomNav({ activeTab }: { activeTab: Tab }) {
                 : "text-on-surface-muted hover:text-on-surface"
             }`}
           >
-            <Icon active={activeTab === key} />
+            <Icon size={24} strokeWidth={activeTab === key ? 2.5 : 2} />
             {label}
           </Link>
         ))}

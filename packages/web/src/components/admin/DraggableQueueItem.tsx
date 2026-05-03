@@ -1,5 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Play, X } from "lucide-react";
 import type { QueueEntry } from "@playplay/shared";
 
 function formatDuration(seconds: number): string {
@@ -45,19 +46,7 @@ export function DraggableQueueItem({
         className="shrink-0 cursor-grab touch-none text-on-surface-muted hover:text-on-surface active:cursor-grabbing"
         aria-label="Drag to reorder"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="h-5 w-5"
-        >
-          <circle cx="9" cy="6" r="1.5" />
-          <circle cx="15" cy="6" r="1.5" />
-          <circle cx="9" cy="12" r="1.5" />
-          <circle cx="15" cy="12" r="1.5" />
-          <circle cx="9" cy="18" r="1.5" />
-          <circle cx="15" cy="18" r="1.5" />
-        </svg>
+        <GripVertical className="h-5 w-5" />
       </button>
 
       {/* Song info */}
@@ -97,33 +86,14 @@ export function DraggableQueueItem({
           className="rounded-md p-1.5 text-on-surface-muted hover:bg-primary/15 hover:text-primary"
           title="Play now"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-4 w-4"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
+          <Play fill="currentColor" stroke="none" className="h-4 w-4" />
         </button>
         <button
           onClick={() => onRemove(entry.id)}
           className="rounded-md p-1.5 text-on-surface-muted hover:bg-destructive/15 hover:text-destructive"
           title="Remove"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <X className="h-4 w-4" />
         </button>
       </div>
     </div>

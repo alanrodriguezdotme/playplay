@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -103,19 +104,7 @@ export function UserManagement() {
       {/* Search + Filter */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
           <input
             type="text"
             value={query}

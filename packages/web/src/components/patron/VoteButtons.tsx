@@ -1,43 +1,11 @@
+import { ChevronUp, ChevronDown } from "lucide-react";
+
 interface VoteButtonsProps {
   voteScore: number;
   currentUserVote?: number | null;
   onVote: (value: 1 | -1 | 0) => void;
   size?: "sm" | "lg";
   disabled?: boolean;
-}
-
-function ChevronUp({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <polyline points="18 15 12 9 6 15" />
-    </svg>
-  );
-}
-
-function ChevronDown({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
 }
 
 export function VoteButtons({
@@ -64,7 +32,7 @@ export function VoteButtons({
         } disabled:opacity-40`}
         aria-label={currentUserVote === 1 ? "Remove upvote" : "Upvote"}
       >
-        <ChevronUp className={iconSize} />
+        <ChevronUp className={iconSize} strokeWidth={2.5} />
       </button>
       <span className={`${textSize} tabular-nums text-on-surface`}>
         {voteScore}
@@ -79,7 +47,7 @@ export function VoteButtons({
         } disabled:opacity-40`}
         aria-label={currentUserVote === -1 ? "Remove downvote" : "Downvote"}
       >
-        <ChevronDown className={iconSize} />
+        <ChevronDown className={iconSize} strokeWidth={2.5} />
       </button>
     </div>
   );

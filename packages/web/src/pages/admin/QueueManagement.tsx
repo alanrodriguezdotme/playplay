@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
+import { Play, Pause } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -217,24 +218,9 @@ export function QueueManagement() {
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 hover:bg-primary/25 transition-colors"
               >
                 {isPlaying ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="h-5 w-5 text-primary"
-                  >
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
+                  <Pause fill="currentColor" stroke="none" className="h-5 w-5 text-primary" />
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="h-5 w-5 text-primary"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+                  <Play fill="currentColor" stroke="none" className="h-5 w-5 text-primary" />
                 )}
               </button>
               <div className="min-w-0 flex-1">

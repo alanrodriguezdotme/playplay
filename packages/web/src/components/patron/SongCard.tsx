@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Play, Pause } from "lucide-react";
 import type { Song } from "@playplay/shared";
 import { useQueue } from "../../contexts/QueueContext";
 import { getSongStreamUrl } from "../../api/songs";
@@ -30,32 +31,6 @@ function stopSharedAudio() {
   }
   currentPlayingSongId = null;
   notifyListeners();
-}
-
-function PlayIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  );
-}
-
-function PauseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-    </svg>
-  );
 }
 
 export function SongCard({ song }: SongCardProps) {
@@ -133,9 +108,9 @@ export function SongCard({ song }: SongCardProps) {
           <span className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             }`}>
             {isPlaying ? (
-              <PauseIcon className="h-4 w-4 text-white" />
+              <Pause fill="currentColor" stroke="none" className="h-4 w-4 text-white" />
             ) : (
-              <PlayIcon className="h-4 w-4 text-white" />
+              <Play fill="currentColor" stroke="none" className="h-4 w-4 text-white" />
             )}
           </span>
         </button>
@@ -149,9 +124,9 @@ export function SongCard({ song }: SongCardProps) {
           aria-label={isPlaying ? "Stop preview" : "Preview song"}
         >
           {isPlaying ? (
-            <PauseIcon className="h-4 w-4" />
+            <Pause fill="currentColor" stroke="none" className="h-4 w-4" />
           ) : (
-            <PlayIcon className="h-4 w-4" />
+            <Play fill="currentColor" stroke="none" className="h-4 w-4" />
           )}
         </button>
       )}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
+import { Play } from "lucide-react";
 import { getAdminStats } from "../../api/admin";
 import { useQueue } from "../../contexts/QueueContext";
 import { timeAgo } from "../../utils/time";
@@ -102,14 +103,7 @@ export function DashboardView() {
         {nowPlaying ? (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="h-5 w-5 text-primary"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              <Play fill="currentColor" stroke="none" className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">
