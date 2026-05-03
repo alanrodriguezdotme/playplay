@@ -30,7 +30,7 @@ export function MusicLibrary() {
   useEffect(() => {
     getVenue()
       .then((v) => setMusicSource(v.settings.musicSource))
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const fetchSongs = useCallback(
@@ -104,8 +104,6 @@ export function MusicLibrary() {
     return true;
   });
 
-
-
   return (
     <div className="p-4 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -138,10 +136,11 @@ export function MusicLibrary() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-2 text-xs font-medium capitalize transition-colors first:rounded-l-lg last:rounded-r-lg ${filter === f
-                ? "bg-primary text-on-primary"
-                : "text-on-surface-muted hover:text-on-surface"
-                }`}
+              className={`px-3 py-2 text-xs font-medium capitalize transition-colors first:rounded-l-lg last:rounded-r-lg ${
+                filter === f
+                  ? "bg-primary text-on-primary"
+                  : "text-on-surface-muted hover:text-on-surface"
+              }`}
             >
               {f}
             </button>
@@ -175,8 +174,9 @@ export function MusicLibrary() {
             {filteredSongs.map((song) => (
               <div
                 key={song.id}
-                className={`flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 ${song.isBlocked ? "bg-surface opacity-60" : "bg-surface-raised"
-                  }`}
+                className={`flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 ${
+                  song.isBlocked ? "bg-surface opacity-60" : "bg-surface-raised"
+                }`}
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{song.title}</p>
@@ -193,10 +193,11 @@ export function MusicLibrary() {
                 </span>
                 <span className="w-20 text-center">
                   <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${song.isBlocked
-                      ? "bg-destructive/15 text-destructive"
-                      : "bg-success/15 text-success"
-                      }`}
+                    className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
+                      song.isBlocked
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-success/15 text-success"
+                    }`}
                   >
                     {song.isBlocked ? "blocked" : "active"}
                   </span>
@@ -204,10 +205,11 @@ export function MusicLibrary() {
                 <span className="w-20 text-center">
                   <button
                     onClick={() => handleToggleBlock(song)}
-                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${song.isBlocked
-                      ? "border border-success/30 text-success hover:bg-success/15"
-                      : "border border-destructive/30 text-destructive hover:bg-destructive/15"
-                      }`}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      song.isBlocked
+                        ? "border border-success/30 text-success hover:bg-success/15"
+                        : "border border-destructive/30 text-destructive hover:bg-destructive/15"
+                    }`}
                   >
                     {song.isBlocked ? "Unblock" : "Block"}
                   </button>

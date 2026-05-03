@@ -103,7 +103,11 @@ export function DashboardView() {
         {nowPlaying ? (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15">
-              <Play fill="currentColor" stroke="none" className="h-5 w-5 text-primary" />
+              <Play
+                fill="currentColor"
+                stroke="none"
+                className="h-5 w-5 text-primary"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">

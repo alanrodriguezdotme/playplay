@@ -218,9 +218,17 @@ export function QueueManagement() {
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 hover:bg-primary/25 transition-colors"
               >
                 {isPlaying ? (
-                  <Pause fill="currentColor" stroke="none" className="h-5 w-5 text-primary" />
+                  <Pause
+                    fill="currentColor"
+                    stroke="none"
+                    className="h-5 w-5 text-primary"
+                  />
                 ) : (
-                  <Play fill="currentColor" stroke="none" className="h-5 w-5 text-primary" />
+                  <Play
+                    fill="currentColor"
+                    stroke="none"
+                    className="h-5 w-5 text-primary"
+                  />
                 )}
               </button>
               <div className="min-w-0 flex-1">
@@ -254,9 +262,7 @@ export function QueueManagement() {
                 <div
                   className="h-full rounded-full bg-primary"
                   style={{
-                    width: duration
-                      ? `${(localTime / duration) * 100}%`
-                      : "0%",
+                    width: duration ? `${(localTime / duration) * 100}%` : "0%",
                   }}
                 />
               </div>
@@ -331,10 +337,11 @@ export function QueueManagement() {
                   </p>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${entry.status === "PLAYED"
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
+                    entry.status === "PLAYED"
                       ? "bg-on-surface-muted/15 text-on-surface-muted"
                       : "bg-destructive/15 text-destructive"
-                    }`}
+                  }`}
                 >
                   {entry.status}
                 </span>

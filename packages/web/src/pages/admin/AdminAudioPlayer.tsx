@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Play, Pause, SkipForward, Volume2, Volume1, VolumeX } from "lucide-react";
+import {
+  Play,
+  Pause,
+  SkipForward,
+  Volume2,
+  Volume1,
+  VolumeX,
+} from "lucide-react";
 import { SOCKET_EVENTS } from "@playplay/shared";
 import type { QueueEntry, PlaybackSyncState } from "@playplay/shared";
 import type { Socket } from "socket.io-client";
@@ -92,7 +99,9 @@ export function AdminAudioPlayer({
 
   // Spotify Web Playback SDK — enable if owner and either server or song says spotify
   const spotify = useSpotifyPlayer(isOwner && needsSpotify);
-  const spotifyConnect = useSpotifyConnect(isOwner && needsSpotify && !spotify.isReady);
+  const spotifyConnect = useSpotifyConnect(
+    isOwner && needsSpotify && !spotify.isReady,
+  );
   const prevSpotifyStateRef = useRef<any>(null);
 
   // Listen for PLAYBACK_SYNC
@@ -128,7 +137,7 @@ export function AdminAudioPlayer({
         spotify.resume();
       } else {
         const audio = ensureLocalAudioLoaded();
-        audio?.play().catch(() => { });
+        audio?.play().catch(() => {});
       }
     };
     const onPause = () => {
@@ -239,7 +248,13 @@ export function AdminAudioPlayer({
         lastSongIdRef.current = null;
       }
     }
-  }, [isOwner, nowPlaying, currentSongSource, playCurrentLocal, playCurrentSpotify]);
+  }, [
+    isOwner,
+    nowPlaying,
+    currentSongSource,
+    playCurrentLocal,
+    playCurrentSpotify,
+  ]);
 
   // Audio event listeners for local playback (ended, play, pause, periodic sync)
   useEffect(() => {
@@ -282,7 +297,7 @@ export function AdminAudioPlayer({
 
   const handleUnlock = () => {
     setNeedsInteraction(false);
-    audioRef.current?.play().catch(() => { });
+    audioRef.current?.play().catch(() => {});
   };
 
   const handlePlayPause = useCallback(() => {
@@ -309,7 +324,14 @@ export function AdminAudioPlayer({
         }
       }
     }
-  }, [socket, isPlaying, isOwner, currentSongSource, spotify, ensureLocalAudioLoaded]);
+  }, [
+    socket,
+    isPlaying,
+    isOwner,
+    currentSongSource,
+    spotify,
+    ensureLocalAudioLoaded,
+  ]);
 
   const handleSkip = useCallback(async () => {
     if (queue.length > 0) {
@@ -373,7 +395,8 @@ export function AdminAudioPlayer({
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-success animate-pulse" />
                     <span className="text-xs font-medium text-on-surface">
-                      {needsSpotify ? "Spotify" : "Audio"} playing on this device
+                      {needsSpotify ? "Spotify" : "Audio"} playing on this
+                      device
                     </span>
                   </div>
                 )}
@@ -397,9 +420,17 @@ export function AdminAudioPlayer({
                       title={isPlaying ? "Pause" : "Play"}
                     >
                       {isPlaying ? (
-                        <Pause fill="currentColor" stroke="none" className="h-4 w-4 text-on-primary" />
+                        <Pause
+                          fill="currentColor"
+                          stroke="none"
+                          className="h-4 w-4 text-on-primary"
+                        />
                       ) : (
-                        <Play fill="currentColor" stroke="none" className="h-4 w-4 text-on-primary" />
+                        <Play
+                          fill="currentColor"
+                          stroke="none"
+                          className="h-4 w-4 text-on-primary"
+                        />
                       )}
                     </button>
                     <button
@@ -408,7 +439,11 @@ export function AdminAudioPlayer({
                       className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-alt transition-colors disabled:opacity-40"
                       title="Skip"
                     >
-                      <SkipForward fill="currentColor" stroke="none" className="h-4 w-4 text-on-surface" />
+                      <SkipForward
+                        fill="currentColor"
+                        stroke="none"
+                        className="h-4 w-4 text-on-surface"
+                      />
                     </button>
                   </>
                 )}
@@ -492,7 +527,9 @@ export function AdminAudioPlayer({
                   Spotify Connect Devices
                 </p>
                 {spotifyConnect.loading ? (
-                  <p className="text-xs text-on-surface-muted">Loading devices...</p>
+                  <p className="text-xs text-on-surface-muted">
+                    Loading devices...
+                  </p>
                 ) : spotifyConnect.devices.length === 0 ? (
                   <p className="text-xs text-on-surface-muted">
                     No devices found. Open Spotify on another device first.
@@ -509,7 +546,9 @@ export function AdminAudioPlayer({
                         className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-surface-alt ${d.isActive ? "border border-[#1DB954]" : "border border-border"}`}
                       >
                         <span className="font-medium">{d.name}</span>
-                        <span className="text-on-surface-muted">({d.type})</span>
+                        <span className="text-on-surface-muted">
+                          ({d.type})
+                        </span>
                         {d.isActive && (
                           <span className="ml-auto text-[10px] font-semibold text-[#1DB954]">
                             ACTIVE
@@ -556,23 +595,24 @@ export function AdminAudioPlayer({
       </div>
 
       {/* Autoplay unlock overlay — portaled to body to escape stacking context */}
-      {needsInteraction && createPortal(
-        <button
-          onClick={handleUnlock}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
-        >
-          <div className="rounded-2xl border border-border bg-surface-raised px-8 py-6 text-center shadow-2xl">
-            <div className="text-4xl">🔊</div>
-            <p className="mt-3 text-lg font-bold text-on-surface">
-              Click to enable audio
-            </p>
-            <p className="mt-1 text-sm text-on-surface-muted">
-              Browser requires interaction to play audio
-            </p>
-          </div>
-        </button>,
-        document.body,
-      )}
+      {needsInteraction &&
+        createPortal(
+          <button
+            onClick={handleUnlock}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
+          >
+            <div className="rounded-2xl border border-border bg-surface-raised px-8 py-6 text-center shadow-2xl">
+              <div className="text-4xl">🔊</div>
+              <p className="mt-3 text-lg font-bold text-on-surface">
+                Click to enable audio
+              </p>
+              <p className="mt-1 text-sm text-on-surface-muted">
+                Browser requires interaction to play audio
+              </p>
+            </div>
+          </button>,
+          document.body,
+        )}
     </>
   );
 }

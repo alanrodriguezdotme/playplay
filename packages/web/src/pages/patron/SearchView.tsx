@@ -27,7 +27,7 @@ export function SearchView() {
         setMusicSource(data.musicSource);
         setAllowFullCatalog(data.allowFullCatalogSearch);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const useSpotifySearch = musicSource === "spotify" && allowFullCatalog;
@@ -66,7 +66,9 @@ export function SearchView() {
         } else {
           // Search local library
           const data = await searchSongs(q, p, LIMIT);
-          setResults((prev) => (append ? [...prev, ...data.songs] : data.songs));
+          setResults((prev) =>
+            append ? [...prev, ...data.songs] : data.songs,
+          );
           setTotal(data.total);
         }
         setHasSearched(true);

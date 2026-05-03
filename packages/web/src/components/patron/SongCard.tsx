@@ -105,22 +105,34 @@ export function SongCard({ song }: SongCardProps) {
             alt=""
             className="h-full w-full object-cover"
           />
-          <span className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}>
+          <span
+            className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
+              isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
             {isPlaying ? (
-              <Pause fill="currentColor" stroke="none" className="h-4 w-4 text-white" />
+              <Pause
+                fill="currentColor"
+                stroke="none"
+                className="h-4 w-4 text-white"
+              />
             ) : (
-              <Play fill="currentColor" stroke="none" className="h-4 w-4 text-white" />
+              <Play
+                fill="currentColor"
+                stroke="none"
+                className="h-4 w-4 text-white"
+              />
             )}
           </span>
         </button>
       ) : (
         <button
           onClick={togglePreview}
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${isPlaying
-            ? "bg-primary text-on-primary"
-            : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
-            }`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+            isPlaying
+              ? "bg-primary text-on-primary"
+              : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
+          }`}
           aria-label={isPlaying ? "Stop preview" : "Preview song"}
         >
           {isPlaying ? (

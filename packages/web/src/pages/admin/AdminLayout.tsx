@@ -77,10 +77,11 @@ function Sidebar({ activeTab }: { activeTab: AdminTab }) {
           <Link
             key={key}
             to={key}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${activeTab === key
-              ? "bg-primary/15 text-primary"
-              : "text-on-surface-muted hover:bg-surface hover:text-on-surface"
-              }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              activeTab === key
+                ? "bg-primary/15 text-primary"
+                : "text-on-surface-muted hover:bg-surface hover:text-on-surface"
+            }`}
           >
             <Icon size={20} strokeWidth={activeTab === key ? 2.5 : 2} />
             {label}
@@ -99,10 +100,11 @@ function BottomNav({ activeTab }: { activeTab: AdminTab }) {
           <Link
             key={key}
             to={key}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${activeTab === key
-              ? "text-primary"
-              : "text-on-surface-muted hover:text-on-surface"
-              }`}
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${
+              activeTab === key
+                ? "text-primary"
+                : "text-on-surface-muted hover:text-on-surface"
+            }`}
           >
             <Icon size={20} strokeWidth={activeTab === key ? 2.5 : 2} />
             {label}
@@ -137,11 +139,7 @@ function AudioPlayerBridge() {
   const { nowPlaying, queue } = useQueue();
   const { socket } = useSocket();
   return (
-    <AdminAudioPlayer
-      nowPlaying={nowPlaying}
-      queue={queue}
-      socket={socket}
-    />
+    <AdminAudioPlayer nowPlaying={nowPlaying} queue={queue} socket={socket} />
   );
 }
 
@@ -149,7 +147,8 @@ export function AdminLayout() {
   const { slug } = useParams<{ slug: string }>();
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
-  const activeTab = (location.pathname.split("/").pop() || "dashboard") as AdminTab;
+  const activeTab = (location.pathname.split("/").pop() ||
+    "dashboard") as AdminTab;
 
   if (isLoading) {
     return (
