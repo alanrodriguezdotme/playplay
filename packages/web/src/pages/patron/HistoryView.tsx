@@ -59,7 +59,7 @@ export function HistoryView() {
     <div className="flex flex-1 flex-col">
       <div className="divide-y divide-border">
         {entries.map((entry) => (
-          <div key={entry.id} className="flex items-center gap-3 px-4 py-3">
+          <div key={entry.id} className="flex items-center gap-3 px-4 py-4">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-on-surface">
                 {entry.song.title}
@@ -67,23 +67,28 @@ export function HistoryView() {
               <p className="truncate text-xs text-on-surface-muted">
                 {entry.song.artist}
               </p>
-              {entry.addedBy && (
-                <p className="mt-0.5 text-xs text-on-surface-muted">
-                  {entry.addedBy.avatarEmoji && (
-                    <span className="mr-0.5">{entry.addedBy.avatarEmoji}</span>
-                  )}
-                  {entry.addedBy.displayName || "Someone"}
-                </p>
-              )}
+              <div className="flex gap-1 mt-0.5 text-xs text-on-surface-muted">
+                {entry.addedBy && (
+                  <p>
+                    {entry.addedBy.avatarEmoji && (
+                      <span className="mr-0.5">
+                        {entry.addedBy.avatarEmoji}
+                      </span>
+                    )}
+                    {entry.addedBy.displayName || "Someone"}
+                  </p>
+                )}
+                <p>•</p>
+                <p>{entry.playedAt ? timeAgo(entry.playedAt) : "—"}</p>
+              </div>
             </div>
-            <div className="shrink-0 text-right">
-              <p className="text-xs tabular-nums text-on-surface-muted">
-                {entry.playedAt ? timeAgo(entry.playedAt) : "—"}
-              </p>
-              <p className="text-xs tabular-nums text-on-surface-muted">
-                {entry.voteScore > 0 ? "+" : ""}
-                {entry.voteScore} votes
-              </p>
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-xl font-semibold tabular-nums text-primary font-family-accent">
+                {entry.voteScore}
+              </div>
+              <div className="text-xs uppercase font-semibold text-on-surface-muted">
+                votes
+              </div>
             </div>
           </div>
         ))}

@@ -30,30 +30,34 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
             : undefined
         }
       />
-      <div className="flex items-center gap-4 p-4 pt-2">
+      <div className="flex items-center gap-4 p-4 pt-1">
         {entry.song.source === "spotify" && entry.song.artworkUrl ? (
           <img
             src={entry.song.artworkUrl}
             alt=""
-            className="h-16 w-16 shrink-0 rounded-xl object-cover"
+            className="h-36 w-36 shrink-0 object-cover"
           />
         ) : (
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl">
             🎵
           </div>
         )}
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-lg font-bold text-on-surface">
-            {entry.song.title}
-          </h2>
-          <p className="truncate text-sm text-on-surface-muted">
-            {entry.song.artist}
-          </p>
-          {entry.song.album && (
-            <p className="truncate text-xs text-on-surface-muted">
-              {entry.song.album}
+        <div className="min-w-0 w-full self-stretch h-full flex-1 flex flex-col gap-1 items-start">
+          <div className="w-full">
+            <h2 className="text-lg font-bold text-on-surface leading-tight line-clamp-3">
+              {entry.song.title}
+            </h2>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="line-clamp-2 text-sm font-semibold text-on-surface-muted">
+              {entry.song.artist}
             </p>
-          )}
+            {entry.song.album && (
+              <p className="line-clamp-2 text-xs text-on-surface-subtle">
+                {entry.song.album}
+              </p>
+            )}
+          </div>
         </div>
         <VoteButtons
           voteScore={entry.voteScore}

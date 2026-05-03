@@ -98,7 +98,7 @@ export function SearchView() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Search input */}
-      <div className="sticky top-0 z-10 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 border-b border-border bg-surface/95">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
           <input
@@ -106,13 +106,13 @@ export function SearchView() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search songs by title or artist…"
-            className="w-full rounded-xl border border-border bg-surface-alt py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full bg-surface-alt py-4 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-ring"
             autoFocus
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-muted hover:text-on-surface"
+              className="absolute cursor-pointer p-2 right-3 top-1/2 -translate-y-1/2 text-on-surface-muted hover:text-on-surface"
               aria-label="Clear search"
             >
               <X className="h-4 w-4" />

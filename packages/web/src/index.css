@@ -28,6 +28,7 @@
   /* Text */
   --color-on-surface: var(--theme-on-surface);
   --color-on-surface-muted: var(--theme-on-surface-muted);
+  --color-on-surface-subtle: var(--theme-on-surface-subtle);
 
   /* Primary accent */
   --color-primary: var(--theme-primary);
@@ -69,6 +70,7 @@
 
   --theme-on-surface: #f0f0f5;
   --theme-on-surface-muted: #8888a0;
+  --theme-on-surface-subtle: #55556a;
 
   --theme-primary: #6366f1;
   --theme-primary-hover: #818cf8;
@@ -102,6 +104,7 @@
 
   --theme-on-surface: #111118;
   --theme-on-surface-muted: #6b6b80;
+  --theme-on-surface-subtle: #9b9bac;
 
   --theme-primary: #4f46e5;
   --theme-primary-hover: #4338ca;
@@ -136,6 +139,7 @@
 
   --theme-on-surface: #e0e8ff;
   --theme-on-surface-muted: #6880a8;
+  --theme-on-surface-subtle: #405070;
 
   --theme-primary: #06b6d4;
   --theme-primary-hover: #22d3ee;
@@ -170,6 +174,7 @@
 
   --theme-on-surface: #fff0e0;
   --theme-on-surface-muted: #a08060;
+  --theme-on-surface-subtle: #6e5840;
 
   --theme-primary: #f97316;
   --theme-primary-hover: #fb923c;
@@ -204,6 +209,7 @@
 
   --theme-on-surface: #f5e0ff;
   --theme-on-surface-muted: #9060b0;
+  --theme-on-surface-subtle: #604078;
 
   --theme-primary: #ec4899;
   --theme-primary-hover: #f472b6;
