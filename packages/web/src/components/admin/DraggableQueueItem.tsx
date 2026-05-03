@@ -55,7 +55,12 @@ export function DraggableQueueItem({
         <p className="truncate text-xs text-on-surface-muted">
           {entry.song.artist}
           {entry.addedBy && (
-            <span> · Added by {entry.addedBy.displayName ?? "Unknown"}</span>
+            <span>
+              {" "}
+              · Added by{" "}
+              {entry.addedBy.avatarEmoji ? entry.addedBy.avatarEmoji + " " : ""}
+              {entry.addedBy.displayName ?? "Unknown"}
+            </span>
           )}
         </p>
       </div>

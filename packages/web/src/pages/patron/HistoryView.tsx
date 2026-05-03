@@ -69,6 +69,9 @@ export function HistoryView() {
               </p>
               {entry.addedBy && (
                 <p className="mt-0.5 text-xs text-on-surface-muted">
+                  {entry.addedBy.avatarEmoji && (
+                    <span className="mr-0.5">{entry.addedBy.avatarEmoji}</span>
+                  )}
                   {entry.addedBy.displayName || "Someone"}
                 </p>
               )}

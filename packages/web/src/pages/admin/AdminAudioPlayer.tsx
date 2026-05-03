@@ -439,11 +439,7 @@ export function AdminAudioPlayer({
                       className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-alt transition-colors disabled:opacity-40"
                       title="Skip"
                     >
-                      <SkipForward
-                        fill="currentColor"
-                        stroke="none"
-                        className="h-4 w-4 text-on-surface"
-                      />
+                      <SkipForward className="h-4 w-4 text-on-surface" />
                     </button>
                   </>
                 )}

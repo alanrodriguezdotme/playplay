@@ -35,6 +35,9 @@ export function QueueEntryCard({
             </span>
           ) : entry.addedBy ? (
             <span className="text-xs text-on-surface-muted">
+              {entry.addedBy.avatarEmoji && (
+                <span className="mr-0.5">{entry.addedBy.avatarEmoji}</span>
+              )}
               {entry.addedBy.displayName || "Someone"}
             </span>
           ) : null}

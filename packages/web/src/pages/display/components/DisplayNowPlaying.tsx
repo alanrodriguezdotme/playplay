@@ -62,6 +62,9 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           <span>
             Added by{" "}
             <span className="font-semibold text-on-surface">
+              {entry.addedBy.avatarEmoji && (
+                <span className="mr-1">{entry.addedBy.avatarEmoji}</span>
+              )}
               {entry.addedBy.displayName || "Someone"}
             </span>
           </span>

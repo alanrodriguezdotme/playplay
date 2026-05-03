@@ -240,7 +240,11 @@ export function QueueManagement() {
                   {nowPlaying.addedBy && (
                     <span>
                       {" "}
-                      · {nowPlaying.addedBy.displayName ?? "Unknown"}
+                      ·{" "}
+                      {nowPlaying.addedBy.avatarEmoji
+                        ? nowPlaying.addedBy.avatarEmoji + " "
+                        : ""}
+                      {nowPlaying.addedBy.displayName ?? "Unknown"}
                     </span>
                   )}
                 </p>
@@ -332,7 +336,14 @@ export function QueueManagement() {
                   <p className="truncate text-xs text-on-surface-muted">
                     {entry.song.artist}
                     {entry.addedBy && (
-                      <span> · {entry.addedBy.displayName ?? "Default"}</span>
+                      <span>
+                        {" "}
+                        ·{" "}
+                        {entry.addedBy.avatarEmoji
+                          ? entry.addedBy.avatarEmoji + " "
+                          : ""}
+                        {entry.addedBy.displayName ?? "Default"}
+                      </span>
                     )}
                   </p>
                 </div>

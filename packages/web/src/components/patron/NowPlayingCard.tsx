@@ -26,7 +26,7 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
         title="Now Playing"
         subtitle={
           entry.addedBy
-            ? `Added by ${entry.addedBy.displayName || "Someone"}`
+            ? `Added by ${entry.addedBy.avatarEmoji ? entry.addedBy.avatarEmoji + " " : ""}${entry.addedBy.displayName || "Someone"}`
             : undefined
         }
       />

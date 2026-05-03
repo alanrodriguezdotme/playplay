@@ -217,6 +217,9 @@ export function DashboardView() {
                     </span>
                   </p>
                   <p className="text-xs text-on-surface-muted">
+                    {entry.addedBy?.avatarEmoji
+                      ? entry.addedBy.avatarEmoji + " "
+                      : ""}
                     {entry.addedBy?.displayName ?? "Default playlist"} ·{" "}
                     {timeAgo(entry.createdAt)}
                   </p>
