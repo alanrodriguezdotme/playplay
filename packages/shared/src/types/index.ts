@@ -217,6 +217,12 @@ export interface AdminVenueSettingsUpdateBody {
   allowFullCatalogSearch?: boolean;
 }
 
+export interface AdminVenueInfoUpdateBody {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
 export interface AdminUser {
   id: string;
   phone: string | null;

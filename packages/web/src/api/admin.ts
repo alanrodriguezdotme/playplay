@@ -2,6 +2,7 @@ import { apiRequest } from "./client.js";
 import type {
   AdminVenueResponse,
   AdminVenueSettingsUpdateBody,
+  AdminVenueInfoUpdateBody,
   AdminUsersResponse,
   AdminUserUpdateBody,
   AdminUser,
@@ -13,6 +14,15 @@ import type {
 
 export async function getVenue(): Promise<AdminVenueResponse> {
   return apiRequest<AdminVenueResponse>("/api/admin/venue");
+}
+
+export async function updateVenueInfo(
+  body: AdminVenueInfoUpdateBody
+): Promise<AdminVenueResponse> {
+  return apiRequest<AdminVenueResponse>("/api/admin/venue", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function updateVenueSettings(

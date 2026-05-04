@@ -7,6 +7,7 @@ import { broadcastQueueUpdated } from "../socket/broadcast.js";
 import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 import type {
   AdminVenueSettingsUpdateBody,
+  AdminVenueInfoUpdateBody,
   AdminUserUpdateBody,
   AdminSongUpdateBody,
   VenueSettings,
@@ -33,6 +34,75 @@ router.get("/venue", async (req, res, next) => {
       slug: venue.slug,
       email: venue.email,
       phone: venue.phone,
+      settings: {
+        voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
+        maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
+        defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
+        displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
+        displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+        otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
+        smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
+        musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
+        allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/admin/venue
+router.patch("/venue", async (req, res, next) => {
+  try {
+    const body = req.body as AdminVenueInfoUpdateBody;
+    const venue = await prisma.venue.findUnique({
+      where: { id: req.user!.venueId },
+    });
+    if (!venue) {
+      res.status(404).json({ error: "not_found", message: "Venue not found" });
+      return;
+    }
+
+    const data: Record<string, string> = {};
+    if (body.name !== undefined) {
+      if (typeof body.name !== "string" || body.name.trim().length === 0) {
+        res.status(400).json({ error: "validation", message: "name must be a non-empty string" });
+        return;
+      }
+      data.name = body.name.trim();
+    }
+    if (body.email !== undefined) {
+      if (typeof body.email !== "string") {
+        res.status(400).json({ error: "validation", message: "email must be a string" });
+        return;
+      }
+      data.email = body.email.trim();
+    }
+    if (body.phone !== undefined) {
+      if (typeof body.phone !== "string") {
+        res.status(400).json({ error: "validation", message: "phone must be a string" });
+        return;
+      }
+      data.phone = body.phone.trim();
+    }
+
+    if (Object.keys(data).length === 0) {
+      res.status(400).json({ error: "validation", message: "No fields to update" });
+      return;
+    }
+
+    const updated = await prisma.venue.update({
+      where: { id: venue.id },
+      data,
+    });
+
+    const s = parseSettings(updated.settings);
+    res.json({
+      id: updated.id,
+      name: updated.name,
+      slug: updated.slug,
+      email: updated.email,
+      phone: updated.phone,
       settings: {
         voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
         maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
