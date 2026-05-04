@@ -37,7 +37,7 @@ export function QueueEntryCard({
         {position}
       </span> */}
       <div className="min-w-0 flex-1 flex flex-col gap-1">
-        <p className="truncate text-sm font-semibold text-on-surface">
+        <p className="truncate text-md font-semibold text-on-surface font-family-accent">
           {entry.song.title}
         </p>
         <p className="truncate text-xs text-on-surface-muted">

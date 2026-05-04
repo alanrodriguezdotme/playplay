@@ -45,6 +45,7 @@ export function QueueView() {
             ? `${queue.length} song${queue.length > 1 ? "s" : ""}`
             : "Queue is empty"
         }
+        showTopBorder={true}
       />
 
       {queue.length === 0 ? (

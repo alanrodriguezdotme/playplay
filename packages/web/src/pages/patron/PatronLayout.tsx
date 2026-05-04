@@ -29,10 +29,10 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
   const [showThemes, setShowThemes] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur">
+    <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-border">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-bold text-on-surface">
+          <h1 className="truncate text-lg font-bold text-on-surface font-family-accent">
             {venue?.name ?? "Venue"}
           </h1>
           <p className="text-xs text-on-surface-muted">

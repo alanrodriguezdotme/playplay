@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -96,10 +97,9 @@ export function UserManagement() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Users</h2>
+      <AdminPageHeader title="Users">
         <span className="text-sm text-on-surface-muted">{total} total</span>
-      </div>
+      </AdminPageHeader>
 
       {/* Search + Filter */}
       <div className="flex flex-col gap-3 sm:flex-row">

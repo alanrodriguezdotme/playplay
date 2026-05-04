@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { useToast } from "../../contexts/ToastContext";
 import { useDebounce } from "../../hooks/useDebounce";
 import { getSongs, searchSongs } from "../../api/songs";
@@ -106,8 +107,7 @@ export function MusicLibrary() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Music Library</h2>
+      <AdminPageHeader title="Music Library">
         {musicSource === "local" && (
           <button
             onClick={handleScan}
@@ -117,7 +117,7 @@ export function MusicLibrary() {
             {scanning ? "Scanning..." : "Scan Library"}
           </button>
         )}
-      </div>
+      </AdminPageHeader>
 
       {/* Search + Filter */}
       <div className="flex flex-col gap-3 sm:flex-row">

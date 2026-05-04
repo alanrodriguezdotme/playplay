@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router";
 import { Play } from "lucide-react";
+import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { getAdminStats } from "../../api/admin";
 import { useQueue } from "../../contexts/QueueContext";
 import { timeAgo } from "../../utils/time";
@@ -8,7 +8,7 @@ import type { AdminStatsResponse } from "@playplay/shared";
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-xl border border-border bg-surface-raised p-4">
+    <div className="bg-surface-raised p-4">
       <p className="text-xs font-medium text-on-surface-muted">{label}</p>
       <p className="mt-1 text-2xl font-bold text-on-surface">{value}</p>
     </div>
@@ -67,27 +67,11 @@ export function DashboardView() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Dashboard</h2>
-        <div className="flex gap-2">
-          <Link
-            to="/"
-            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface-muted hover:text-on-surface"
-          >
-            Patron View
-          </Link>
-          <Link
-            to="/now-playing"
-            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface-muted hover:text-on-surface"
-          >
-            Display View
-          </Link>
-        </div>
-      </div>
+    <div className="flex flex-col divide-border divide-y-1">
+      <AdminPageHeader title="Dashboard" />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-solid divide-x-1 divide-border">
         <StatCard label="Total Songs" value={stats?.totalUnblockedSongs ?? 0} />
         <StatCard label="Total Users" value={stats?.totalUsers ?? 0} />
         <StatCard label="In Queue" value={stats?.totalQueued ?? 0} />
@@ -95,13 +79,13 @@ export function DashboardView() {
       </div>
 
       {/* Now Playing */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4">
+      <div className="bg-surface-raised p-4">
         <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
           Now Playing
         </h3>
         {nowPlaying ? (
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <Play
                 fill="currentColor"
                 stroke="none"

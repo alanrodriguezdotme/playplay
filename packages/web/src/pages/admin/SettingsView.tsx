@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { useToast } from "../../contexts/ToastContext";
 import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
 import { getVenue, updateVenueSettings } from "../../api/admin";
@@ -33,7 +34,9 @@ export function SettingsView() {
   const [smsGatewayUrl, setSmsGatewayUrl] = useState("");
   const [musicSource, setMusicSource] = useState<MusicSource>("local");
   const [allowFullCatalogSearch, setAllowFullCatalogSearch] = useState(false);
-  const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus | null>(null);
+  const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus | null>(
+    null,
+  );
   const [spotifyLoading, setSpotifyLoading] = useState(false);
 
   const fetchVenue = useCallback(async () => {
@@ -104,7 +107,7 @@ export function SettingsView() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-2xl">
-      <h2 className="text-xl font-bold">Settings</h2>
+      <AdminPageHeader title="Settings" />
 
       {/* Venue Info (read-only) */}
       {venue && (
@@ -227,10 +230,11 @@ export function SettingsView() {
           ).map((opt) => (
             <label
               key={opt.value}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${musicSource === opt.value
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                musicSource === opt.value
                   ? "border-primary bg-primary/5"
                   : "border-border"
-                }`}
+              }`}
             >
               <input
                 type="radio"
@@ -261,8 +265,7 @@ export function SettingsView() {
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-success" />
                   <span className="text-sm text-on-surface">
-                    Connected as{" "}
-                    <strong>{spotifyStatus.displayName}</strong>
+                    Connected as <strong>{spotifyStatus.displayName}</strong>
                   </span>
                   {spotifyStatus.isPremium && (
                     <span className="rounded bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
@@ -345,12 +348,14 @@ export function SettingsView() {
                 onClick={() =>
                   setAllowFullCatalogSearch(!allowFullCatalogSearch)
                 }
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${allowFullCatalogSearch ? "bg-primary" : "bg-surface-alt"
-                  }`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                  allowFullCatalogSearch ? "bg-primary" : "bg-surface-alt"
+                }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${allowFullCatalogSearch ? "translate-x-5" : "translate-x-0"
-                    }`}
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    allowFullCatalogSearch ? "translate-x-5" : "translate-x-0"
+                  }`}
                 />
               </button>
             </div>
@@ -407,12 +412,14 @@ export function SettingsView() {
             role="switch"
             aria-checked={displayShowHeader}
             onClick={() => setDisplayShowHeader(!displayShowHeader)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${displayShowHeader ? "bg-primary" : "bg-surface-alt"
-              }`}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+              displayShowHeader ? "bg-primary" : "bg-surface-alt"
+            }`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${displayShowHeader ? "translate-x-5" : "translate-x-0"
-                }`}
+              className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                displayShowHeader ? "translate-x-5" : "translate-x-0"
+              }`}
             />
           </button>
         </div>
@@ -467,10 +474,11 @@ export function SettingsView() {
           ).map((opt) => (
             <label
               key={opt.value}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${otpDeliveryMode === opt.value
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                otpDeliveryMode === opt.value
                   ? "border-primary bg-primary/5"
                   : "border-border"
-                } ${opt.disabled ? "cursor-not-allowed opacity-50" : ""}`}
+              } ${opt.disabled ? "cursor-not-allowed opacity-50" : ""}`}
             >
               <input
                 type="radio"
@@ -537,10 +545,11 @@ export function SettingsView() {
             <button
               key={t}
               onClick={() => setTheme(t)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${theme === t
+              className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
+                theme === t
                   ? "bg-primary text-on-primary"
                   : "border border-border text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
-                }`}
+              }`}
             >
               {t}
             </button>

@@ -44,7 +44,7 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
         )}
         <div className="min-w-0 w-full self-stretch h-full flex-1 flex flex-col gap-1 items-start">
           <div className="w-full">
-            <h2 className="text-lg font-bold text-on-surface leading-tight line-clamp-3">
+            <h2 className="text-lg font-bold text-on-surface leading-tight line-clamp-3 font-family-accent">
               {entry.song.title}
             </h2>
           </div>

@@ -61,7 +61,7 @@ export function HistoryView() {
         {entries.map((entry) => (
           <div key={entry.id} className="flex items-center gap-3 px-4 py-4">
             <div className="min-w-0 flex-1 flex flex-col gap-1">
-              <p className="truncate text-md font-semibold text-on-surface">
+              <p className="truncate text-md font-semibold text-on-surface font-family-accent">
                 {entry.song.title}
               </p>
               <p className="truncate text-sm text-on-surface-muted">
