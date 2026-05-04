@@ -128,17 +128,17 @@ export function MusicLibrary() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search songs..."
-            className="w-full min-h-12 border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
+            className="w-full min-h-12 h-full border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
           />
         </div>
-        <div className="flex border border-border">
+        <div className="flex border-b border-border">
           {(["all", "active", "blocked"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`p-4 text-xs font-medium capitalize transition-colors ${
                 filter === f
-                  ? "bg-primary text-on-primary"
+                  ? "bg-surface-alt text-primary"
                   : "text-on-surface-muted hover:text-on-surface"
               }`}
             >
@@ -170,11 +170,11 @@ export function MusicLibrary() {
             <span className="w-20 text-center">Action</span>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col divide-y divide-border">
             {filteredSongs.map((song) => (
               <div
                 key={song.id}
-                className={`flex items-center gap-2 border border-border p-4 ${
+                className={`flex items-center gap-2 p-4 ${
                   song.isBlocked ? "bg-surface opacity-60" : ""
                 }`}
               >
