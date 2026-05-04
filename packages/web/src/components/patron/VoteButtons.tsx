@@ -34,7 +34,9 @@ export function VoteButtons({
       >
         <ChevronUp className={iconSize} strokeWidth={2.5} />
       </button>
-      <span className={`${textSize} tabular-nums text-on-surface`}>
+      <span
+        className={`text-md font-family-accent text-primary tabular-nums text-on-surface`}
+      >
         {voteScore}
       </span>
       <button

@@ -31,7 +31,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center text-center">
-      <p className="mb-4 text-sm font-bold uppercase tracking-widest text-primary">
+      <p className="mb-4 text-md font-bold uppercase tracking-widest text-primary">
         Now Playing
       </p>
       {showFallback ? (
@@ -43,10 +43,10 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           src={artworkUrl}
           alt={`${entry.song.title} album art`}
           onError={() => setArtworkError(entry.song.id)}
-          className="mb-6 h-44 w-44 rounded-2xl object-cover shadow-lg lg:h-66 lg:w-66"
+          className="mb-6 h-44 w-44 object-cover shadow-lg lg:h-66 lg:w-66"
         />
       )}
-      <h1 className="max-w-full text-4xl font-extrabold text-on-surface lg:text-5xl">
+      <h1 className="max-w-full text-4xl font-extrabold text-on-surface lg:text-5xl font-family-accent">
         {entry.song.title}
       </h1>
       <p className="mt-2 max-w-full truncate text-2xl text-on-surface-muted lg:text-3xl">
@@ -57,7 +57,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           {entry.song.album}
         </p>
       )}
-      <div className="mt-4 flex items-center gap-4 text-lg text-on-surface-muted">
+      <div className="mt-4 flex items-center gap-4 text-lg text-on-surface-subtle uppercase">
         {entry.addedBy && (
           <span>
             Added by{" "}

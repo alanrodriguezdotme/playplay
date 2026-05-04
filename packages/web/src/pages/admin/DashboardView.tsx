@@ -129,8 +129,8 @@ export function DashboardView() {
                   </p>
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="text-md font-medium font-family-accent">
-                    {entry.voteScore > 0 ? "+" : ""}
+                  <div className="text-md text-primary font-medium font-family-accent">
+                    {entry.voteScore < 0 && "-"}
                     {entry.voteScore}
                   </div>
                   <span className="text-xs text-on-surface-subtle uppercase">
@@ -157,7 +157,7 @@ export function DashboardView() {
           <div className="flex flex-col gap-1 divide-y divide-border">
             {stats.topSongs.map((song, i) => (
               <div key={song.id} className="flex items-center gap-3 p-4">
-                <span className="w-5 text-center text-xs font-medium text-on-surface-muted">
+                <span className="w-5 text-center text-xs  font-medium text-on-surface-muted">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1 flex flex-col gap-1">
@@ -169,7 +169,7 @@ export function DashboardView() {
                   </p>
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="text-md font-medium font-family-accent">
+                  <div className="text-md text-primary font-medium font-family-accent">
                     {song.totalPlays}
                   </div>
                   <span className="text-xs text-on-surface-subtle uppercase">
