@@ -34,11 +34,7 @@ export function DraggableQueueItem({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-2 bg-surface-raised p-4"
-    >
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2 p-4">
       {/* Drag handle */}
       <button
         {...attributes}

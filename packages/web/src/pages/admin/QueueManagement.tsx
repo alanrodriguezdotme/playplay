@@ -291,7 +291,7 @@ export function QueueManagement() {
 
       {/* Queue */}
       <div>
-        <SectionHeader title={`Queue (${queue.length})`} />
+        <SectionHeader title={`Queue (${queue.length})`} showTopBorder />
         {queue.length > 0 ? (
           <DndContext
             sensors={sensors}
@@ -323,14 +323,11 @@ export function QueueManagement() {
 
       {/* History */}
       <div>
-        <SectionHeader title="History" />
+        <SectionHeader title="History" showTopBorder />
         {history.length > 0 ? (
           <div className="flex flex-col divide-y divide-border">
             {history.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex items-center gap-3 bg-surface-raised p-4"
-              >
+              <div key={entry.id} className="flex items-center gap-2 p-4">
                 <div className="min-w-0 flex-1 flex flex-col gap-1">
                   <p className="truncate text-sm font-semibold font-family-accent">
                     {entry.song.title}

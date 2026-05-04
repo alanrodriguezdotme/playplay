@@ -15,6 +15,7 @@ import type {
   MusicSource,
   SpotifyStatus,
 } from "@playplay/shared";
+import SectionHeader from "../../components/common/SectionHeader";
 
 export function SettingsView() {
   const { showToast } = useToast();
@@ -106,16 +107,14 @@ export function SettingsView() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-2xl">
+    <div>
       <AdminPageHeader title="Settings" />
 
       {/* Venue Info (read-only) */}
       {venue && (
-        <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-            Venue Info
-          </h3>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col">
+          <SectionHeader title="Venue Info" showTopBorder />
+          <div className="grid gap-4 sm:grid-cols-2 p-4">
             <div>
               <p className="text-xs text-on-surface-muted">Name</p>
               <p className="text-sm font-medium">{venue.name}</p>
@@ -137,12 +136,10 @@ export function SettingsView() {
       )}
 
       {/* Queue Settings */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Queue Settings
-        </h3>
+      <div className="flex flex-col">
+        <SectionHeader title="Queue Settings" showTopBorder />
 
-        <div>
+        <div className="p-4">
           <label className="block text-sm font-medium text-on-surface mb-1">
             Vote Threshold
           </label>
@@ -155,11 +152,11 @@ export function SettingsView() {
             value={voteThreshold}
             onChange={(e) => setVoteThreshold(parseInt(e.target.value) || 0)}
             max={0}
-            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
+            className="w-full border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
           />
         </div>
 
-        <div>
+        <div className="p-4">
           <label className="block text-sm font-medium text-on-surface mb-1">
             Max Songs Per User
           </label>
@@ -173,11 +170,11 @@ export function SettingsView() {
               setMaxSongsPerUser(Math.max(1, parseInt(e.target.value) || 1))
             }
             min={1}
-            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
+            className="w-full border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
           />
         </div>
 
-        <div>
+        <div className="p-4">
           <label className="block text-sm font-medium text-on-surface mb-1">
             Default Playlist Path
           </label>
@@ -190,30 +187,29 @@ export function SettingsView() {
             value={defaultPlaylistPath}
             onChange={(e) => setDefaultPlaylistPath(e.target.value)}
             placeholder="./music/default"
-            className="w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
+            className="w-full border border-border bg-surface px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
           />
         </div>
-
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Settings"}
-        </button>
+        <div className="p-4 pt-2">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        </div>
       </div>
 
       {/* Display Settings */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Music Source
-        </h3>
-        <p className="text-xs text-on-surface-muted">
+      <div className="flex flex-col">
+        <SectionHeader title="Music Source" showTopBorder />
+        <p className="p-4 text-xs text-on-surface-muted">
           Choose where songs come from. You can switch between local files and
           Spotify at any time.
         </p>
 
-        <div className="space-y-2">
+        <div className="px-4 space-y-4">
           {(
             [
               {
@@ -230,7 +226,7 @@ export function SettingsView() {
           ).map((opt) => (
             <label
               key={opt.value}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 border p-3 transition-colors ${
                 musicSource === opt.value
                   ? "border-primary bg-primary/5"
                   : "border-border"
@@ -255,7 +251,7 @@ export function SettingsView() {
         </div>
 
         {musicSource === "spotify" && (
-          <div className="space-y-3 rounded-lg border border-border bg-surface p-3">
+          <div className="space-y-3 border border-border bg-surface-raised p-4 pl-9 mx-4">
             <h4 className="text-sm font-medium text-on-surface">
               Spotify Connection
             </h4>
@@ -268,7 +264,7 @@ export function SettingsView() {
                     Connected as <strong>{spotifyStatus.displayName}</strong>
                   </span>
                   {spotifyStatus.isPremium && (
-                    <span className="rounded bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
+                    <span className="rounded-full bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
                       PREMIUM
                     </span>
                   )}
@@ -297,7 +293,7 @@ export function SettingsView() {
                     }
                   }}
                   disabled={spotifyLoading}
-                  className="rounded-lg border border-error/50 px-4 py-2 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-50"
+                  className="border border-error/50 px-4 py-2 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-50"
                 >
                   {spotifyLoading ? "..." : "Disconnect Spotify"}
                 </button>
@@ -324,7 +320,7 @@ export function SettingsView() {
                     }
                   }}
                   disabled={spotifyLoading}
-                  className="rounded-lg bg-[#1DB954] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1ed760] disabled:opacity-50"
+                  className="bg-[#1DB954] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1ed760] disabled:opacity-50"
                 >
                   {spotifyLoading ? "Connecting..." : "Connect Spotify"}
                 </button>
@@ -362,22 +358,22 @@ export function SettingsView() {
           </div>
         )}
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Settings"}
-        </button>
+        <div className="p-4">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        </div>
       </div>
 
       {/* Display Settings */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Display Settings
-        </h3>
+      <div className="flex flex-col">
+        <SectionHeader title="Display Settings" showTopBorder />
 
-        <div>
+        <div className="p-4">
           <label className="block text-sm font-medium text-on-surface mb-1">
             QR Code Size
           </label>
@@ -398,7 +394,7 @@ export function SettingsView() {
           </p>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4">
           <div>
             <label className="block text-sm font-medium text-on-surface">
               Show Venue Name Header
@@ -424,26 +420,26 @@ export function SettingsView() {
           </button>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Settings"}
-        </button>
+        <div className="p-4">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
+        </div>
       </div>
 
       {/* Patron Authentication */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Patron Authentication
-        </h3>
-        <p className="text-xs text-on-surface-muted">
+      <div className="flex flex-col">
+        <SectionHeader title="Patron Authentication" showTopBorder />
+        <p className="p-4 text-xs text-on-surface-muted">
           Control how new patrons verify when joining. Device ID is always used
           as the base identity.
         </p>
 
-        <div className="space-y-2">
+        <div className="px-4 space-y-4">
           {(
             [
               {
@@ -458,23 +454,23 @@ export function SettingsView() {
                 desc: "OTP shown on the Now Playing screen. Proves physical presence.",
                 disabled: false,
               },
-              {
-                value: "sms-gateway" as const,
-                label: "SMS Gateway",
-                desc: "Send OTP via a self-hosted Android SMS gateway.",
-                disabled: false,
-              },
-              {
-                value: "paid" as const,
-                label: "Paid SMS (Coming Soon)",
-                desc: "Twilio / cloud SMS provider.",
-                disabled: true,
-              },
+              // {
+              //   value: "sms-gateway" as const,
+              //   label: "SMS Gateway",
+              //   desc: "Send OTP via a self-hosted Android SMS gateway.",
+              //   disabled: false,
+              // },
+              // {
+              //   value: "paid" as const,
+              //   label: "Paid SMS (Coming Soon)",
+              //   desc: "Twilio / cloud SMS provider.",
+              //   disabled: true,
+              // },
             ] as const
           ).map((opt) => (
             <label
               key={opt.value}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 border p-3 transition-colors ${
                 otpDeliveryMode === opt.value
                   ? "border-primary bg-primary/5"
                   : "border-border"
@@ -523,37 +519,14 @@ export function SettingsView() {
           </div>
         )}
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Settings"}
-        </button>
-      </div>
-
-      {/* Theme */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Theme
-        </h3>
-        <p className="text-xs text-on-surface-muted">
-          Choose a color theme for the venue. This applies to all views.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {BUILT_IN_THEMES.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTheme(t)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                theme === t
-                  ? "bg-primary text-on-primary"
-                  : "border border-border text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="p-4">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-primary px-6 py-2.5 text-sm font-medium text-on-primary hover:bg-primary-hover disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Settings"}
+          </button>
         </div>
       </div>
     </div>
