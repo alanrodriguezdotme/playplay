@@ -37,7 +37,7 @@ export function DraggableQueueItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2.5"
+      className="flex items-center gap-2 bg-surface-raised p-4"
     >
       {/* Drag handle */}
       <button
@@ -50,52 +50,47 @@ export function DraggableQueueItem({
       </button>
 
       {/* Song info */}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{entry.song.title}</p>
+      <div className="min-w-0 flex-1 flex flex-col gap-1">
+        <p className="truncate text-sm font-semibold font-family-accent">
+          {entry.song.title}
+        </p>
         <p className="truncate text-xs text-on-surface-muted">
-          {entry.song.artist}
+          {entry.song.artist} · {entry.song.album}
+        </p>
+        <div className="flex gap-1">
           {entry.addedBy && (
-            <span>
-              {" "}
-              · Added by{" "}
+            <span className="text-xs text-on-surface-subtle">
               {entry.addedBy.avatarEmoji ? entry.addedBy.avatarEmoji + " " : ""}
               {entry.addedBy.displayName ?? "Unknown"}
             </span>
           )}
-        </p>
+          <span className="text-xs text-on-surface-subtle">·</span>
+          <span
+            className={`text-xs font-semibold text-on-surface-subtle uppercase`}
+          >
+            {entry.voteScore > 0 ? "+" : ""}
+            {entry.voteScore} votes
+          </span>
+        </div>
       </div>
 
-      {/* Vote score */}
-      <span
-        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-          entry.voteScore > 0
-            ? "bg-success/15 text-success"
-            : entry.voteScore < 0
-              ? "bg-destructive/15 text-destructive"
-              : "bg-on-surface-muted/15 text-on-surface-muted"
-        }`}
-      >
-        {entry.voteScore > 0 ? "+" : ""}
-        {entry.voteScore}
-      </span>
-
       {/* Duration */}
-      <span className="shrink-0 text-xs text-on-surface-muted">
+      <span className="shrink-0 text-xs text-on-surface-muted pt-1">
         {formatDuration(entry.song.duration)}
       </span>
 
       {/* Actions */}
-      <div className="flex shrink-0 gap-1">
+      <div className="flex shrink-0 gap-2">
         <button
           onClick={() => onPlayNow(entry.id)}
-          className="rounded-md p-1.5 text-on-surface-muted hover:bg-primary/15 hover:text-primary"
+          className="rounded-full p-2 text-on-surface-muted hover:bg-primary/15 hover:text-primary"
           title="Play now"
         >
           <Play fill="currentColor" stroke="none" className="h-4 w-4" />
         </button>
         <button
           onClick={() => onRemove(entry.id)}
-          className="rounded-md p-1.5 text-on-surface-muted hover:bg-destructive/15 hover:text-destructive"
+          className="rounded-full p-2 text-on-surface-muted hover:bg-destructive/15 hover:text-destructive"
           title="Remove"
         >
           <X className="h-4 w-4" />

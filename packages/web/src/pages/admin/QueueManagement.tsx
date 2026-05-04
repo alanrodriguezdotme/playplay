@@ -30,6 +30,7 @@ import { DraggableQueueItem } from "../../components/admin/DraggableQueueItem";
 import { timeAgo } from "../../utils/time";
 import type { QueueEntry } from "@playplay/shared";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
+import SectionHeader from "../../components/common/SectionHeader";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -202,21 +203,28 @@ export function QueueManagement() {
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="flex flex-col">
       <AdminPageHeader title="Queue Management" />
 
       {/* Now Playing + Remote Playback Controls */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4">
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Now Playing
-        </h3>
+      <div className="bg-surface-raised flex flex-col">
+        <SectionHeader
+          title="Now Playing"
+          subtitle={
+            audioOwnerDevice && (
+              <p className="text-[10px] text-on-surface-muted">
+                Audio: {audioOwnerDevice}
+              </p>
+            )
+          }
+        />
         {nowPlaying ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
+          <div className="space-y-3 flex flex-col">
+            <div className="flex items-center gap-3 p-4 pb-2">
               {/* Play/Pause button */}
               <button
                 onClick={togglePlayPause}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 hover:bg-primary/25 transition-colors"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 hover:bg-primary/25 transition-colors"
               >
                 {isPlaying ? (
                   <Pause
@@ -233,7 +241,7 @@ export function QueueManagement() {
                 )}
               </button>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">
+                <p className="truncate text-md font-semibold font-family-accent">
                   {nowPlaying.song.title}
                 </p>
                 <p className="truncate text-xs text-on-surface-muted">
@@ -259,7 +267,7 @@ export function QueueManagement() {
               </button>
             </div>
             {/* Progress bar (shows audio owner state) */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-4 pt-2">
               <span className="text-[10px] tabular-nums text-on-surface-muted w-10 text-right">
                 {formatDuration(Math.floor(localTime))}
               </span>
@@ -275,11 +283,6 @@ export function QueueManagement() {
                 {formatDuration(Math.floor(duration))}
               </span>
             </div>
-            {audioOwnerDevice && (
-              <p className="text-[10px] text-on-surface-muted">
-                Audio playing on: {audioOwnerDevice}
-              </p>
-            )}
           </div>
         ) : (
           <p className="text-sm text-on-surface-muted">Nothing playing</p>
@@ -288,9 +291,7 @@ export function QueueManagement() {
 
       {/* Queue */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Queue ({queue.length})
-        </h3>
+        <SectionHeader title={`Queue (${queue.length})`} />
         {queue.length > 0 ? (
           <DndContext
             sensors={sensors}
@@ -301,7 +302,7 @@ export function QueueManagement() {
               items={queue.map((e) => e.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-2">
+              <div className="flex flex-col divide-y divide-border">
                 {queue.map((entry) => (
                   <DraggableQueueItem
                     key={entry.id}
@@ -322,31 +323,44 @@ export function QueueManagement() {
 
       {/* History */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          History
-        </h3>
+        <SectionHeader title="History" />
         {history.length > 0 ? (
-          <div className="space-y-2">
+          <div className="flex flex-col divide-y divide-border">
             {history.map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center gap-3 rounded-lg border border-border bg-surface-raised px-3 py-2.5"
+                className="flex items-center gap-3 bg-surface-raised p-4"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{entry.song.title}</p>
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
+                  <p className="truncate text-sm font-semibold font-family-accent">
+                    {entry.song.title}
+                  </p>
                   <p className="truncate text-xs text-on-surface-muted">
-                    {entry.song.artist}
+                    {entry.song.artist} · {entry.song.album}
+                  </p>
+                  <div className="flex gap-1">
                     {entry.addedBy && (
-                      <span>
-                        {" "}
-                        ·{" "}
+                      <span className="text-xs text-on-surface-subtle">
                         {entry.addedBy.avatarEmoji
                           ? entry.addedBy.avatarEmoji + " "
                           : ""}
-                        {entry.addedBy.displayName ?? "Default"}
+                        {entry.addedBy.displayName ?? "Unknown"}
                       </span>
                     )}
-                  </p>
+                    <span className="text-xs text-on-surface-subtle">·</span>
+                    <span
+                      className={`text-xs font-semibold text-on-surface-subtle uppercase`}
+                    >
+                      {entry.voteScore > 0 ? "+" : ""}
+                      {entry.voteScore} votes
+                    </span>
+                    <span className="text-xs text-on-surface-subtle">·</span>
+                    <span className={`text-xs text-on-surface-subtle`}>
+                      {entry.playedAt
+                        ? timeAgo(entry.playedAt)
+                        : timeAgo(entry.createdAt)}
+                    </span>
+                  </div>
                 </div>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
@@ -356,11 +370,6 @@ export function QueueManagement() {
                   }`}
                 >
                   {entry.status}
-                </span>
-                <span className="text-xs text-on-surface-muted">
-                  {entry.playedAt
-                    ? timeAgo(entry.playedAt)
-                    : timeAgo(entry.createdAt)}
                 </span>
               </div>
             ))}

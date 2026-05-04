@@ -106,7 +106,7 @@ export function MusicLibrary() {
   });
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="flex flex-col">
       <AdminPageHeader title="Music Library">
         {musicSource === "local" && (
           <button
@@ -120,7 +120,7 @@ export function MusicLibrary() {
       </AdminPageHeader>
 
       {/* Search + Filter */}
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
           <input
@@ -128,15 +128,15 @@ export function MusicLibrary() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search songs..."
-            className="w-full rounded-lg border border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
+            className="w-full min-h-12 border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
           />
         </div>
-        <div className="flex rounded-lg border border-border">
+        <div className="flex border border-border">
           {(["all", "active", "blocked"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-2 text-xs font-medium capitalize transition-colors first:rounded-l-lg last:rounded-r-lg ${
+              className={`p-4 text-xs font-medium capitalize transition-colors ${
                 filter === f
                   ? "bg-primary text-on-primary"
                   : "text-on-surface-muted hover:text-on-surface"
@@ -162,7 +162,7 @@ export function MusicLibrary() {
       ) : (
         <>
           {/* Table header - desktop */}
-          <div className="hidden md:flex items-center gap-3 px-3 py-2 text-xs font-medium text-on-surface-muted uppercase tracking-wider">
+          <div className="hidden md:flex items-center gap-3 p-4 text-xs font-medium text-on-surface-muted uppercase tracking-wider">
             <span className="flex-1">Song</span>
             <span className="w-20 text-right">Duration</span>
             <span className="w-16 text-right">Plays</span>
@@ -170,16 +170,29 @@ export function MusicLibrary() {
             <span className="w-20 text-center">Action</span>
           </div>
 
-          <div className="space-y-1">
+          <div className="flex flex-col">
             {filteredSongs.map((song) => (
               <div
                 key={song.id}
-                className={`flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 ${
-                  song.isBlocked ? "bg-surface opacity-60" : "bg-surface-raised"
+                className={`flex items-center gap-2 border border-border p-4 ${
+                  song.isBlocked ? "bg-surface opacity-60" : ""
                 }`}
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{song.title}</p>
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <p className="truncate text-sm font-semibold font-family-accent">
+                      {song.title}
+                    </p>
+                    <span
+                      className={`md:hidden inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
+                        song.isBlocked
+                          ? "bg-destructive/15 text-destructive"
+                          : "bg-success/15 text-success"
+                      }`}
+                    >
+                      {song.isBlocked ? "blocked" : "active"}
+                    </span>
+                  </div>
                   <p className="truncate text-xs text-on-surface-muted">
                     {song.artist}
                     {song.album && <span> · {song.album}</span>}
@@ -191,7 +204,7 @@ export function MusicLibrary() {
                 <span className="hidden md:block w-16 text-right text-xs text-on-surface-muted">
                   {song.totalPlays}
                 </span>
-                <span className="w-20 text-center">
+                <span className="w-20 text-center hidden md:block">
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
                       song.isBlocked

@@ -24,7 +24,7 @@ export function AdminPageHeader({
 
   return (
     <div className="flex items-center justify-between p-4">
-      <h2 className="text-xl font-bold">{title}</h2>
+      <h2 className="text-xl font-bold font-family-accent">{title}</h2>
       <div className="flex items-center gap-2">
         {children}
         <div ref={ref} className="relative">

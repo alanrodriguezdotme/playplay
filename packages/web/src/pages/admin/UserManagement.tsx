@@ -96,13 +96,13 @@ export function UserManagement() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="flex flex-col">
       <AdminPageHeader title="Users">
         <span className="text-sm text-on-surface-muted">{total} total</span>
       </AdminPageHeader>
 
       {/* Search + Filter */}
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
           <input
@@ -110,15 +110,15 @@ export function UserManagement() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or phone..."
-            className="w-full rounded-lg border border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
+            className="w-full min-h-12 border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
           />
         </div>
-        <div className="flex rounded-lg border border-border">
+        <div className="flexborder border-border">
           {(["all", "PATRON", "ADMIN", "blocked"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-2 text-xs font-medium capitalize transition-colors first:rounded-l-lg last:rounded-r-lg ${
+              className={`p-4 text-xs font-medium capitalize transition-colors ${
                 filter === f
                   ? "bg-primary text-on-primary"
                   : "text-on-surface-muted hover:text-on-surface"
@@ -144,7 +144,7 @@ export function UserManagement() {
       ) : (
         <>
           {/* Table header - desktop */}
-          <div className="hidden md:flex items-center gap-3 px-3 py-2 text-xs font-medium text-on-surface-muted uppercase tracking-wider">
+          <div className="hidden md:flex items-center gap-3 p-4 text-xs font-medium text-on-surface-muted uppercase tracking-wider">
             <span className="flex-1">User</span>
             <span className="w-20 text-center">Role</span>
             <span className="w-20 text-center">Status</span>
@@ -152,17 +152,17 @@ export function UserManagement() {
             <span className="w-36 text-center">Actions</span>
           </div>
 
-          <div className="space-y-1">
+          <div className="flex flex-col">
             {users.map((user) => {
               const isSelf = user.id === currentUser?.id;
               return (
                 <div
                   key={user.id}
-                  className={`flex flex-wrap md:flex-nowrap items-center gap-3 rounded-lg border border-border px-3 py-2.5 ${
+                  className={`flex items-center gap-2 border border-border p-4 ${
                     user.blocked ? "bg-surface opacity-60" : "bg-surface-raised"
                   }`}
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       {user.avatarEmoji && (
                         <span className="text-lg">{user.avatarEmoji}</span>

@@ -47,18 +47,18 @@ function AdminTopBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 flex flex-col">
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-lg font-bold text-on-surface">
+            <h1 className="truncate text-lg font-bold text-on-surface font-family-accent">
               {venue?.name ?? "Venue"}
             </h1>
           </div>
-          <div className="flex gap-1 items-baseline">
+          <div className="flex gap-1 items-center">
             <p className="text-xs text-on-surface-muted">
               {user?.displayName || "Admin"}
             </p>
             <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              Admin
+              👑
             </span>
           </div>
         </div>
@@ -207,7 +207,7 @@ export function AdminLayout() {
           <AdminTopBar />
           <div className="flex flex-1">
             <Sidebar activeTab={activeTab} />
-            <main className="flex-1 overflow-y-auto pb-32 md:pb-24">
+            <main className="flex-1 overflow-y-auto pb-42 md:pb-24">
               <Outlet />
             </main>
           </div>

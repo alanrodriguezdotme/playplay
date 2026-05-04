@@ -377,20 +377,24 @@ export function AdminAudioPlayer({
       <div className="shrink-0 border-t border-border bg-surface-raised">
         {isOwner ? (
           /* ---- Expanded control bar (audio owner) ---- */
-          <div className="px-4 py-2 space-y-2">
+          <div className="p-4 space-y-4">
             {/* Row 1: Song info | Controls | Volume | Release */}
             <div className="flex items-center gap-3">
               {/* Song info */}
               <div className="min-w-0 flex-1">
                 {nowPlaying ? (
-                  <>
-                    <p className="truncate text-sm font-semibold text-on-surface">
+                  <div className="flex flex-col gap-1">
+                    <p className="truncate text-sm font-semibold text-on-surface font-family-accent">
                       {nowPlaying.song.title}
                     </p>
                     <p className="truncate text-xs text-on-surface-muted">
-                      {nowPlaying.song.artist}
+                      {nowPlaying.song.artist} ·{" "}
+                      {nowPlaying.addedBy?.avatarEmoji
+                        ? nowPlaying.addedBy.avatarEmoji + " "
+                        : ""}
+                      {nowPlaying.addedBy?.displayName ?? "Unknown"}
                     </p>
-                  </>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-success animate-pulse" />
@@ -401,6 +405,19 @@ export function AdminAudioPlayer({
                   </div>
                 )}
               </div>
+
+              {/* Spotify Connect fallback */}
+              {needsSpotify && !spotify.isReady && (
+                <button
+                  onClick={() => {
+                    setShowConnectDevices(!showConnectDevices);
+                    if (!showConnectDevices) spotifyConnect.refreshDevices();
+                  }}
+                  className="rounded-lg border border-[#1DB954] px-2.5 py-1 text-xs font-medium text-[#1DB954] hover:bg-[#1DB954]/10"
+                >
+                  Spotify Connect
+                </button>
+              )}
 
               {/* Playback controls */}
               <div className="flex items-center gap-1">
@@ -464,19 +481,6 @@ export function AdminAudioPlayer({
                   className="w-full h-1 rounded-full appearance-none bg-border cursor-pointer accent-primary"
                 />
               </div>
-
-              {/* Spotify Connect fallback */}
-              {needsSpotify && !spotify.isReady && (
-                <button
-                  onClick={() => {
-                    setShowConnectDevices(!showConnectDevices);
-                    if (!showConnectDevices) spotifyConnect.refreshDevices();
-                  }}
-                  className="rounded-lg border border-[#1DB954] px-2.5 py-1 text-xs font-medium text-[#1DB954] hover:bg-[#1DB954]/10"
-                >
-                  Spotify Connect
-                </button>
-              )}
             </div>
 
             {/* Row 2: Scrubber bar */}

@@ -59,7 +59,7 @@ export function HistoryView() {
     <div className="flex flex-1 flex-col">
       <div className="divide-y divide-border">
         {entries.map((entry) => (
-          <div key={entry.id} className="flex items-center gap-3 px-4 py-4">
+          <div key={entry.id} className="flex items-center gap-4 px-4 py-4">
             <div className="min-w-0 flex-1 flex flex-col gap-1">
               <p className="truncate text-md font-semibold text-on-surface font-family-accent">
                 {entry.song.title}

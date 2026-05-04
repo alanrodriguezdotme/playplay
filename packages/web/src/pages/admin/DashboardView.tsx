@@ -5,11 +5,14 @@ import { getAdminStats } from "../../api/admin";
 import { useQueue } from "../../contexts/QueueContext";
 import { timeAgo } from "../../utils/time";
 import type { AdminStatsResponse } from "@playplay/shared";
+import SectionHeader from "../../components/common/SectionHeader";
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="bg-surface-raised p-4">
-      <p className="text-xs font-medium text-on-surface-muted">{label}</p>
+      <p className="text-xs font-medium text-on-surface-muted uppercase">
+        {label}
+      </p>
       <p className="mt-1 text-2xl font-bold text-on-surface">{value}</p>
     </div>
   );
@@ -71,7 +74,7 @@ export function DashboardView() {
       <AdminPageHeader title="Dashboard" />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-solid divide-x-1 divide-border">
+      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-solid divide-x-1 divide-y-1 divide-border">
         <StatCard label="Total Songs" value={stats?.totalUnblockedSongs ?? 0} />
         <StatCard label="Total Users" value={stats?.totalUsers ?? 0} />
         <StatCard label="In Queue" value={stats?.totalQueued ?? 0} />
@@ -79,12 +82,10 @@ export function DashboardView() {
       </div>
 
       {/* Now Playing */}
-      <div className="bg-surface-raised p-4">
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Now Playing
-        </h3>
+      <div>
+        <SectionHeader title="Now Playing" />
         {nowPlaying ? (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 p-4 pt-2">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <Play
                 fill="currentColor"
@@ -93,7 +94,7 @@ export function DashboardView() {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">
+              <p className="truncate text-md font-semibold font-family-accent">
                 {nowPlaying.song.title}
               </p>
               <p className="truncate text-xs text-on-surface-muted">
@@ -110,27 +111,32 @@ export function DashboardView() {
       </div>
 
       {/* Queue Preview */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4">
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Up Next ({queue.length})
-        </h3>
+      <div>
+        <SectionHeader title={`Up Next (${queue.length})`} />
         {queue.length > 0 ? (
-          <div className="space-y-2">
+          <div className="flex flex-col divide-y divide-border">
             {queue.slice(0, 5).map((entry, i) => (
-              <div key={entry.id} className="flex items-center gap-3">
+              <div key={entry.id} className="flex items-center gap-3 p-4">
                 <span className="w-5 text-center text-xs font-medium text-on-surface-muted">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{entry.song.title}</p>
+                  <p className="truncate text-md font-family-accent">
+                    {entry.song.title}
+                  </p>
                   <p className="truncate text-xs text-on-surface-muted">
                     {entry.song.artist}
                   </p>
                 </div>
-                <span className="text-xs text-on-surface-muted">
-                  {entry.voteScore > 0 ? "+" : ""}
-                  {entry.voteScore}
-                </span>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="text-md font-medium font-family-accent">
+                    {entry.voteScore > 0 ? "+" : ""}
+                    {entry.voteScore}
+                  </div>
+                  <span className="text-xs text-on-surface-subtle uppercase">
+                    VOTES
+                  </span>
+                </div>
               </div>
             ))}
             {queue.length > 5 && (
@@ -146,25 +152,30 @@ export function DashboardView() {
 
       {/* Top Songs */}
       {stats?.topSongs && stats.topSongs.length > 0 && (
-        <div className="rounded-xl border border-border bg-surface-raised p-4">
-          <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-            Top Songs
-          </h3>
-          <div className="space-y-2">
+        <div>
+          <SectionHeader title="Top Songs" />
+          <div className="flex flex-col gap-1 divide-y divide-border">
             {stats.topSongs.map((song, i) => (
-              <div key={song.id} className="flex items-center gap-3">
+              <div key={song.id} className="flex items-center gap-3 p-4">
                 <span className="w-5 text-center text-xs font-medium text-on-surface-muted">
                   {i + 1}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{song.title}</p>
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
+                  <p className="truncate text-md font-family-accent">
+                    {song.title}
+                  </p>
                   <p className="truncate text-xs text-on-surface-muted">
                     {song.artist}
                   </p>
                 </div>
-                <span className="text-xs text-on-surface-muted">
-                  {song.totalPlays} plays
-                </span>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="text-md font-medium font-family-accent">
+                    {song.totalPlays}
+                  </div>
+                  <span className="text-xs text-on-surface-subtle uppercase">
+                    plays
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -173,38 +184,26 @@ export function DashboardView() {
 
       {/* Recent Activity */}
       {stats?.recentActivity && stats.recentActivity.length > 0 && (
-        <div className="rounded-xl border border-border bg-surface-raised p-4">
-          <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-            Recent Activity
-          </h3>
-          <div className="space-y-2">
+        <div>
+          <SectionHeader title="Recent Activity" />
+          <div className="flex flex-col divide-y divide-border">
             {stats.recentActivity.map((entry) => (
-              <div key={entry.id} className="flex items-center gap-3">
-                <div
-                  className={`h-2 w-2 shrink-0 rounded-full ${
-                    entry.status === "PLAYING"
-                      ? "bg-success"
-                      : entry.status === "QUEUED"
-                        ? "bg-primary"
-                        : entry.status === "PLAYED"
-                          ? "bg-on-surface-muted"
-                          : "bg-destructive"
-                  }`}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">
+              <div key={entry.id} className="flex items-center gap-3 p-4">
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
+                  <p className="truncate text-md font-family-accent">
                     {entry.song.title}
-                    <span className="text-on-surface-muted">
-                      {" "}
-                      — {entry.song.artist}
-                    </span>
                   </p>
+                  <span className="text-xs text-on-surface-muted">
+                    {entry.song.artist}
+                  </span>
                   <p className="text-xs text-on-surface-muted">
                     {entry.addedBy?.avatarEmoji
                       ? entry.addedBy.avatarEmoji + " "
                       : ""}
                     {entry.addedBy?.displayName ?? "Default playlist"} ·{" "}
-                    {timeAgo(entry.createdAt)}
+                    <span className="uppercase font-semibold text-on-surface-subtle">
+                      {timeAgo(entry.createdAt)}
+                    </span>
                   </p>
                 </div>
                 <span
