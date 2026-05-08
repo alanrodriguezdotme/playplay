@@ -3,6 +3,7 @@ import type { QueueEntry } from "@playplay/shared";
 import { getQueueHistory } from "../../api/queue";
 import { timeAgo } from "../../utils/time";
 import { Button } from "../../components/common/Button";
+import { UserBadge } from "../../components/common/UserBadge";
 
 export function HistoryView() {
   const [entries, setEntries] = useState<QueueEntry[]>([]);
@@ -69,16 +70,7 @@ export function HistoryView() {
                 {entry.song.artist}
               </p>
               <div className="flex gap-1 mt-0.5 text-xs text-on-surface-subtle">
-                {entry.addedBy && (
-                  <p>
-                    {entry.addedBy.avatarEmoji && (
-                      <span className="mr-0.5">
-                        {entry.addedBy.avatarEmoji}
-                      </span>
-                    )}
-                    {entry.addedBy.displayName || "Someone"}
-                  </p>
-                )}
+                {entry.addedBy && <UserBadge user={entry.addedBy} />}
                 <p>•</p>
                 <p className="uppercase">
                   {entry.playedAt ? timeAgo(entry.playedAt) : "—"}

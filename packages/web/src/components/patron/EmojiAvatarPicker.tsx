@@ -59,12 +59,12 @@ export function EmojiAvatarPicker({ value, onChange }: EmojiAvatarPickerProps) {
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-border bg-surface-raised text-3xl transition-colors hover:border-primary"
+        className="flex h-16 w-16 items-center justify-center border-1 border-border bg-surface-raised text-3xl transition-colors hover:border-primary"
       >
         {value || "❓"}
       </button>
       {expanded && (
-        <div className="mt-2 grid grid-cols-8 gap-1.5 rounded-xl border border-border bg-surface-raised p-3">
+        <div className="mt-2 grid grid-cols-8 gap-2 border border-border bg-surface-raised p-2">
           {AVATAR_EMOJIS.map((emoji) => (
             <button
               key={emoji}
@@ -73,9 +73,9 @@ export function EmojiAvatarPicker({ value, onChange }: EmojiAvatarPickerProps) {
                 onChange(emoji);
                 setExpanded(false);
               }}
-              className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl transition-colors ${
+              className={`flex h-11 w-11 items-center justify-center rounded-full text-xl transition-colors ${
                 value === emoji
-                  ? "bg-primary/20 ring-2 ring-primary"
+                  ? "bg-primary/20 ring-1 ring-primary"
                   : "hover:bg-surface-alt"
               }`}
             >

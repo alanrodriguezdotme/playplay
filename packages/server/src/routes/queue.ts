@@ -121,7 +121,7 @@ router.get("/now-playing", async (req, res, next) => {
       where: { venueId: venue.id, status: QUEUE_STATUS.PLAYING },
       include: {
         song: true,
-        addedBy: { select: { id: true, displayName: true, avatarEmoji: true } },
+        addedBy: { select: { id: true, displayName: true, avatarEmoji: true, role: true } },
       },
     });
 
@@ -143,7 +143,7 @@ router.get("/now-playing", async (req, res, next) => {
         isBlocked: entry.song.blocked,
       },
       addedBy: entry.addedBy
-        ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName, avatarEmoji: entry.addedBy.avatarEmoji ?? null }
+        ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName, avatarEmoji: entry.addedBy.avatarEmoji ?? null, role: entry.addedBy.role }
         : null,
       status: entry.status,
       voteScore: entry.voteScore,

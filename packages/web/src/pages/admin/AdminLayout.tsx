@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Sun,
+  LogOut,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,9 +16,11 @@ import { QueueProvider, useQueue } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "../patron/Login";
 import { AdminAudioPlayer } from "./AdminAudioPlayer";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { BUILT_IN_THEMES, useTheme } from "../../contexts/ThemeContext";
 import { Button } from "../../components/common/Button";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { UserBadge } from "../../components/common/UserBadge";
 
 type AdminTab = "dashboard" | "queue" | "music" | "users" | "settings";
 
@@ -39,8 +42,8 @@ function ConnectionIndicator() {
   );
 }
 
-function AdminTopBar() {
-  const { user, logout } = useAuth();
+function AdminTopBar({ onLogout }: { onLogout: () => void }) {
+  const { user } = useAuth();
   const { venue } = useVenue();
   const { theme, setTheme } = useTheme();
   const [showThemes, setShowThemes] = useState(false);
@@ -56,11 +59,8 @@ function AdminTopBar() {
           </div>
           <div className="flex gap-1 items-center">
             <p className="text-xs text-on-surface-muted">
-              {user?.displayName || "Admin"}
+              <UserBadge user={user} />
             </p>
-            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              👑
-            </span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -68,26 +68,30 @@ function AdminTopBar() {
             <Button
               variant="secondary"
               size="icon"
-              rounded="md"
+              rounded="none"
               onClick={() => setShowThemes(!showThemes)}
               aria-label="Change theme"
             >
-              <Sun className="h-4 w-4" />
+              <Sun className="h-5 w-5" />
             </Button>
             {showThemes && (
-              <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-lg">
+              <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 border border-border bg-surface-raised p-2 shadow-lg">
                 {BUILT_IN_THEMES.map((t) => (
                   <Button
                     key={t}
                     variant="ghost"
-                    size="xs"
-                    rounded="md"
+                    size="md"
+                    rounded="none"
                     active={theme === t}
                     onClick={() => {
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className="whitespace-nowrap capitalize"
+                    className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                      theme === t
+                        ? "bg-primary text-on-primary"
+                        : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
+                    }`}
                   >
                     {t}
                   </Button>
@@ -95,8 +99,14 @@ function AdminTopBar() {
               </div>
             )}
           </div>
-          <Button variant="secondary" size="sm" rounded="md" onClick={logout}>
-            Log out
+          <Button
+            variant="secondary"
+            size="icon"
+            rounded="none"
+            onClick={onLogout}
+            aria-label="Log out"
+          >
+            <LogOut className="h-5 w-5" />
           </Button>
         </div>
       </div>
@@ -159,10 +169,20 @@ function AudioPlayerBridge() {
 }
 
 export function AdminLayout() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
   const location = useLocation();
   const activeTab = (location.pathname.split("/").pop() ||
     "dashboard") as AdminTab;
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const requestLogout = useCallback(() => {
+    setShowLogoutConfirm(true);
+  }, []);
+
+  const confirmLogout = useCallback(() => {
+    setShowLogoutConfirm(false);
+    logout();
+  }, [logout]);
 
   if (isLoading) {
     return (
@@ -185,7 +205,7 @@ export function AdminLayout() {
       <QueueProvider>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
-          <AdminTopBar />
+          <AdminTopBar onLogout={requestLogout} />
           <div className="flex flex-1">
             <Sidebar activeTab={activeTab} />
             <main className="flex-1 overflow-y-auto pb-42 md:pb-24">
@@ -196,6 +216,15 @@ export function AdminLayout() {
             <AudioPlayerBridge />
             <BottomNav activeTab={activeTab} />
           </div>
+          <ConfirmDialog
+            open={showLogoutConfirm}
+            title="Log out?"
+            message="You'll be signed out of the admin console."
+            confirmLabel="Log out"
+            variant="destructive"
+            onConfirm={confirmLogout}
+            onCancel={() => setShowLogoutConfirm(false)}
+          />
         </div>
       </QueueProvider>
     </ToastProvider>

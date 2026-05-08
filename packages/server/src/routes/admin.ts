@@ -457,7 +457,7 @@ router.get("/stats", async (req, res, next) => {
         take: 10,
         include: {
           song: true,
-          addedBy: { select: { id: true, displayName: true, avatarEmoji: true } },
+          addedBy: { select: { id: true, displayName: true, avatarEmoji: true, role: true } },
           votes: { select: { userId: true, value: true } },
         },
       }),
@@ -484,7 +484,7 @@ router.get("/stats", async (req, res, next) => {
           isBlocked: e.song.blocked,
         },
         addedBy: e.addedBy
-          ? { id: e.addedBy.id, displayName: e.addedBy.displayName, avatarEmoji: e.addedBy.avatarEmoji ?? null }
+          ? { id: e.addedBy.id, displayName: e.addedBy.displayName, avatarEmoji: e.addedBy.avatarEmoji ?? null, role: e.addedBy.role }
           : null,
         status: e.status,
         voteScore: e.voteScore,

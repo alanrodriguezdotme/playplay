@@ -6,6 +6,7 @@ import { timeAgo } from "../../utils/time";
 import type { AdminStatsResponse } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
 import { Button } from "../../components/common/Button";
+import { UserBadge } from "../../components/common/UserBadge";
 
 function StatCard({
   label,
@@ -119,14 +120,16 @@ export function DashboardView() {
       <div>
         <SectionHeader title="Now Playing" />
         {nowPlaying ? (
-          <div className="flex items-center gap-3 p-4 pt-2">
-            {/* <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
-              <Play
-                fill="currentColor"
-                stroke="none"
-                className="h-5 w-5 text-primary"
+          <div className="flex items-center gap-4 p-4 pt-2">
+            {nowPlaying.song.artworkUrl ? (
+              <img
+                src={nowPlaying.song.artworkUrl}
+                alt={nowPlaying.song.album ?? nowPlaying.song.title}
+                className="h-16 w-16 shrink-0 object-cover"
               />
-            </div> */}
+            ) : (
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-primary/15" />
+            )}
             <div className="min-w-0 flex-1 flex flex-col gap-1">
               <p className="truncate text-lg font-semibold font-family-accent">
                 {nowPlaying.song.title}
@@ -135,10 +138,7 @@ export function DashboardView() {
                 {nowPlaying.song.artist}
               </p>
               <p className="truncate text-xs text-on-surface-muted">
-                {nowPlaying.addedBy?.avatarEmoji
-                  ? nowPlaying.addedBy.avatarEmoji + " "
-                  : ""}
-                {nowPlaying.addedBy?.displayName ?? "Default playlist"}
+                <UserBadge user={nowPlaying.addedBy} />
               </p>
             </div>
             <div className="text-xs text-on-surface-muted">
@@ -236,12 +236,10 @@ export function DashboardView() {
                   <span className="text-xs text-on-surface-muted">
                     {entry.song.artist}
                   </span>
-                  <p className="text-xs text-on-surface-muted">
-                    {entry.addedBy?.avatarEmoji
-                      ? entry.addedBy.avatarEmoji + " "
-                      : ""}
-                    {entry.addedBy?.displayName ?? "Default playlist"} ·{" "}
-                    <span className="uppercase font-semibold text-on-surface-subtle">
+                  <p className="text-xs text-on-surface-subtle">
+                    <UserBadge user={entry.addedBy} />
+                    {" · "}
+                    <span className="font-semibold text-on-surface-subtle">
                       {timeAgo(entry.createdAt)}
                     </span>
                   </p>

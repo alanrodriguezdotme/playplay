@@ -2,13 +2,14 @@ import { useState } from "react";
 import type { QueueEntry, Song } from "@playplay/shared";
 import { getSongArtworkUrl } from "../../../api/songs";
 import SectionHeader from "../../../components/common/SectionHeader";
+import { UserBadge } from "../../../components/common/UserBadge";
 
 function QueueItemArt({ song }: { song: Song }) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
     return (
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-primary/10 text-base">
+      <div className="flex h-16 w-16 shrink-0 items-center justify-center bg-primary/10 text-base">
         🎵
       </div>
     );
@@ -23,7 +24,7 @@ function QueueItemArt({ song }: { song: Song }) {
     <img
       src={url}
       alt=""
-      className="h-9 w-9 shrink-0 object-cover"
+      className="h-16 w-16 shrink-0 object-cover"
       onError={() => setFailed(true)}
     />
   );
@@ -55,12 +56,15 @@ export function DisplayQueue({ queue }: DisplayQueueProps) {
               {i + 1}
             </span>
             <QueueItemArt song={entry.song} />
-            <div className="min-w-0 flex-1 flex flex-col gap-1">
+            <div className="min-w-0 flex-1 flex flex-col gap-0.5">
               <p className="truncate text-lg font-semibold text-on-surface font-family-accent">
                 {entry.song.title}
               </p>
-              <p className="truncate text-xs text-on-surface-muted">
+              <p className="truncate text-sm text-on-surface-muted">
                 {entry.song.artist}
+              </p>
+              <p className="truncate text-sm text-on-surface-muted">
+                {entry.addedBy && <UserBadge user={entry.addedBy} />}
               </p>
             </div>
             <span className="shrink-0 min-w-8 text-center text-primary text-lg font-bold tabular-nums text-on-surface-muted font-family-accent">

@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { useLocation, Outlet, Link } from "react-router";
-import { Music, Search, Clock, Sun, LogOut } from "lucide-react";
+import { Music, Search, Clock, Sun } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
@@ -8,8 +8,10 @@ import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
 import { useVenue } from "../../contexts/VenueContext";
 import { QueueProvider } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
-import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { EditProfileDialog } from "../../components/common/EditProfileDialog";
+import { UserBadge } from "../../components/common/UserBadge";
 import { Login } from "./Login";
+import { Button } from "../../components/common/Button";
 
 type Tab = "queue" | "search" | "history";
 
@@ -23,7 +25,7 @@ function ConnectionIndicator() {
   );
 }
 
-function TopBar({ onLogout }: { onLogout: () => void }) {
+function TopBar({ onEditProfile }: { onEditProfile: () => void }) {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const { venue } = useVenue();
@@ -32,31 +34,39 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
   return (
     <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-border">
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="min-w-0 flex-1">
+        <button
+          type="button"
+          onClick={onEditProfile}
+          className="min-w-0 flex-1 text-left transition-colors hover:bg-surface-alt -mx-2 px-2 py-1"
+          aria-label="Edit profile"
+        >
           <h1 className="truncate text-lg font-bold text-on-surface font-family-accent">
             {venue?.name ?? "Venue"}
           </h1>
           <p className="text-xs text-on-surface-muted">
-            {user?.avatarEmoji && (
-              <span className="mr-1">{user.avatarEmoji}</span>
-            )}
-            {user?.displayName || "Patron"}
+            <UserBadge user={user} />
           </p>
-        </div>
+        </button>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <button
+            <Button
+              variant="secondary"
+              size="icon"
+              rounded="none"
               onClick={() => setShowThemes(!showThemes)}
-              className={`p-3 text-on-surface-muted hover:text-on-surface ${showThemes ? "bg-surface-raised" : ""}`}
               aria-label="Change theme"
             >
               <Sun className="h-5 w-5" />
-            </button>
+            </Button>
             {showThemes && (
               <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 border border-border bg-surface-raised p-2 shadow-lg">
                 {BUILT_IN_THEMES.map((t) => (
-                  <button
+                  <Button
                     key={t}
+                    variant="ghost"
+                    size="md"
+                    rounded="none"
+                    active={theme === t}
                     onClick={() => {
                       setTheme(t);
                       setShowThemes(false);
@@ -68,17 +78,11 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
                     }`}
                   >
                     {t}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
           </div>
-          <button
-            onClick={onLogout}
-            className="rounded-full p-3 text-on-surface-muted hover:text-on-surface"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
         </div>
       </div>
     </header>
@@ -115,21 +119,10 @@ function BottomNav({ activeTab }: { activeTab: Tab }) {
 }
 
 export function PatronLayout() {
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const activeTab = (location.pathname.split("/").pop() || "queue") as Tab;
-  const didLogout = useRef(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const requestLogout = useCallback(() => {
-    setShowLogoutConfirm(true);
-  }, []);
-
-  const confirmLogout = useCallback(() => {
-    setShowLogoutConfirm(false);
-    didLogout.current = true;
-    logout();
-  }, [logout]);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   if (isLoading) {
     return (
@@ -140,7 +133,7 @@ export function PatronLayout() {
   }
 
   if (!isAuthenticated) {
-    return <Login skipAutoLogin={didLogout.current} />;
+    return <Login />;
   }
 
   return (
@@ -148,19 +141,14 @@ export function PatronLayout() {
       <QueueProvider>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
-          <TopBar onLogout={requestLogout} />
+          <TopBar onEditProfile={() => setShowEditProfile(true)} />
           <main className="flex flex-1 flex-col pb-16">
             <Outlet />
           </main>
           <BottomNav activeTab={activeTab} />
-          <ConfirmDialog
-            open={showLogoutConfirm}
-            title="Log out?"
-            message="You'll need to rejoin the venue to add or vote on songs."
-            confirmLabel="Log out"
-            variant="destructive"
-            onConfirm={confirmLogout}
-            onCancel={() => setShowLogoutConfirm(false)}
+          <EditProfileDialog
+            open={showEditProfile}
+            onClose={() => setShowEditProfile(false)}
           />
         </div>
       </QueueProvider>

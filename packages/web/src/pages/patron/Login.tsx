@@ -212,6 +212,7 @@ export function Login({
             <Button
               type="submit"
               size="lg"
+              rounded="none"
               fullWidth
               disabled={
                 loading ||

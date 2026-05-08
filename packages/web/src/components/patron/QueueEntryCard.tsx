@@ -4,6 +4,7 @@ import type { QueueEntry } from "@playplay/shared";
 import { useAuth } from "../../contexts/AuthContext";
 import { VoteButtons } from "./VoteButtons";
 import { ConfirmDialog } from "../common/ConfirmDialog";
+import { UserBadge } from "../common/UserBadge";
 
 interface QueueEntryCardProps {
   entry: QueueEntry;
@@ -53,22 +54,11 @@ export function QueueEntryCard({
           <p className="truncate text-md font-semibold text-on-surface font-family-accent">
             {entry.song.title}
           </p>
-          <p className="truncate text-xs text-on-surface-muted">
+          <p className="truncate text-sm text-on-surface-muted font-semibold">
             {entry.song.artist}
           </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            {isOwnEntry ? (
-              <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                You
-              </span>
-            ) : entry.addedBy ? (
-              <span className="text-xs text-on-surface-muted">
-                {entry.addedBy.avatarEmoji && (
-                  <span className="mr-0.5">{entry.addedBy.avatarEmoji}</span>
-                )}
-                {entry.addedBy.displayName || "Someone"}
-              </span>
-            ) : null}
+          <div className="text-sm items-center gap-1.5 mt-0.5 text-on-surface-muted">
+            {entry.addedBy ? <UserBadge user={entry.addedBy} /> : null}
           </div>
         </div>
         {isOwnEntry && onRemove && (

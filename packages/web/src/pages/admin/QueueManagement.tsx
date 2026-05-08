@@ -351,7 +351,6 @@ export function QueueManagement() {
                     <span
                       className={`text-xs font-semibold text-on-surface-subtle uppercase`}
                     >
-                      {entry.voteScore > 0 ? "+" : ""}
                       {entry.voteScore} votes
                     </span>
                     <span className="text-xs text-on-surface-subtle">·</span>

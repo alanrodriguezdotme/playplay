@@ -15,6 +15,7 @@ import { getSongStreamUrl } from "../../api/songs";
 import { playNow } from "../../api/queue";
 import { useSpotifyPlayer } from "../../hooks/useSpotifyPlayer";
 import { useSpotifyConnect } from "../../hooks/useSpotifyConnect";
+import { UserBadge } from "../../components/common/UserBadge";
 
 function getDeviceHint(): string {
   const ua = navigator.userAgent;
@@ -389,10 +390,7 @@ export function AdminAudioPlayer({
                     </p>
                     <p className="truncate text-xs text-on-surface-muted">
                       {nowPlaying.song.artist} ·{" "}
-                      {nowPlaying.addedBy?.avatarEmoji
-                        ? nowPlaying.addedBy.avatarEmoji + " "
-                        : ""}
-                      {nowPlaying.addedBy?.displayName ?? "Unknown"}
+                      <UserBadge user={nowPlaying.addedBy} />
                     </p>
                   </div>
                 ) : (

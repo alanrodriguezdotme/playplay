@@ -1,6 +1,7 @@
 import type { QueueEntry } from "@playplay/shared";
 import { VoteButtons } from "./VoteButtons";
 import SectionHeader from "../common/SectionHeader";
+import { UserBadge } from "../common/UserBadge";
 
 interface NowPlayingCardProps {
   entry: QueueEntry | null;
@@ -25,9 +26,7 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
       <SectionHeader
         title="Now Playing"
         subtitle={
-          entry.addedBy
-            ? `Added by ${entry.addedBy.avatarEmoji ? entry.addedBy.avatarEmoji + " " : ""}${entry.addedBy.displayName || "Someone"}`
-            : undefined
+          entry.addedBy ? <UserBadge user={entry.addedBy} /> : undefined
         }
       />
       <div className="flex items-center gap-4 p-4 pt-1">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { QueueEntry } from "@playplay/shared";
 import { getSongArtworkUrl } from "../../../api/songs";
+import { UserBadge } from "../../../components/common/UserBadge";
 
 interface DisplayNowPlayingProps {
   entry: QueueEntry | null;
@@ -50,23 +51,15 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
         <p className="landscape:hidden text-md font-bold uppercase tracking-widest text-primary">
           Now Playing
         </p>
-        <h1 className="mt-auto max-w-full w-full text-3xl font-extrabold text-on-surface lg:text-5xl font-family-accent line-clamp-2 landscape:line-clamp-3">
+        <h1 className="mt-auto max-w-full w-full text-3xl font-extrabold text-on-surface lg:text-5xl font-family-accent line-clamp-3 pb-2">
           {entry.song.title}
         </h1>
         <p className="max-w-full text-lg text-on-surface-muted line-clamp-2">
           {entry.song.artist} {entry.song.album && `• ${entry.song.album}`}
         </p>
-        <div className="flex items-center gap-1 text-md text-on-surface-subtle uppercase">
+        <div className="flex items-center gap-1 text-sm font-semibold text-on-surface-subtle uppercase">
           {entry.addedBy && (
-            <span>
-              Added by{" "}
-              <span className="font-semibold text-on-surface">
-                {entry.addedBy.avatarEmoji && (
-                  <span className="mr-1">{entry.addedBy.avatarEmoji}</span>
-                )}
-                {entry.addedBy.displayName || "Someone"}
-              </span>
-            </span>
+            <UserBadge user={entry.addedBy} className="text-on-surface" />
           )}
           <span className="mx-1">•</span>
           <span className="uppercase font-bold tabular-nums text-on-surface-subtle">

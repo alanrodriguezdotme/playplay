@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Play, X } from "lucide-react";
 import type { QueueEntry } from "@playplay/shared";
+import { UserBadge } from "../common/UserBadge";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -34,7 +35,11 @@ export function DraggableQueueItem({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-2 p-4">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-4 pl-3"
+    >
       {/* Drag handle */}
       <button
         {...attributes}
@@ -55,16 +60,15 @@ export function DraggableQueueItem({
         </p>
         <div className="flex gap-1">
           {entry.addedBy && (
-            <span className="text-xs text-on-surface-subtle">
-              {entry.addedBy.avatarEmoji ? entry.addedBy.avatarEmoji + " " : ""}
-              {entry.addedBy.displayName ?? "Unknown"}
-            </span>
+            <UserBadge
+              user={entry.addedBy}
+              className="text-xs text-on-surface-subtle"
+            />
           )}
           <span className="text-xs text-on-surface-subtle">·</span>
           <span
             className={`text-xs font-semibold text-on-surface-subtle uppercase`}
           >
-            {entry.voteScore > 0 ? "+" : ""}
             {entry.voteScore} votes
           </span>
         </div>
