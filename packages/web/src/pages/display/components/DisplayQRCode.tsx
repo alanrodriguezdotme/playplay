@@ -14,13 +14,13 @@ export function DisplayQRCode({ size = 120, lanIp }: DisplayQRCodeProps) {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="shrink-0 rounded-xl bg-white p-3">
+      <div className="shrink-0 bg-white p-3">
         <QRCodeSVG value={patronUrl} size={size} level="M" />
       </div>
       <div className="flex flex-col gap-4">
         <div>
           <p className="text-sm font-bold uppercase tracking-widest text-primary">
-            Scan to add songs
+            Scan to add a song
           </p>
           <p className="mt-1 text-xs text-on-surface-muted">{patronUrl}</p>
         </div>

@@ -4,6 +4,7 @@ import { useQueue } from "../../contexts/QueueContext";
 import { NowPlayingCard } from "../../components/patron/NowPlayingCard";
 import { QueueEntryCard } from "../../components/patron/QueueEntryCard";
 import SectionHeader from "../../components/common/SectionHeader";
+import { Button } from "../../components/common/Button";
 
 export function QueueView() {
   const navigate = useNavigate();
@@ -23,12 +24,9 @@ export function QueueView() {
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="text-center">
           <p className="text-destructive">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary"
-          >
+          <Button className="mt-3" onClick={() => window.location.reload()}>
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -51,12 +49,9 @@ export function QueueView() {
       {queue.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
           <p className="text-on-surface-muted">Queue is empty</p>
-          <button
-            onClick={onSwitchToSearch}
-            className="mt-3 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-on-primary"
-          >
+          <Button className="mt-3" onClick={onSwitchToSearch}>
             Add a Song
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="mt-2 divide-y divide-border">

@@ -586,7 +586,7 @@ export function AdminAudioPlayer({
             </div>
             <button
               onClick={handleClaim}
-              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover"
+              className="bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover"
             >
               Play Audio Here
             </button>

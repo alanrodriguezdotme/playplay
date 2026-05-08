@@ -18,7 +18,9 @@ export function DisplayHeader({
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3">
       {show ? (
-        <h1 className="text-xl font-bold text-on-surface">{venueName}</h1>
+        <h1 className="text-xl font-bold text-on-surface font-family-accent">
+          {venueName}
+        </h1>
       ) : (
         <div />
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { ChevronDown } from "lucide-react";
+import { Button } from "../common/Button";
 
 export function AdminPageHeader({
   title,
@@ -28,13 +29,14 @@ export function AdminPageHeader({
       <div className="flex items-center gap-2">
         {children}
         <div ref={ref} className="relative">
-          <button
+          <Button
+            variant="secondary"
+            size="xs"
             onClick={() => setOpen((v) => !v)}
-            className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface-muted hover:text-on-surface"
+            rightIcon={<ChevronDown className="h-3 w-3" />}
           >
             Views
-            <ChevronDown className="h-3 w-3" />
-          </button>
+          </Button>
           {open && (
             <div className="absolute right-0 z-50 mt-1 min-w-[140px] rounded-lg border border-border bg-surface-raised py-1 shadow-lg">
               <Link

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Button } from "./Button";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -39,28 +40,22 @@ export function ConfirmDialog({
     <dialog
       ref={dialogRef}
       onCancel={onCancel}
-      className="fixed inset-0 z-50 m-auto w-[min(24rem,calc(100vw-2rem))] rounded-xl border border-border bg-surface p-0 shadow-xl backdrop:bg-black/50"
+      className="fixed inset-0 z-50 m-auto w-[min(24rem,calc(100vw-2rem))] border border-border bg-surface p-0 shadow-xl backdrop:bg-black/50"
     >
       <div className="flex flex-col gap-4 p-6">
         <h2 className="text-lg font-semibold text-on-surface">{title}</h2>
         <p className="text-sm text-on-surface-muted">{message}</p>
         <div className="flex justify-end gap-2 pt-2">
-          <button
-            onClick={onCancel}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-on-surface-muted hover:text-on-surface transition-colors"
-          >
+          <Button variant="secondary" rounded="none" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={variant === "destructive" ? "destructive" : "primary"}
+            rounded="none"
             onClick={onConfirm}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              variant === "destructive"
-                ? "bg-destructive text-white hover:bg-destructive/90"
-                : "bg-primary text-on-primary hover:bg-primary-hover"
-            }`}
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </dialog>

@@ -4,25 +4,22 @@ import type {
   QueueResponse,
   DisplaySettings,
 } from "@playplay/shared";
-import { DEFAULTS, SOCKET_EVENTS } from "@playplay/shared";
+import { DEFAULTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
-import { useSocketContext } from "../../contexts/SocketContext";
 import { useVenue } from "../../contexts/VenueContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
-import { getDisplaySettings } from "../../api/queue";
+import { getDisplaySettings, getQueueHistory } from "../../api/queue";
 import { DisplayHeader } from "./components/DisplayHeader";
 import { DisplayNowPlaying } from "./components/DisplayNowPlaying";
 import { DisplayQueue } from "./components/DisplayQueue";
 import { DisplayHistory } from "./components/DisplayHistory";
 import { DisplayQRCode } from "./components/DisplayQRCode";
-import { DisplayVenueOtp } from "./components/DisplayVenueOtp";
 
-const MAX_HISTORY = 10;
+const MAX_HISTORY = 20;
 
 export function NowPlayingDisplay() {
   const { venue } = useVenue();
-  const { socket } = useSocketContext();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   useWakeLock();
 
@@ -35,32 +32,6 @@ export function NowPlayingDisplay() {
     lanIp: null,
   });
 
-  // Venue OTP overlay state
-  const [venueOtp, setVenueOtp] = useState<{
-    code: string;
-    deviceHint: string;
-  } | null>(null);
-
-  // Listen for venue OTP socket events
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleShow = (data: { code: string; deviceHint: string }) => {
-      setVenueOtp(data);
-    };
-    const handleHide = () => {
-      setVenueOtp(null);
-    };
-
-    socket.on(SOCKET_EVENTS.VENUE_OTP_SHOW, handleShow);
-    socket.on(SOCKET_EVENTS.VENUE_OTP_HIDE, handleHide);
-
-    return () => {
-      socket.off(SOCKET_EVENTS.VENUE_OTP_SHOW, handleShow);
-      socket.off(SOCKET_EVENTS.VENUE_OTP_HIDE, handleHide);
-    };
-  }, [socket]);
-
   // Fetch display settings
   useEffect(() => {
     getDisplaySettings()
@@ -71,51 +42,45 @@ export function NowPlayingDisplay() {
   // Track the last now-playing ID to detect transitions for history
   const lastNowPlayingIdRef = useRef<string | null>(null);
 
-  const addToHistory = useCallback((entry: QueueEntry) => {
-    setRecentHistory((prev) => {
-      // Don't add duplicates
-      if (prev.some((e) => e.id === entry.id)) return prev;
-      return [entry, ...prev].slice(0, MAX_HISTORY);
-    });
+  const refreshHistory = useCallback(() => {
+    getQueueHistory(1, MAX_HISTORY)
+      .then((res) => setRecentHistory(res.entries))
+      .catch(() => {});
   }, []);
+
+  // Initial history load
+  useEffect(() => {
+    refreshHistory();
+  }, [refreshHistory]);
 
   const onQueueUpdated = useCallback(
     (data: QueueResponse) => {
       setQueue(data.queue);
 
-      // If now-playing changed, push old one to history
       const prevId = lastNowPlayingIdRef.current;
       const newId = data.nowPlaying?.id ?? null;
-      if (prevId && prevId !== newId && nowPlaying) {
-        addToHistory({
-          ...nowPlaying,
-          status: "PLAYED",
-          playedAt: new Date().toISOString(),
-        });
+      if (prevId && prevId !== newId) {
+        refreshHistory();
       }
 
       setNowPlaying(data.nowPlaying);
       lastNowPlayingIdRef.current = newId;
     },
-    [nowPlaying, addToHistory],
+    [refreshHistory],
   );
 
   const onNowPlayingChanged = useCallback(
     (entry: QueueEntry | null) => {
       const prevId = lastNowPlayingIdRef.current;
       const newId = entry?.id ?? null;
-      if (prevId && prevId !== newId && nowPlaying) {
-        addToHistory({
-          ...nowPlaying,
-          status: "PLAYED",
-          playedAt: new Date().toISOString(),
-        });
+      if (prevId && prevId !== newId) {
+        refreshHistory();
       }
 
       setNowPlaying(entry);
       lastNowPlayingIdRef.current = newId;
     },
-    [nowPlaying, addToHistory],
+    [refreshHistory],
   );
 
   const onEntryAdded = useCallback((entry: QueueEntry) => {
@@ -157,40 +122,28 @@ export function NowPlayingDisplay() {
           <div className="flex flex-1 items-center justify-center p-6 landscape:min-h-0 landscape:overflow-auto">
             <DisplayNowPlaying entry={nowPlaying} />
           </div>
-          {venueOtp && (
-            <div className="sm:hidden md:block shrink-0 border-t border-border">
-              <DisplayVenueOtp
-                code={venueOtp.code}
-                deviceHint={venueOtp.deviceHint}
-                onExpired={() => setVenueOtp(null)}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Right / Bottom: Queue + History */}
-        <div className="flex min-h-0 flex-1 flex-col border-t landscape:border-l landscape:border-t-0 border-border overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <DisplayQueue queue={queue} />
-          </div>
-          <div className="shrink-0 border-t border-border">
-            <DisplayHistory entries={recentHistory} />
-          </div>
-          <div className="shrink-0 border-t border-border px-6 py-4 landscape:hidden portrait:block">
+          <div className="hidden landscape:block shrink-0 border-t border-border px-6 py-4">
             <DisplayQRCode
               size={displaySettings.displayQrSize}
               lanIp={displaySettings.lanIp}
             />
           </div>
-          {venueOtp && (
-            <div className="shrink-0 border-t border-border">
-              <DisplayVenueOtp
-                code={venueOtp.code}
-                deviceHint={venueOtp.deviceHint}
-                onExpired={() => setVenueOtp(null)}
-              />
-            </div>
-          )}
+        </div>
+
+        {/* Right / Bottom: Queue + History */}
+        <div className="flex min-h-0 flex-1 flex-col border-t landscape:border-l landscape:border-t-0 border-border overflow-hidden">
+          <div className="flex min-h-0 flex-col shrink-0">
+            <DisplayQueue queue={queue} />
+          </div>
+          <div className="flex-1 border-t border-border overflow-hidden">
+            <DisplayHistory entries={recentHistory} />
+          </div>
+          <div className="landscape:hidden fixed bottom-4 right-4 bg-surface shrink-0 border border-border px-6 py-4 flex items-center justify-center">
+            <DisplayQRCode
+              size={displaySettings.displayQrSize}
+              lanIp={displaySettings.lanIp}
+            />
+          </div>
         </div>
       </div>
     </div>

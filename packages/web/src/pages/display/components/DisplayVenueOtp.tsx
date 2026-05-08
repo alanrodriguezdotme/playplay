@@ -47,10 +47,7 @@ export function DisplayVenueCode() {
   const seconds = secondsLeft % 60;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-surface-raised px-4 py-3">
-      <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-        Join Code
-      </div>
+    <div className="flex items-center gap-3 bg-surface-raised px-4 py-3 w-fit min-w-[180px]">
       <div className="font-mono text-2xl font-bold tracking-[0.2em] text-on-surface">
         {code}
       </div>

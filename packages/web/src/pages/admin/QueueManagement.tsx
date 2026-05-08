@@ -20,6 +20,7 @@ import { useToast } from "../../contexts/ToastContext";
 import { useSocket } from "../../hooks/useSocket";
 import { SOCKET_EVENTS } from "@playplay/shared";
 import type { PlaybackSyncState } from "@playplay/shared";
+import { Button } from "../../components/common/Button";
 import {
   removeFromQueue,
   playNow,
@@ -258,13 +259,15 @@ export function QueueManagement() {
                   )}
                 </p>
               </div>
-              <button
+              <Button
+                variant="secondary"
+                size="xs"
                 onClick={handleSkip}
                 disabled={queue.length === 0}
-                className="rounded-lg bg-surface px-3 py-1.5 text-xs font-medium border border-border text-on-surface-muted hover:text-on-surface disabled:opacity-50"
+                className="bg-surface"
               >
                 Skip
-              </button>
+              </Button>
             </div>
             {/* Progress bar (shows audio owner state) */}
             <div className="flex items-center gap-2 p-4 pt-2">

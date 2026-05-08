@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { QueueEntry } from "@playplay/shared";
 import { getQueueHistory } from "../../api/queue";
 import { timeAgo } from "../../utils/time";
+import { Button } from "../../components/common/Button";
 
 export function HistoryView() {
   const [entries, setEntries] = useState<QueueEntry[]>([]);
@@ -98,12 +99,9 @@ export function HistoryView() {
 
       {hasMore && !isLoading && (
         <div className="px-4 py-4">
-          <button
-            onClick={loadMore}
-            className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-on-surface-muted hover:text-on-surface"
-          >
+          <Button variant="secondary" fullWidth onClick={loadMore}>
             Load More ({entries.length} of {total})
-          </button>
+          </Button>
         </div>
       )}
 

@@ -11,6 +11,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useVenue } from "../../contexts/VenueContext";
 import { ApiRequestError } from "../../api/client";
 import { EmojiAvatarPicker } from "../../components/patron/EmojiAvatarPicker";
+import { Button } from "../../components/common/Button";
 import type { AuthResponse } from "@playplay/shared";
 
 type Step = "register" | "admin-login" | "admin-name";
@@ -208,17 +209,18 @@ export function Login({
                 />
               </label>
             )}
-            <button
+            <Button
               type="submit"
+              size="lg"
+              fullWidth
               disabled={
                 loading ||
                 !name.trim() ||
                 (requiresVenueCode && venueCode.length !== 6)
               }
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Joining..." : "Join Venue"}
-            </button>
+            </Button>
           </form>
         )}
 
@@ -247,13 +249,14 @@ export function Login({
                 className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
-            <button
+            <Button
               type="submit"
+              size="lg"
+              fullWidth
               disabled={loading || !email.trim() || !password}
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign In"}
-            </button>
+            </Button>
           </form>
         )}
 
@@ -274,13 +277,14 @@ export function Login({
                 className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
-            <button
+            <Button
               type="submit"
+              size="lg"
+              fullWidth
               disabled={loading || !name.trim()}
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Saving..." : "Continue"}
-            </button>
+            </Button>
           </form>
         )}
       </div>

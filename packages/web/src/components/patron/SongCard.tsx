@@ -5,6 +5,7 @@ import { useQueue } from "../../contexts/QueueContext";
 import { useToast } from "../../contexts/ToastContext";
 import { getSongStreamUrl } from "../../api/songs";
 import { ConfirmDialog } from "../common/ConfirmDialog";
+import { Button } from "../common/Button";
 
 interface SongCardProps {
   song: Song;
@@ -122,101 +123,107 @@ export function SongCard({ song }: SongCardProps) {
 
   return (
     <>
-    <ConfirmDialog
-      open={showRemoveConfirm}
-      title="Remove from Queue"
-      message={`Remove "${song.title}" by ${song.artist} from the queue?`}
-      confirmLabel="Remove"
-      variant="destructive"
-      onConfirm={handleRemove}
-      onCancel={() => setShowRemoveConfirm(false)}
-    />
-    <div className="flex items-center gap-3 px-4 py-3">
-      {/* Artwork for Spotify songs */}
-      {song.source === "spotify" && song.artworkUrl ? (
-        <button
-          onClick={togglePreview}
-          className="relative h-10 w-10 shrink-0 overflow-hidden group"
-          aria-label={isPlaying ? "Stop preview" : "Preview song"}
-        >
-          <img
-            src={song.artworkUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-          <span
-            className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
-              isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}
-          >
-            {isPlaying ? (
-              <Pause
-                fill="currentColor"
-                stroke="none"
-                className="h-4 w-4 text-white"
-              />
-            ) : (
-              <Play
-                fill="currentColor"
-                stroke="none"
-                className="h-4 w-4 text-white"
-              />
-            )}
-          </span>
-        </button>
-      ) : (
-        <button
-          onClick={togglePreview}
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-            isPlaying
-              ? "bg-primary text-on-primary"
-              : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
-          }`}
-          aria-label={isPlaying ? "Stop preview" : "Preview song"}
-        >
-          {isPlaying ? (
-            <Pause fill="currentColor" stroke="none" className="h-4 w-4" />
-          ) : (
-            <Play fill="currentColor" stroke="none" className="h-4 w-4" />
-          )}
-        </button>
-      )}
-      <div className="min-w-0 flex-1 flex flex-col gap-1">
-        <p className="truncate text-md font-semibold text-on-surface font-family-accent">
-          {song.title}
-        </p>
-        <p className="truncate text-xs text-on-surface-muted">
-          {song.artist}
-          {song.album ? ` · ${song.album}` : ""}
-        </p>
-      </div>
-      <span className="shrink-0 text-xs tabular-nums text-on-surface-muted">
-        {formatDuration(song.duration)}
-      </span>
-      {isInQueue ? (
-        userEntryId ? (
+      <ConfirmDialog
+        open={showRemoveConfirm}
+        title="Remove from Queue"
+        message={`Remove "${song.title}" by ${song.artist} from the queue?`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onConfirm={handleRemove}
+        onCancel={() => setShowRemoveConfirm(false)}
+      />
+      <div className="flex items-center gap-3 px-4 py-3">
+        {/* Artwork for Spotify songs */}
+        {song.source === "spotify" && song.artworkUrl ? (
           <button
-            onClick={() => setShowRemoveConfirm(true)}
-            disabled={isRemoving}
-            className="shrink-0 rounded-full bg-destructive/15 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/25 disabled:opacity-50"
+            onClick={togglePreview}
+            className="relative h-10 w-10 shrink-0 overflow-hidden group"
+            aria-label={isPlaying ? "Stop preview" : "Preview song"}
           >
-            {isRemoving ? "Removing…" : "Remove"}
+            <img
+              src={song.artworkUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+            <span
+              className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
+                isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
+              {isPlaying ? (
+                <Pause
+                  fill="currentColor"
+                  stroke="none"
+                  className="h-4 w-4 text-white"
+                />
+              ) : (
+                <Play
+                  fill="currentColor"
+                  stroke="none"
+                  className="h-4 w-4 text-white"
+                />
+              )}
+            </span>
           </button>
         ) : (
-          <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
-            In Queue
-          </span>
-        )
-      ) : (
-        <button
-          onClick={handleAdd}
-          disabled={isAdding}
-          className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-on-primary transition-colors hover:bg-primary-hover disabled:opacity-50"
-        >
-          {isAdding ? "Adding…" : "Add"}
-        </button>
-      )}
-    </div>
+          <button
+            onClick={togglePreview}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+              isPlaying
+                ? "bg-primary text-on-primary"
+                : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
+            }`}
+            aria-label={isPlaying ? "Stop preview" : "Preview song"}
+          >
+            {isPlaying ? (
+              <Pause fill="currentColor" stroke="none" className="h-4 w-4" />
+            ) : (
+              <Play fill="currentColor" stroke="none" className="h-4 w-4" />
+            )}
+          </button>
+        )}
+        <div className="min-w-0 flex-1 flex flex-col gap-1">
+          <p className="truncate text-md font-semibold text-on-surface font-family-accent">
+            {song.title}
+          </p>
+          <p className="truncate text-xs text-on-surface-muted">
+            {song.artist}
+            {song.album ? ` · ${song.album}` : ""}
+          </p>
+        </div>
+        <span className="shrink-0 text-xs tabular-nums text-on-surface-muted">
+          {formatDuration(song.duration)}
+        </span>
+        {isInQueue ? (
+          userEntryId ? (
+            <Button
+              variant="destructive-soft"
+              size="xs"
+              rounded="full"
+              onClick={() => setShowRemoveConfirm(true)}
+              disabled={isRemoving}
+              className="shrink-0"
+            >
+              {isRemoving ? "Removing…" : "Remove"}
+            </Button>
+          ) : (
+            <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
+              In Queue
+            </span>
+          )
+        ) : (
+          <Button
+            variant="primary"
+            size="xs"
+            rounded="full"
+            onClick={handleAdd}
+            disabled={isAdding}
+            className="shrink-0"
+          >
+            {isAdding ? "Adding…" : "Add"}
+          </Button>
+        )}
+      </div>
     </>
   );
 }

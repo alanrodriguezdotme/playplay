@@ -17,6 +17,7 @@ import { Login } from "../patron/Login";
 import { AdminAudioPlayer } from "./AdminAudioPlayer";
 import { useState } from "react";
 import { BUILT_IN_THEMES, useTheme } from "../../contexts/ThemeContext";
+import { Button } from "../../components/common/Button";
 
 type AdminTab = "dashboard" | "queue" | "music" | "users" | "settings";
 
@@ -64,40 +65,39 @@ function AdminTopBar() {
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <button
+            <Button
+              variant="secondary"
+              size="icon"
+              rounded="md"
               onClick={() => setShowThemes(!showThemes)}
-              className="rounded-md border border-border p-2 text-on-surface-muted hover:text-on-surface"
               aria-label="Change theme"
             >
               <Sun className="h-4 w-4" />
-            </button>
+            </Button>
             {showThemes && (
               <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-lg">
                 {BUILT_IN_THEMES.map((t) => (
-                  <button
+                  <Button
                     key={t}
+                    variant="ghost"
+                    size="xs"
+                    rounded="md"
+                    active={theme === t}
                     onClick={() => {
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                      theme === t
-                        ? "bg-primary text-on-primary"
-                        : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
-                    }`}
+                    className="whitespace-nowrap capitalize"
                   >
                     {t}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
           </div>
-          <button
-            onClick={logout}
-            className="rounded-md border border-border px-3 py-2 text-xs text-on-surface-muted hover:text-on-surface"
-          >
+          <Button variant="secondary" size="sm" rounded="md" onClick={logout}>
             Log out
-          </button>
+          </Button>
         </div>
       </div>
     </header>
@@ -147,25 +147,6 @@ function BottomNav({ activeTab }: { activeTab: AdminTab }) {
         ))}
       </div>
     </nav>
-  );
-}
-
-function Unauthorized() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-surface text-on-surface">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Unauthorized</h1>
-        <p className="mt-2 text-on-surface-muted">
-          You need admin access to view this page.
-        </p>
-        <Link
-          to="/"
-          className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary hover:bg-primary-hover"
-        >
-          Go to Patron View
-        </Link>
-      </div>
-    </div>
   );
 }
 

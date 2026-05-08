@@ -6,6 +6,7 @@ import { useQueue } from "../../contexts/QueueContext";
 import { timeAgo } from "../../utils/time";
 import type { AdminStatsResponse } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
+import { Button } from "../../components/common/Button";
 
 function StatCard({
   label,
@@ -73,9 +74,15 @@ export function DashboardView() {
       <div className="p-6">
         <div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
           {error}
-          <button onClick={fetchStats} className="ml-2 underline">
+          <Button
+            variant="ghost"
+            size="xs"
+            rounded="none"
+            onClick={fetchStats}
+            className="ml-2 underline text-destructive hover:text-destructive"
+          >
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     );
