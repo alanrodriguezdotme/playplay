@@ -148,10 +148,10 @@ export function SearchView() {
       )}
 
       {hasMore && !isLoading && (
-        <div className="px-4 py-4">
+        <div className="">
           <button
             onClick={loadMore}
-            className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-on-surface-muted hover:text-on-surface"
+            className="w-full border-t border-b border-border p-4 text-sm font-medium text-on-surface-muted hover:text-on-surface"
           >
             Load More ({results.length} of {total})
           </button>

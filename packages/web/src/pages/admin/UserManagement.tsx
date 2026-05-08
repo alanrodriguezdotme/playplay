@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -20,6 +21,8 @@ export function UserManagement() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const debouncedQuery = useDebounce(query, 300);
+  const [blockConfirm, setBlockConfirm] = useState<AdminUser | null>(null);
+  const [roleConfirm, setRoleConfirm] = useState<AdminUser | null>(null);
 
   const fetchUsers = useCallback(
     async (p: number, append = false) => {
@@ -51,6 +54,15 @@ export function UserManagement() {
   }, [fetchUsers]);
 
   const handleToggleBlock = async (user: AdminUser) => {
+    // Blocking requires confirmation; unblocking does not
+    if (!user.blocked) {
+      setBlockConfirm(user);
+      return;
+    }
+    await executeToggleBlock(user);
+  };
+
+  const executeToggleBlock = async (user: AdminUser) => {
     try {
       const updated = await updateUser(user.id, { blocked: !user.blocked });
       setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
@@ -65,21 +77,17 @@ export function UserManagement() {
         err instanceof Error ? err.message : "Failed to update user",
         "error",
       );
+    } finally {
+      setBlockConfirm(null);
     }
   };
 
   const handleToggleRole = async (user: AdminUser) => {
+    setRoleConfirm(user);
+  };
+
+  const executeToggleRole = async (user: AdminUser) => {
     const newRole: UserRole = user.role === "ADMIN" ? "PATRON" : "ADMIN";
-    const action = newRole === "ADMIN" ? "promote" : "demote";
-
-    if (
-      !confirm(
-        `Are you sure you want to ${action} ${user.displayName || user.deviceId?.slice(0, 8) || "this user"} to ${newRole}?`,
-      )
-    ) {
-      return;
-    }
-
     try {
       const updated = await updateUser(user.id, { role: newRole });
       setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
@@ -92,10 +100,30 @@ export function UserManagement() {
         err instanceof Error ? err.message : "Failed to update role",
         "error",
       );
+    } finally {
+      setRoleConfirm(null);
     }
   };
 
   return (
+    <>
+    <ConfirmDialog
+      open={!!blockConfirm}
+      title="Block User"
+      message={`Are you sure you want to block ${blockConfirm?.displayName || blockConfirm?.deviceId?.slice(0, 8) || "this user"}? They will not be able to add songs or vote.`}
+      confirmLabel="Block"
+      variant="destructive"
+      onConfirm={() => blockConfirm && executeToggleBlock(blockConfirm)}
+      onCancel={() => setBlockConfirm(null)}
+    />
+    <ConfirmDialog
+      open={!!roleConfirm}
+      title={roleConfirm?.role === "ADMIN" ? "Demote User" : "Promote User"}
+      message={`Are you sure you want to ${roleConfirm?.role === "ADMIN" ? "demote" : "promote"} ${roleConfirm?.displayName || roleConfirm?.deviceId?.slice(0, 8) || "this user"} to ${roleConfirm?.role === "ADMIN" ? "PATRON" : "ADMIN"}?`}
+      confirmLabel={roleConfirm?.role === "ADMIN" ? "Demote" : "Promote"}
+      onConfirm={() => roleConfirm && executeToggleRole(roleConfirm)}
+      onCancel={() => setRoleConfirm(null)}
+    />
     <div className="flex flex-col">
       <AdminPageHeader title="Users">
         <span className="text-sm text-on-surface-muted">{total} total</span>
@@ -260,5 +288,6 @@ export function UserManagement() {
         </>
       )}
     </div>
+    </>
   );
 }

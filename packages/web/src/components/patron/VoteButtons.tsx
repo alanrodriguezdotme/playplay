@@ -18,7 +18,7 @@ export function VoteButtons({
   const isLarge = size === "lg";
   const iconSize = isLarge ? "h-6 w-6" : "h-4 w-4";
   const btnSize = isLarge ? "h-11 w-11" : "h-8 w-8";
-  const textSize = isLarge ? "text-lg font-bold" : "text-sm font-semibold";
+  const textSize = isLarge ? "text-lg font-bold" : "text-md font-semibold";
 
   return (
     <div className="flex flex-col items-center gap-0.5">
@@ -35,7 +35,7 @@ export function VoteButtons({
         <ChevronUp className={iconSize} strokeWidth={2.5} />
       </button>
       <span
-        className={`text-md font-family-accent text-primary tabular-nums text-on-surface`}
+        className={`${textSize} font-family-accent text-primary tabular-nums text-on-surface`}
       >
         {voteScore}
       </span>

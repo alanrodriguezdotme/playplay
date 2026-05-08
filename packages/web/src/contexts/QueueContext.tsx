@@ -177,9 +177,11 @@ export function QueueProvider({ children }: { children: ReactNode }) {
     async (songId?: string, spotifyTrackId?: string) => {
       const entry = await addToQueue(songId, spotifyTrackId);
       showToast("Song added to queue!", "success");
+      // Auto-upvote the song the user just added
+      vote(entry.id, 1).catch(() => {});
       return entry;
     },
-    [showToast],
+    [showToast, vote],
   );
 
   const removeSong = useCallback(

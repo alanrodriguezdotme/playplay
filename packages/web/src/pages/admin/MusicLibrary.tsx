@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { useToast } from "../../contexts/ToastContext";
 import { useDebounce } from "../../hooks/useDebounce";
 import { getSongs, searchSongs } from "../../api/songs";
@@ -26,6 +27,7 @@ export function MusicLibrary() {
   const [filter, setFilter] = useState<Filter>("all");
   const debouncedQuery = useDebounce(query, 300);
   const [musicSource, setMusicSource] = useState<MusicSource>("local");
+  const [blockConfirm, setBlockConfirm] = useState<Song | null>(null);
 
   // Fetch venue settings to know the music source
   useEffect(() => {
@@ -78,6 +80,15 @@ export function MusicLibrary() {
   };
 
   const handleToggleBlock = async (song: Song) => {
+    // Blocking requires confirmation; unblocking does not
+    if (!song.isBlocked) {
+      setBlockConfirm(song);
+      return;
+    }
+    await executeToggleBlock(song);
+  };
+
+  const executeToggleBlock = async (song: Song) => {
     try {
       const updated = await updateSong(song.id, { blocked: !song.isBlocked });
       setSongs((prev) =>
@@ -96,6 +107,8 @@ export function MusicLibrary() {
         err instanceof Error ? err.message : "Failed to update song",
         "error",
       );
+    } finally {
+      setBlockConfirm(null);
     }
   };
 
@@ -106,6 +119,16 @@ export function MusicLibrary() {
   });
 
   return (
+    <>
+    <ConfirmDialog
+      open={!!blockConfirm}
+      title="Block Song"
+      message={`Are you sure you want to block "${blockConfirm?.title}" by ${blockConfirm?.artist}? It will no longer be available for patrons to add.`}
+      confirmLabel="Block"
+      variant="destructive"
+      onConfirm={() => blockConfirm && executeToggleBlock(blockConfirm)}
+      onCancel={() => setBlockConfirm(null)}
+    />
     <div className="flex flex-col">
       <AdminPageHeader title="Music Library">
         {musicSource === "local" && (
@@ -245,5 +268,6 @@ export function MusicLibrary() {
         </>
       )}
     </div>
+    </>
   );
 }

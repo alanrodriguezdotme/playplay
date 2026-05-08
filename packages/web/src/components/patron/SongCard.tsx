@@ -4,6 +4,7 @@ import type { Song } from "@playplay/shared";
 import { useQueue } from "../../contexts/QueueContext";
 import { useToast } from "../../contexts/ToastContext";
 import { getSongStreamUrl } from "../../api/songs";
+import { ConfirmDialog } from "../common/ConfirmDialog";
 
 interface SongCardProps {
   song: Song;
@@ -47,6 +48,7 @@ export function SongCard({ song }: SongCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   // Subscribe to shared audio state changes
   useEffect(() => {
@@ -114,10 +116,21 @@ export function SongCard({ song }: SongCardProps) {
       showToast(err instanceof Error ? err.message : "Failed to remove");
     } finally {
       setIsRemoving(false);
+      setShowRemoveConfirm(false);
     }
   };
 
   return (
+    <>
+    <ConfirmDialog
+      open={showRemoveConfirm}
+      title="Remove from Queue"
+      message={`Remove "${song.title}" by ${song.artist} from the queue?`}
+      confirmLabel="Remove"
+      variant="destructive"
+      onConfirm={handleRemove}
+      onCancel={() => setShowRemoveConfirm(false)}
+    />
     <div className="flex items-center gap-3 px-4 py-3">
       {/* Artwork for Spotify songs */}
       {song.source === "spotify" && song.artworkUrl ? (
@@ -183,7 +196,7 @@ export function SongCard({ song }: SongCardProps) {
       {isInQueue ? (
         userEntryId ? (
           <button
-            onClick={handleRemove}
+            onClick={() => setShowRemoveConfirm(true)}
             disabled={isRemoving}
             className="shrink-0 rounded-full bg-destructive/15 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/25 disabled:opacity-50"
           >
@@ -204,5 +217,6 @@ export function SongCard({ song }: SongCardProps) {
         </button>
       )}
     </div>
+    </>
   );
 }
