@@ -13,7 +13,7 @@ export function DisplayQRCode({ size = 120, lanIp }: DisplayQRCodeProps) {
   const patronUrl = origin;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 w-fit shrink-0">
       <div className="shrink-0 bg-white p-3">
         <QRCodeSVG value={patronUrl} size={size} level="M" />
       </div>

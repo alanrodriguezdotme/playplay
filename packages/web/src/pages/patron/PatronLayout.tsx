@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useLocation, Outlet, Link } from "react-router";
-import { Music, Search, Clock, Sun } from "lucide-react";
+import { Music, Search, Clock, Sun, LogOut } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
@@ -8,6 +8,7 @@ import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
 import { useVenue } from "../../contexts/VenueContext";
 import { QueueProvider } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { Login } from "./Login";
 
 type Tab = "queue" | "search" | "history";
@@ -46,13 +47,13 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
           <div className="relative">
             <button
               onClick={() => setShowThemes(!showThemes)}
-              className="rounded-md border border-border p-2 text-on-surface-muted hover:text-on-surface"
+              className={`p-3 text-on-surface-muted hover:text-on-surface ${showThemes ? "bg-surface-raised" : ""}`}
               aria-label="Change theme"
             >
-              <Sun className="h-4 w-4" />
+              <Sun className="h-5 w-5" />
             </button>
             {showThemes && (
-              <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 rounded-lg border border-border bg-surface-raised p-2 shadow-lg">
+              <div className="absolute right-0 top-full mt-1 flex flex-col gap-1 border border-border bg-surface-raised p-2 shadow-lg">
                 {BUILT_IN_THEMES.map((t) => (
                   <button
                     key={t}
@@ -60,7 +61,7 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                    className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
                       theme === t
                         ? "bg-primary text-on-primary"
                         : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
@@ -74,9 +75,9 @@ function TopBar({ onLogout }: { onLogout: () => void }) {
           </div>
           <button
             onClick={onLogout}
-            className="rounded-md border border-border px-3 py-2 text-xs text-on-surface-muted hover:text-on-surface"
+            className="rounded-full p-3 text-on-surface-muted hover:text-on-surface"
           >
-            Log out
+            <LogOut className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -93,12 +94,12 @@ const TABS: { key: Tab; label: string; Icon: LucideIcon }[] = [
 function BottomNav({ activeTab }: { activeTab: Tab }) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-surface/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <div className="flex">
+      <div className="flex items-center">
         {TABS.map(({ key, label, Icon }) => (
           <Link
             key={key}
             to={key}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 h-16 text-xs font-medium transition-colors ${
               activeTab === key
                 ? "text-primary"
                 : "text-on-surface-muted hover:text-on-surface"
@@ -118,8 +119,14 @@ export function PatronLayout() {
   const location = useLocation();
   const activeTab = (location.pathname.split("/").pop() || "queue") as Tab;
   const didLogout = useRef(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleLogout = useCallback(() => {
+  const requestLogout = useCallback(() => {
+    setShowLogoutConfirm(true);
+  }, []);
+
+  const confirmLogout = useCallback(() => {
+    setShowLogoutConfirm(false);
     didLogout.current = true;
     logout();
   }, [logout]);
@@ -141,11 +148,20 @@ export function PatronLayout() {
       <QueueProvider>
         <div className="flex min-h-screen flex-col bg-surface text-on-surface">
           <ConnectionIndicator />
-          <TopBar onLogout={handleLogout} />
+          <TopBar onLogout={requestLogout} />
           <main className="flex flex-1 flex-col pb-16">
             <Outlet />
           </main>
           <BottomNav activeTab={activeTab} />
+          <ConfirmDialog
+            open={showLogoutConfirm}
+            title="Log out?"
+            message="You'll need to rejoin the venue to add or vote on songs."
+            confirmLabel="Log out"
+            variant="destructive"
+            onConfirm={confirmLogout}
+            onCancel={() => setShowLogoutConfirm(false)}
+          />
         </div>
       </QueueProvider>
     </ToastProvider>

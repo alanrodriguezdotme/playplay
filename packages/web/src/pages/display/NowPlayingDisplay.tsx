@@ -118,11 +118,11 @@ export function NowPlayingDisplay() {
       {/* Responsive grid: single column portrait, two columns landscape */}
       <div className="flex min-h-0 flex-1 flex-col landscape:flex-row">
         {/* Left / Top: Now Playing + QR */}
-        <div className="flex shrink-0 flex-col landscape:flex-1 landscape:min-h-0">
+        <div className="flex shrink-0 flex-col landscape:flex-1 landscape:max-w-1/2 landscape:min-h-0">
           <div className="flex flex-1 items-center justify-center p-6 landscape:min-h-0 landscape:overflow-auto">
             <DisplayNowPlaying entry={nowPlaying} />
           </div>
-          <div className="hidden landscape:block shrink-0 border-t border-border px-6 py-4">
+          <div className="hidden landscape:flex w-full justify-center px-6 py-4">
             <DisplayQRCode
               size={displaySettings.displayQrSize}
               lanIp={displaySettings.lanIp}
