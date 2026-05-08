@@ -7,9 +7,19 @@ import { timeAgo } from "../../utils/time";
 import type { AdminStatsResponse } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
 
-function StatCard({ label, value }: { label: string; value: number | string }) {
+function StatCard({
+  label,
+  value,
+  showBottomBorder,
+}: {
+  label: string;
+  value: number | string;
+  showBottomBorder?: boolean;
+}) {
   return (
-    <div className="bg-surface-alt p-4">
+    <div
+      className={`bg-surface-alt p-4 ${showBottomBorder ? "border-b border-border" : ""}`}
+    >
       <p className="text-xs font-medium text-on-surface-muted uppercase">
         {label}
       </p>
@@ -76,11 +86,27 @@ export function DashboardView() {
       <AdminPageHeader title="Dashboard" />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-x-1 divide-y-1 divide-border">
-        <StatCard label="Total Songs" value={stats?.totalUnblockedSongs ?? 0} />
-        <StatCard label="Total Users" value={stats?.totalUsers ?? 0} />
-        <StatCard label="In Queue" value={stats?.totalQueued ?? 0} />
-        <StatCard label="Played Today" value={stats?.totalPlayed ?? 0} />
+      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-x-1 divide-border border-b-0">
+        <StatCard
+          label="Total Songs"
+          value={stats?.totalUnblockedSongs ?? 0}
+          showBottomBorder
+        />
+        <StatCard
+          label="Total Users"
+          value={stats?.totalUsers ?? 0}
+          showBottomBorder
+        />
+        <StatCard
+          label="In Queue"
+          value={stats?.totalQueued ?? 0}
+          showBottomBorder
+        />
+        <StatCard
+          label="Played Today"
+          value={stats?.totalPlayed ?? 0}
+          showBottomBorder
+        />
       </div>
 
       {/* Now Playing */}
