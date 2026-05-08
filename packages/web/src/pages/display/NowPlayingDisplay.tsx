@@ -158,7 +158,7 @@ export function NowPlayingDisplay() {
             <DisplayNowPlaying entry={nowPlaying} />
           </div>
           {venueOtp && (
-            <div className="hidden landscape:block shrink-0 border-t border-border">
+            <div className="sm:hidden md:block shrink-0 border-t border-border">
               <DisplayVenueOtp
                 code={venueOtp.code}
                 deviceHint={venueOtp.deviceHint}
@@ -183,7 +183,7 @@ export function NowPlayingDisplay() {
             />
           </div>
           {venueOtp && (
-            <div className="landscape:hidden shrink-0 border-t border-border">
+            <div className="shrink-0 border-t border-border">
               <DisplayVenueOtp
                 code={venueOtp.code}
                 deviceHint={venueOtp.deviceHint}

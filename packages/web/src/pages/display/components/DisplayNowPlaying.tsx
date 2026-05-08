@@ -13,7 +13,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="text-6xl">🎵</div>
-        <p className="mt-4 text-2xl font-semibold text-on-surface-muted">
+        <p className="mt-4 text-2xl font-semibold text-on-surface-muted font-family-accent">
           No song playing
         </p>
         <p className="mt-2 text-lg text-on-surface-muted">
@@ -57,7 +57,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           {entry.song.album}
         </p>
       )}
-      <div className="mt-4 flex items-center gap-4 text-lg text-on-surface-subtle uppercase">
+      <div className="mt-4 flex items-center gap-1 text-md text-on-surface-subtle uppercase">
         {entry.addedBy && (
           <span>
             Added by{" "}
@@ -69,9 +69,10 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
             </span>
           </span>
         )}
-        <span className="rounded-full bg-surface-raised px-3 py-1 font-bold tabular-nums text-on-surface">
-          {entry.voteScore > 0 ? "+" : ""}
-          {entry.voteScore}
+        <span className="mx-1">•</span>
+        <span className="uppercase font-bold tabular-nums text-on-surface-subtle">
+          {entry.voteScore > 0 ? "" : "-"}
+          {entry.voteScore} VOTES
         </span>
       </div>
     </div>
