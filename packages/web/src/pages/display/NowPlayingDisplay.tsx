@@ -157,12 +157,15 @@ export function NowPlayingDisplay() {
           <div className="flex flex-1 items-center justify-center p-6 landscape:min-h-0 landscape:overflow-auto">
             <DisplayNowPlaying entry={nowPlaying} />
           </div>
-          <div className="shrink-0 border-t border-border px-6 py-4 landscape:block portrait:hidden">
-            <DisplayQRCode
-              size={displaySettings.displayQrSize}
-              lanIp={displaySettings.lanIp}
-            />
-          </div>
+          {venueOtp && (
+            <div className="hidden landscape:block shrink-0 border-t border-border">
+              <DisplayVenueOtp
+                code={venueOtp.code}
+                deviceHint={venueOtp.deviceHint}
+                onExpired={() => setVenueOtp(null)}
+              />
+            </div>
+          )}
         </div>
 
         {/* Right / Bottom: Queue + History */}
@@ -179,16 +182,17 @@ export function NowPlayingDisplay() {
               lanIp={displaySettings.lanIp}
             />
           </div>
+          {venueOtp && (
+            <div className="landscape:hidden shrink-0 border-t border-border">
+              <DisplayVenueOtp
+                code={venueOtp.code}
+                deviceHint={venueOtp.deviceHint}
+                onExpired={() => setVenueOtp(null)}
+              />
+            </div>
+          )}
         </div>
       </div>
-
-      {venueOtp && (
-        <DisplayVenueOtp
-          code={venueOtp.code}
-          deviceHint={venueOtp.deviceHint}
-          onExpired={() => setVenueOtp(null)}
-        />
-      )}
     </div>
   );
 }

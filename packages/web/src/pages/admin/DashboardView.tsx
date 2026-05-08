@@ -7,13 +7,25 @@ import { timeAgo } from "../../utils/time";
 import type { AdminStatsResponse } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
 
-function StatCard({ label, value }: { label: string; value: number | string }) {
+function StatCard({
+  label,
+  value,
+  showBottomBorder,
+}: {
+  label: string;
+  value: number | string;
+  showBottomBorder?: boolean;
+}) {
   return (
-    <div className="bg-surface-raised p-4">
+    <div
+      className={`bg-surface-alt p-4 ${showBottomBorder ? "border-b border-border" : ""}`}
+    >
       <p className="text-xs font-medium text-on-surface-muted uppercase">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-bold text-on-surface">{value}</p>
+      <p className="mt-1 text-2xl text-primary font-bold text-on-surface font-family-accent">
+        {value}
+      </p>
     </div>
   );
 }
@@ -74,11 +86,27 @@ export function DashboardView() {
       <AdminPageHeader title="Dashboard" />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-solid divide-x-1 divide-y-1 divide-border">
-        <StatCard label="Total Songs" value={stats?.totalUnblockedSongs ?? 0} />
-        <StatCard label="Total Users" value={stats?.totalUsers ?? 0} />
-        <StatCard label="In Queue" value={stats?.totalQueued ?? 0} />
-        <StatCard label="Played Today" value={stats?.totalPlayed ?? 0} />
+      <div className="grid grid-cols-2 gap-0 md:grid-cols-4 divide-x-1 divide-border border-b-0">
+        <StatCard
+          label="Total Songs"
+          value={stats?.totalUnblockedSongs ?? 0}
+          showBottomBorder
+        />
+        <StatCard
+          label="Total Users"
+          value={stats?.totalUsers ?? 0}
+          showBottomBorder
+        />
+        <StatCard
+          label="In Queue"
+          value={stats?.totalQueued ?? 0}
+          showBottomBorder
+        />
+        <StatCard
+          label="Played Today"
+          value={stats?.totalPlayed ?? 0}
+          showBottomBorder
+        />
       </div>
 
       {/* Now Playing */}
@@ -86,19 +114,25 @@ export function DashboardView() {
         <SectionHeader title="Now Playing" />
         {nowPlaying ? (
           <div className="flex items-center gap-3 p-4 pt-2">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
+            {/* <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <Play
                 fill="currentColor"
                 stroke="none"
                 className="h-5 w-5 text-primary"
               />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-md font-semibold font-family-accent">
+            </div> */}
+            <div className="min-w-0 flex-1 flex flex-col gap-1">
+              <p className="truncate text-lg font-semibold font-family-accent">
                 {nowPlaying.song.title}
               </p>
               <p className="truncate text-xs text-on-surface-muted">
                 {nowPlaying.song.artist}
+              </p>
+              <p className="truncate text-xs text-on-surface-muted">
+                {nowPlaying.addedBy?.avatarEmoji
+                  ? nowPlaying.addedBy.avatarEmoji + " "
+                  : ""}
+                {nowPlaying.addedBy?.displayName ?? "Default playlist"}
               </p>
             </div>
             <div className="text-xs text-on-surface-muted">

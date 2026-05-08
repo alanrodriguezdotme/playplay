@@ -106,7 +106,7 @@ function AdminTopBar() {
 
 function Sidebar({ activeTab }: { activeTab: AdminTab }) {
   return (
-    <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface-alt">
+    <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border">
       <nav className="flex flex-1 flex-col">
         {TABS.map(({ key, label, Icon }) => (
           <Link
@@ -114,7 +114,7 @@ function Sidebar({ activeTab }: { activeTab: AdminTab }) {
             to={key}
             className={`flex items-center gap-3 p-4 text-sm font-medium transition-colors ${
               activeTab === key
-                ? "bg-primary/15 text-primary"
+                ? "bg-surface-alt text-primary"
                 : "text-on-surface-muted hover:bg-surface hover:text-on-surface"
             }`}
           >

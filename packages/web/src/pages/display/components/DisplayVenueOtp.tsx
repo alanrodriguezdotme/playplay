@@ -78,7 +78,7 @@ export function DisplayVenueOtp({
   }, [onExpired]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="flex items-center justify-center p-6">
       <div className="rounded-2xl bg-surface-raised p-8 text-center shadow-2xl">
         <p className="mb-2 text-sm text-on-surface-muted">
           {deviceHint} is requesting access

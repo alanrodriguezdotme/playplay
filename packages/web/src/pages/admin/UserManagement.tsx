@@ -138,17 +138,17 @@ export function UserManagement() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or phone..."
-            className="w-full min-h-12 border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
+            className="w-full min-h-12 h-full border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
           />
         </div>
-        <div className="flexborder border-border">
+        <div className="flex border-b sm:border border-border">
           {(["all", "PATRON", "ADMIN", "blocked"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`p-4 text-xs font-medium capitalize transition-colors ${
                 filter === f
-                  ? "bg-primary text-on-primary"
+                  ? "bg-surface-alt text-primary"
                   : "text-on-surface-muted hover:text-on-surface"
               }`}
             >
@@ -180,14 +180,14 @@ export function UserManagement() {
             <span className="w-36 text-center">Actions</span>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col divide-y divide-border">
             {users.map((user) => {
               const isSelf = user.id === currentUser?.id;
               return (
                 <div
                   key={user.id}
-                  className={`flex items-center gap-2 border border-border p-4 ${
-                    user.blocked ? "bg-surface opacity-60" : "bg-surface-raised"
+                  className={`flex items-center gap-2 p-4 ${
+                    user.blocked ? "bg-surface opacity-60" : ""
                   }`}
                 >
                   <div className="min-w-0 flex-1 flex flex-col gap-1">
@@ -204,12 +204,32 @@ export function UserManagement() {
                         </span>
                       )}
                     </div>
-                    <p className="truncate text-xs text-on-surface-muted">
-                      {user.phone || user.deviceId?.slice(0, 8) || "—"}
-                    </p>
+                    <div className="flex gap-1 items-center">
+                      <p className="truncate text-xs text-on-surface-muted">
+                        {user.phone || user.deviceId?.slice(0, 8) || "—"}
+                      </p>
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase sm:block md:hidden ${
+                          user.role === "ADMIN"
+                            ? "bg-primary/15 text-primary"
+                            : "bg-on-surface-muted/15 text-on-surface-muted"
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium sm:block md:hidden uppercase ${
+                          user.blocked
+                            ? "bg-destructive/15 text-destructive"
+                            : "bg-success/15 text-success"
+                        }`}
+                      >
+                        {user.blocked ? "Blocked" : "Active"}
+                      </span>
+                    </div>
                   </div>
 
-                  <span className="w-20 text-center">
+                  <span className="w-20 text-center hidden sm:hidden md:block">
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
                         user.role === "ADMIN"
@@ -221,9 +241,9 @@ export function UserManagement() {
                     </span>
                   </span>
 
-                  <span className="w-20 text-center">
+                  <span className="w-20 text-center hidden sm:hidden md:block">
                     <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
                         user.blocked
                           ? "bg-destructive/15 text-destructive"
                           : "bg-success/15 text-success"
