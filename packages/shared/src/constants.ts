@@ -10,6 +10,8 @@ export const DEFAULTS = {
   OTP_DELIVERY_MODE: "none" as const,
   MUSIC_SOURCE: "local" as const,
   ALLOW_FULL_CATALOG_SEARCH: false,
+  DEFAULT_PLAYLIST_SOURCE: "history" as const,
+  DEFAULT_PLAYLIST_SHUFFLE: true,
   RATE_LIMIT_MAX_REGISTRATIONS: 3,
   RATE_LIMIT_WINDOW_MS: 30 * 60 * 1000, // 30 minutes
 } as const;

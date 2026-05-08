@@ -24,7 +24,11 @@ async function main() {
       settings: JSON.stringify({
         voteThreshold: -5,
         maxSongsPerUser: 3,
-        defaultPlaylistPath: "./music/default",
+        defaultPlaylist: {
+          source: "history",
+          shuffle: true,
+          history: { lookbackDays: null },
+        },
       }),
     },
   });

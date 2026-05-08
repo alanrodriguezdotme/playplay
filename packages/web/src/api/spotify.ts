@@ -1,5 +1,11 @@
 import { apiRequest } from "./client.js";
-import type { SpotifyStatus, SpotifySearchResult, SpotifyTokenResponse } from "@playplay/shared";
+import type {
+    SpotifyStatus,
+    SpotifySearchResult,
+    SpotifyTokenResponse,
+    SpotifyPlaylistListResult,
+    SpotifyDefaultPlaylistSource,
+} from "@playplay/shared";
 
 export async function getSpotifyAuthUrl(): Promise<{ url: string }> {
     const returnUrl = encodeURIComponent(window.location.href);
@@ -48,4 +54,23 @@ export async function transferSpotifyPlayback(deviceId: string): Promise<void> {
         method: "PUT",
         body: JSON.stringify({ deviceId }),
     });
+}
+
+export async function listSpotifyPlaylists(query?: string, limit?: number, offset?: number): Promise<SpotifyPlaylistListResult> {
+    const qs = new URLSearchParams();
+    if (query) qs.set("q", query);
+    if (limit) qs.set("limit", String(limit));
+    if (offset) qs.set("offset", String(offset));
+    const qsStr = qs.toString();
+    return apiRequest<SpotifyPlaylistListResult>(
+        `/api/spotify/playlists${qsStr ? `?${qsStr}` : ""}`,
+    );
+}
+
+export async function syncSpotifyDefaultPlaylist(): Promise<{
+    trackCount: number;
+    errors: string[];
+    spotify: SpotifyDefaultPlaylistSource;
+}> {
+    return apiRequest("/api/spotify/default-playlist/sync", { method: "POST" });
 }

@@ -176,8 +176,12 @@ export function QueueManagement() {
   const handleSkip = useCallback(async () => {
     if (queue.length > 0) {
       await handlePlayNow(queue[0].id);
+      return;
     }
-  }, [queue, handlePlayNow]);
+    if (nowPlaying && socket) {
+      socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
+    }
+  }, [queue, nowPlaying, socket, handlePlayNow]);
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -263,7 +267,7 @@ export function QueueManagement() {
                 variant="secondary"
                 size="xs"
                 onClick={handleSkip}
-                disabled={queue.length === 0}
+                disabled={queue.length === 0 && !nowPlaying}
                 className="bg-surface"
               >
                 Skip
@@ -318,8 +322,8 @@ export function QueueManagement() {
             </SortableContext>
           </DndContext>
         ) : (
-          <div className="rounded-xl border border-border bg-surface-raised p-8 text-center">
-            <p className="text-on-surface-muted">Queue is empty</p>
+          <div className="p-8 text-center">
+            <p className="text-on-surface-subtle">Queue is empty</p>
           </div>
         )}
       </div>

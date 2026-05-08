@@ -1,7 +1,7 @@
-import { readdir, stat, access } from "node:fs/promises";
+import { readdir, access } from "node:fs/promises";
 import { join, extname, basename, resolve } from "node:path";
 import { parseFile } from "music-metadata";
-import { prisma, parseSettings } from "../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 
 const SUPPORTED_EXTENSIONS = new Set([
   ".mp3",
@@ -18,7 +18,7 @@ export interface ScanResult {
   errors: string[];
 }
 
-async function collectAudioFiles(dir: string): Promise<string[]> {
+export async function collectAudioFiles(dir: string): Promise<string[]> {
   const files: string[] = [];
   const entries = await readdir(dir, { withFileTypes: true });
 
@@ -35,17 +35,16 @@ async function collectAudioFiles(dir: string): Promise<string[]> {
   return files;
 }
 
+export function isSupportedAudioExtension(p: string): boolean {
+  return SUPPORTED_EXTENSIONS.has(extname(p).toLowerCase());
+}
+
 export async function scanMusicLibrary(
   venueId: string,
   libraryPath: string
 ): Promise<ScanResult> {
   const resolvedPath = resolve(libraryPath);
   const result: ScanResult = { added: 0, updated: 0, removed: 0, errors: [] };
-
-  // Get venue settings for default playlist path
-  const venue = await prisma.venue.findUnique({ where: { id: venueId } });
-  const settings = venue ? parseSettings(venue.settings) : undefined;
-  const defaultPlaylistPath = (settings?.defaultPlaylistPath as string) || "";
 
   // Collect all audio files
   let audioFiles: string[];
@@ -74,9 +73,6 @@ export async function scanMusicLibrary(
       const artist = common.artist || "Unknown Artist";
       const album = common.album || "";
       const duration = Math.round(format.duration || 0);
-      const isDefault = defaultPlaylistPath
-        ? relativePath.startsWith(defaultPlaylistPath)
-        : false;
 
       const existing = await prisma.song.findUnique({
         where: { filePath_venueId: { filePath: relativePath, venueId } },
@@ -85,7 +81,7 @@ export async function scanMusicLibrary(
       if (existing) {
         await prisma.song.update({
           where: { id: existing.id },
-          data: { title, artist, album, duration, blocked: false, isDefault },
+          data: { title, artist, album, duration, blocked: false },
         });
         result.updated++;
       } else {
@@ -97,7 +93,6 @@ export async function scanMusicLibrary(
             duration,
             filePath: relativePath,
             venueId,
-            isDefault,
           },
         });
         result.added++;
@@ -107,26 +102,26 @@ export async function scanMusicLibrary(
     }
   }
 
-  // Mark songs whose files no longer exist on disk (local songs only)
+  // Mark songs whose files no longer exist on disk (local songs only,
+  // and only those that live inside the library — leave fallback-only rows alone).
   const existingSongs = await prisma.song.findMany({
-    where: { venueId, blocked: false, source: "local" },
+    where: { venueId, blocked: false, source: "local", isFallbackOnly: false },
     select: { id: true, filePath: true },
   });
 
   for (const song of existingSongs) {
-    if (!song.filePath || !foundPaths.has(song.filePath)) {
-      if (!song.filePath) continue; // Spotify songs don't have file paths
-      // Verify the file really doesn't exist (it might have been added via seed with a different path)
-      const absolutePath = join(resolvedPath, song.filePath);
-      try {
-        await access(absolutePath);
-      } catch {
-        await prisma.song.update({
-          where: { id: song.id },
-          data: { blocked: true },
-        });
-        result.removed++;
-      }
+    if (!song.filePath) continue;
+    if (foundPaths.has(song.filePath)) continue;
+    // Verify the file really doesn't exist (it might have been added via seed with a different path)
+    const absolutePath = join(resolvedPath, song.filePath);
+    try {
+      await access(absolutePath);
+    } catch {
+      await prisma.song.update({
+        where: { id: song.id },
+        data: { blocked: true },
+      });
+      result.removed++;
     }
   }
 

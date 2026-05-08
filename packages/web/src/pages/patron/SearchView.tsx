@@ -106,7 +106,7 @@ export function SearchView() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search songs by title or artist…"
-            className="w-full bg-surface-alt py-4 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full bg-surface-alt py-4 pl-10 pr-4 text-base text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
             autoFocus
           />
           {query && (

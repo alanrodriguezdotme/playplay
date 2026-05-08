@@ -18,6 +18,7 @@ import type {
   OtpDeliveryMode,
   MusicSource,
   SpotifyStatus,
+  DefaultPlaylistConfig,
 } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
 import {
@@ -27,6 +28,13 @@ import {
   FormSlider,
 } from "../../components/common/FormFields";
 import { useDebounce } from "../../hooks/useDebounce";
+import { DefaultPlaylistConfigSection } from "../../components/admin/DefaultPlaylistConfigSection";
+
+const DEFAULT_PLAYLIST_FALLBACK: DefaultPlaylistConfig = {
+  source: "history",
+  shuffle: true,
+  history: { lookbackDays: null },
+};
 
 export function SettingsView() {
   const { showToast } = useToast();
@@ -43,7 +51,9 @@ export function SettingsView() {
   // Settings form state
   const [voteThreshold, setVoteThreshold] = useState(-5);
   const [maxSongsPerUser, setMaxSongsPerUser] = useState(3);
-  const [defaultPlaylistPath, setDefaultPlaylistPath] = useState("");
+  const [defaultPlaylist, setDefaultPlaylist] = useState<DefaultPlaylistConfig>(
+    DEFAULT_PLAYLIST_FALLBACK,
+  );
   const [displayQrSize, setDisplayQrSize] = useState(120);
   const [displayShowHeader, setDisplayShowHeader] = useState(true);
   const [otpDeliveryMode, setOtpDeliveryMode] =
@@ -62,7 +72,6 @@ export function SettingsView() {
   const debouncedVenuePhone = useDebounce(venuePhone, 800);
   const debouncedVoteThreshold = useDebounce(voteThreshold, 800);
   const debouncedMaxSongsPerUser = useDebounce(maxSongsPerUser, 800);
-  const debouncedDefaultPlaylistPath = useDebounce(defaultPlaylistPath, 800);
   const debouncedDisplayQrSize = useDebounce(displayQrSize, 800);
   const debouncedDisplayShowHeader = useDebounce(displayShowHeader, 400);
   const debouncedOtpDeliveryMode = useDebounce(otpDeliveryMode, 400);
@@ -82,7 +91,7 @@ export function SettingsView() {
       setVenuePhone(data.phone);
       setVoteThreshold(data.settings.voteThreshold);
       setMaxSongsPerUser(data.settings.maxSongsPerUser);
-      setDefaultPlaylistPath(data.settings.defaultPlaylistPath);
+      setDefaultPlaylist(data.settings.defaultPlaylist);
       setDisplayQrSize(data.settings.displayQrSize);
       setDisplayShowHeader(data.settings.displayShowHeader);
       setOtpDeliveryMode(data.settings.otpDeliveryMode);
@@ -142,14 +151,13 @@ export function SettingsView() {
       });
   }, [debouncedVenueName, debouncedVenueEmail, debouncedVenuePhone]);
 
-  // Auto-save settings
+  // Auto-save settings (excluding defaultPlaylist — that has its own handler)
   useEffect(() => {
     if (!initializedRef.current || !venue) return;
 
     const body: AdminVenueSettingsUpdateBody = {
       voteThreshold: debouncedVoteThreshold,
       maxSongsPerUser: debouncedMaxSongsPerUser,
-      defaultPlaylistPath: debouncedDefaultPlaylistPath,
       displayQrSize: debouncedDisplayQrSize,
       displayShowHeader: debouncedDisplayShowHeader,
       otpDeliveryMode: debouncedOtpDeliveryMode,
@@ -162,7 +170,6 @@ export function SettingsView() {
     if (
       debouncedVoteThreshold === s.voteThreshold &&
       debouncedMaxSongsPerUser === s.maxSongsPerUser &&
-      debouncedDefaultPlaylistPath === s.defaultPlaylistPath &&
       debouncedDisplayQrSize === s.displayQrSize &&
       debouncedDisplayShowHeader === s.displayShowHeader &&
       debouncedOtpDeliveryMode === s.otpDeliveryMode &&
@@ -186,7 +193,6 @@ export function SettingsView() {
   }, [
     debouncedVoteThreshold,
     debouncedMaxSongsPerUser,
-    debouncedDefaultPlaylistPath,
     debouncedDisplayQrSize,
     debouncedDisplayShowHeader,
     debouncedOtpDeliveryMode,
@@ -194,6 +200,32 @@ export function SettingsView() {
     debouncedMusicSource,
     debouncedAllowFullCatalogSearch,
   ]);
+
+  // Save default-playlist config explicitly (rebuild can be slow / surface errors).
+  const [savingDefaultPlaylist, setSavingDefaultPlaylist] = useState(false);
+  const handleDefaultPlaylistChange = useCallback(
+    (next: DefaultPlaylistConfig) => {
+      setDefaultPlaylist(next);
+      if (!initializedRef.current || !venue) return;
+      setSavingDefaultPlaylist(true);
+      updateVenueSettings({ defaultPlaylist: next })
+        .then((updated) => {
+          setVenue(updated);
+          setDefaultPlaylist(updated.settings.defaultPlaylist);
+          showToast("Default playlist saved", "success");
+        })
+        .catch((err) => {
+          showToast(
+            err instanceof Error
+              ? err.message
+              : "Failed to save default playlist",
+            "error",
+          );
+        })
+        .finally(() => setSavingDefaultPlaylist(false));
+    },
+    [venue, showToast],
+  );
 
   if (loading) {
     return (
@@ -291,16 +323,6 @@ export function SettingsView() {
           onChange={setMusicSource}
         />
         <div className="m-4 mt-0 bg-surface-raised">
-          {musicSource === "local" && (
-            <FormInput
-              label="Default Playlist Path"
-              description="Relative path to the folder of songs that play when the queue is empty."
-              value={defaultPlaylistPath}
-              onChange={setDefaultPlaylistPath}
-              placeholder="./music/default"
-            />
-          )}
-
           {musicSource === "spotify" && (
             <div className="space-y-3 p-4">
               <h4 className="text-sm font-medium text-on-surface">
@@ -388,6 +410,18 @@ export function SettingsView() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Default Playlist */}
+      <div className="flex flex-col">
+        <SectionHeader title="Default Playlist" showTopBorder />
+        <DefaultPlaylistConfigSection
+          musicSource={musicSource}
+          spotifyStatus={spotifyStatus}
+          config={defaultPlaylist}
+          onChange={handleDefaultPlaylistChange}
+          saving={savingDefaultPlaylist}
+        />
       </div>
 
       {/* Display Settings */}

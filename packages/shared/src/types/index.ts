@@ -19,13 +19,43 @@ export interface Venue {
 export interface VenueSettings {
   voteThreshold: number;
   maxSongsPerUser: number;
-  defaultPlaylistPath: string;
+  defaultPlaylist: DefaultPlaylistConfig;
   displayQrSize: number;
   displayShowHeader: boolean;
   otpDeliveryMode: OtpDeliveryMode;
   smsGatewayUrl: string;
   musicSource: MusicSource;
   allowFullCatalogSearch: boolean;
+}
+
+// ---- Default Playlist (plays when queue is empty) ----
+
+export type DefaultPlaylistSourceKind = "history" | "local" | "spotify";
+export type LocalDefaultPlaylistKind = "folder" | "m3u";
+
+export interface LocalDefaultPlaylistSource {
+  kind: LocalDefaultPlaylistKind;
+  path: string;
+}
+
+export interface SpotifyDefaultPlaylistSource {
+  playlistId: string;
+  playlistName: string;
+  ownerName: string;
+  trackCount: number;
+  lastSyncedAt: string | null;
+}
+
+export interface HistoryDefaultPlaylistSource {
+  lookbackDays: number | null;
+}
+
+export interface DefaultPlaylistConfig {
+  source: DefaultPlaylistSourceKind;
+  shuffle: boolean;
+  local?: LocalDefaultPlaylistSource;
+  spotify?: SpotifyDefaultPlaylistSource;
+  history?: HistoryDefaultPlaylistSource;
 }
 
 export interface UserProfile {
@@ -48,6 +78,7 @@ export interface Song {
   totalPlays: number;
   totalAdds: number;
   isBlocked: boolean;
+  isFallbackOnly?: boolean;
   source: MusicSource;
   spotifyTrackId?: string | null;
   artworkUrl?: string | null;
@@ -208,7 +239,7 @@ export interface AdminVenueResponse {
 export interface AdminVenueSettingsUpdateBody {
   voteThreshold?: number;
   maxSongsPerUser?: number;
-  defaultPlaylistPath?: string;
+  defaultPlaylist?: DefaultPlaylistConfig;
   displayQrSize?: number;
   displayShowHeader?: boolean;
   otpDeliveryMode?: OtpDeliveryMode;
@@ -259,6 +290,7 @@ export interface AdminSong {
   filePath: string | null;
   blocked: boolean;
   isDefault: boolean;
+  isFallbackOnly: boolean;
   totalPlays: number;
   totalAdds: number;
   createdAt: string;
@@ -306,4 +338,24 @@ export interface SpotifySearchResult {
 export interface SpotifyTokenResponse {
   accessToken: string;
   expiresIn: number;
+}
+
+export interface SpotifyPlaylistSummary {
+  id: string;
+  name: string;
+  ownerName: string;
+  trackCount: number;
+  artworkUrl: string | null;
+  isPublic: boolean | null;
+}
+
+export interface SpotifyPlaylistListResult {
+  playlists: SpotifyPlaylistSummary[];
+  total: number;
+}
+
+export interface DefaultPlaylistRebuildResult {
+  source: DefaultPlaylistSourceKind;
+  trackCount: number;
+  errors: string[];
 }

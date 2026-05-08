@@ -1,6 +1,6 @@
 import SpotifyWebApi from "spotify-web-api-node";
 import { prisma } from "../lib/prisma.js";
-import type { SpotifyTrack } from "@playplay/shared";
+import type { SpotifyTrack, SpotifyPlaylistSummary } from "@playplay/shared";
 
 const SCOPES = [
     "streaming",
@@ -8,6 +8,8 @@ const SCOPES = [
     "user-read-private",
     "user-read-playback-state",
     "user-modify-playback-state",
+    "playlist-read-private",
+    "playlist-read-collaborative",
 ];
 
 function createClient(): SpotifyWebApi {
@@ -142,15 +144,15 @@ export async function searchTracks(
         const body = await resp.text();
         throw new Error(`Spotify search failed (${resp.status}): ${body}`);
     }
-    const data = await resp.json();
+    const data = (await resp.json()) as { tracks?: { items?: any[]; total?: number } };
     const items = data.tracks?.items ?? [];
     const total = data.tracks?.total ?? 0;
 
-    const tracks: SpotifyTrack[] = items.map((t) => ({
+    const tracks: SpotifyTrack[] = items.map((t: any) => ({
         spotifyTrackId: t.id,
         spotifyUri: t.uri,
         title: t.name,
-        artist: t.artists.map((a) => a.name).join(", "),
+        artist: t.artists.map((a: any) => a.name).join(", "),
         album: t.album.name,
         duration: Math.round(t.duration_ms / 1000),
         artworkUrl: t.album.images[0]?.url ?? null,
@@ -239,6 +241,113 @@ export async function playTrack(venueId: string, spotifyUri: string, deviceId?: 
 export async function pausePlayback(venueId: string, deviceId?: string) {
     const client = await getAuthenticatedClient(venueId);
     await client.pause(deviceId ? { device_id: deviceId } : {});
+}
+
+// ---- Playlists ----
+
+function mapPlaylistSummary(p: any): SpotifyPlaylistSummary {
+    return {
+        id: p.id,
+        name: p.name,
+        ownerName: p.owner?.display_name || p.owner?.id || "",
+        trackCount: p.tracks?.total ?? 0,
+        artworkUrl: p.images?.[0]?.url ?? null,
+        isPublic: typeof p.public === "boolean" ? p.public : null,
+    };
+}
+
+function mapPlaylistTrack(item: any): SpotifyTrack | null {
+    const t = item?.track;
+    if (!t || !t.id || t.is_local) return null;
+    return {
+        spotifyTrackId: t.id,
+        spotifyUri: t.uri,
+        title: t.name,
+        artist: (t.artists ?? []).map((a: any) => a.name).join(", "),
+        album: t.album?.name ?? "",
+        duration: Math.round((t.duration_ms ?? 0) / 1000),
+        artworkUrl: t.album?.images?.[0]?.url ?? null,
+        previewUrl: t.preview_url ?? null,
+    };
+}
+
+export async function listMyPlaylists(
+    venueId: string,
+    limit = 50,
+    offset = 0,
+): Promise<{ playlists: SpotifyPlaylistSummary[]; total: number }> {
+    const client = await getAuthenticatedClient(venueId);
+    const token = client.getAccessToken()!;
+    const url = `https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+        throw new Error(`Spotify list playlists failed (${resp.status}): ${await resp.text()}`);
+    }
+    const data = (await resp.json()) as { items?: any[]; total?: number };
+    return {
+        playlists: (data.items ?? []).map(mapPlaylistSummary),
+        total: data.total ?? 0,
+    };
+}
+
+export async function searchPlaylists(
+    venueId: string,
+    query: string,
+    limit = 20,
+    offset = 0,
+): Promise<{ playlists: SpotifyPlaylistSummary[]; total: number }> {
+    const client = await getAuthenticatedClient(venueId);
+    const token = client.getAccessToken()!;
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=playlist&limit=${limit}&offset=${offset}`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+        throw new Error(`Spotify search playlists failed (${resp.status}): ${await resp.text()}`);
+    }
+    const data = (await resp.json()) as { playlists?: { items?: any[]; total?: number } };
+    const items = (data.playlists?.items ?? []).filter((p: any) => p && p.id);
+    return {
+        playlists: items.map(mapPlaylistSummary),
+        total: data.playlists?.total ?? 0,
+    };
+}
+
+export async function getPlaylistMeta(
+    venueId: string,
+    playlistId: string,
+): Promise<SpotifyPlaylistSummary> {
+    const client = await getAuthenticatedClient(venueId);
+    const token = client.getAccessToken()!;
+    const url = `https://api.spotify.com/v1/playlists/${playlistId}?fields=id,name,public,owner(display_name,id),images,tracks(total)`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+        throw new Error(`Spotify get playlist failed (${resp.status}): ${await resp.text()}`);
+    }
+    return mapPlaylistSummary(await resp.json());
+}
+
+export async function listPlaylistTracks(
+    venueId: string,
+    playlistId: string,
+): Promise<{ name: string; ownerName: string; tracks: SpotifyTrack[] }> {
+    const client = await getAuthenticatedClient(venueId);
+    const token = client.getAccessToken()!;
+    const meta = await getPlaylistMeta(venueId, playlistId);
+    const tracks: SpotifyTrack[] = [];
+    let url: string | null =
+        `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100&fields=items(track(id,uri,name,artists(name),album(name,images),duration_ms,preview_url,is_local)),next`;
+    while (url) {
+        const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!resp.ok) {
+            throw new Error(`Spotify list playlist tracks failed (${resp.status}): ${await resp.text()}`);
+        }
+        const data = (await resp.json()) as { items?: any[]; next?: string | null };
+        for (const item of data.items ?? []) {
+            const mapped = mapPlaylistTrack(item);
+            if (mapped) tracks.push(mapped);
+        }
+        url = data.next ?? null;
+    }
+    return { name: meta.name, ownerName: meta.ownerName, tracks };
 }
 
 export class SpotifyPremiumRequiredError extends Error {

@@ -18,7 +18,7 @@ import { broadcastQueueUpdated, broadcastEntryAdded, broadcastEntryRemoved, broa
 import { advanceQueue } from "../services/playback.js";
 import { getDefaultVenue } from "../lib/venue.js";
 
-const router = Router();
+const router: Router = Router();
 
 // POST /api/queue/add — add a song to the queue
 router.post("/add", authenticate, async (req, res, next) => {
@@ -141,6 +141,7 @@ router.get("/now-playing", async (req, res, next) => {
         totalPlays: entry.song.totalPlays,
         totalAdds: entry.song.totalAdds,
         isBlocked: entry.song.blocked,
+        isFallbackOnly: entry.song.isFallbackOnly,
       },
       addedBy: entry.addedBy
         ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName, avatarEmoji: entry.addedBy.avatarEmoji ?? null, role: entry.addedBy.role }
@@ -178,7 +179,7 @@ router.delete("/:entryId", authenticate, async (req, res, next) => {
       res.status(404).json({ error: "entry_not_found", message: "Queued entry not found" });
       return;
     }
-    if (req.user!.role !== "admin" && entry.addedById !== req.user!.id) {
+    if (req.user!.role !== "ADMIN" && entry.addedById !== req.user!.id) {
       res.status(403).json({ error: "forbidden", message: "You can only remove your own songs" });
       return;
     }

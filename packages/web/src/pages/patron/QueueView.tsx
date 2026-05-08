@@ -49,8 +49,8 @@ export function QueueView() {
       {queue.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
           <p className="text-on-surface-muted">Queue is empty</p>
-          <Button className="mt-3" onClick={onSwitchToSearch}>
-            Add a Song
+          <Button className="mt-3" rounded="none" onClick={onSwitchToSearch}>
+            Add a song
           </Button>
         </div>
       ) : (

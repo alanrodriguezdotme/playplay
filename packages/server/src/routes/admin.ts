@@ -2,18 +2,97 @@ import { Router } from "express";
 import { resolve } from "node:path";
 import bcrypt from "bcryptjs";
 import { scanMusicLibrary } from "../services/music.js";
-import { prisma, parseSettings, stringifySettings } from "../lib/prisma.js";
+import { applyDefaultPlaylistConfig } from "../services/defaultPlaylist.js";
+import { clearFallbackCursor } from "../services/playbackState.js";
+import { validateLocalPath, PathValidationError } from "../lib/paths.js";
+import { prisma, stringifySettings } from "../lib/prisma.js";
+import { getVenueSettings } from "../lib/settings.js";
 import { broadcastQueueUpdated } from "../socket/broadcast.js";
-import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
+import { QUEUE_STATUS } from "@playplay/shared";
 import type {
   AdminVenueSettingsUpdateBody,
   AdminVenueInfoUpdateBody,
   AdminUserUpdateBody,
   AdminSongUpdateBody,
+  DefaultPlaylistConfig,
   VenueSettings,
 } from "@playplay/shared";
 
-const router = Router();
+const router: Router = Router();
+
+function venueResponse(venue: {
+  id: string;
+  name: string;
+  slug: string;
+  email: string;
+  phone: string;
+  settings: string;
+}) {
+  return {
+    id: venue.id,
+    name: venue.name,
+    slug: venue.slug,
+    email: venue.email,
+    phone: venue.phone,
+    settings: getVenueSettings(venue),
+  };
+}
+
+function validateDefaultPlaylist(input: unknown): DefaultPlaylistConfig | { error: string } {
+  if (!input || typeof input !== "object") return { error: "defaultPlaylist must be an object" };
+  const obj = input as Record<string, unknown>;
+  const source = obj.source;
+  if (source !== "history" && source !== "local" && source !== "spotify") {
+    return { error: "defaultPlaylist.source must be 'history', 'local', or 'spotify'" };
+  }
+  const shuffle = typeof obj.shuffle === "boolean" ? obj.shuffle : true;
+  const out: DefaultPlaylistConfig = { source, shuffle };
+
+  if (source === "local") {
+    if (!obj.local || typeof obj.local !== "object") return { error: "defaultPlaylist.local is required for source=local" };
+    const l = obj.local as Record<string, unknown>;
+    if (l.kind !== "folder" && l.kind !== "m3u") return { error: "defaultPlaylist.local.kind must be 'folder' or 'm3u'" };
+    if (typeof l.path !== "string" || l.path.trim().length === 0) return { error: "defaultPlaylist.local.path is required" };
+    out.local = { kind: l.kind, path: l.path };
+  }
+
+  if (source === "spotify") {
+    if (!obj.spotify || typeof obj.spotify !== "object") return { error: "defaultPlaylist.spotify is required for source=spotify" };
+    const sp = obj.spotify as Record<string, unknown>;
+    if (typeof sp.playlistId !== "string" || sp.playlistId.trim().length === 0) return { error: "defaultPlaylist.spotify.playlistId is required" };
+    out.spotify = {
+      playlistId: sp.playlistId,
+      playlistName: typeof sp.playlistName === "string" ? sp.playlistName : "",
+      ownerName: typeof sp.ownerName === "string" ? sp.ownerName : "",
+      trackCount: typeof sp.trackCount === "number" ? sp.trackCount : 0,
+      lastSyncedAt: typeof sp.lastSyncedAt === "string" ? sp.lastSyncedAt : null,
+    };
+  }
+
+  if (source === "history") {
+    const h = (obj.history as Record<string, unknown>) ?? {};
+    out.history = {
+      lookbackDays: typeof h.lookbackDays === "number" && h.lookbackDays > 0 ? h.lookbackDays : null,
+    };
+  }
+
+  return out;
+}
+
+function defaultPlaylistChanged(a: DefaultPlaylistConfig, b: DefaultPlaylistConfig): boolean {
+  if (a.source !== b.source) return true;
+  if (a.shuffle !== b.shuffle) return true;
+  if (a.source === "local") {
+    return a.local?.kind !== b.local?.kind || a.local?.path !== b.local?.path;
+  }
+  if (a.source === "spotify") {
+    return a.spotify?.playlistId !== b.spotify?.playlistId;
+  }
+  if (a.source === "history") {
+    return (a.history?.lookbackDays ?? null) !== (b.history?.lookbackDays ?? null);
+  }
+  return false;
+}
 
 // ---- Venue ----
 
@@ -27,25 +106,7 @@ router.get("/venue", async (req, res, next) => {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;
     }
-    const s = parseSettings(venue.settings);
-    res.json({
-      id: venue.id,
-      name: venue.name,
-      slug: venue.slug,
-      email: venue.email,
-      phone: venue.phone,
-      settings: {
-        voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
-        maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
-        defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
-        displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
-        displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
-        otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
-        smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
-        musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
-        allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
-      },
-    });
+    res.json(venueResponse(venue));
   } catch (err) {
     next(err);
   }
@@ -96,25 +157,7 @@ router.patch("/venue", async (req, res, next) => {
       data,
     });
 
-    const s = parseSettings(updated.settings);
-    res.json({
-      id: updated.id,
-      name: updated.name,
-      slug: updated.slug,
-      email: updated.email,
-      phone: updated.phone,
-      settings: {
-        voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
-        maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
-        defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
-        displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
-        displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
-        otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
-        smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
-        musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
-        allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
-      },
-    });
+    res.json(venueResponse(updated));
   } catch (err) {
     next(err);
   }
@@ -132,8 +175,9 @@ router.patch("/venue/settings", async (req, res, next) => {
       return;
     }
 
-    const current = parseSettings(venue.settings);
-    const merged: Record<string, unknown> = { ...current };
+    const currentSettings: VenueSettings = getVenueSettings(venue);
+    const merged: Record<string, unknown> = { ...currentSettings };
+    let nextDefaultPlaylist: DefaultPlaylistConfig | null = null;
 
     if (body.voteThreshold !== undefined) {
       if (typeof body.voteThreshold !== "number") {
@@ -149,12 +193,16 @@ router.patch("/venue/settings", async (req, res, next) => {
       }
       merged.maxSongsPerUser = body.maxSongsPerUser;
     }
-    if (body.defaultPlaylistPath !== undefined) {
-      if (typeof body.defaultPlaylistPath !== "string") {
-        res.status(400).json({ error: "validation", message: "defaultPlaylistPath must be a string" });
+    if (body.defaultPlaylist !== undefined) {
+      const parsed = validateDefaultPlaylist(body.defaultPlaylist);
+      if ("error" in parsed) {
+        res.status(400).json({ error: "validation", message: parsed.error });
         return;
       }
-      merged.defaultPlaylistPath = body.defaultPlaylistPath;
+      nextDefaultPlaylist = parsed;
+      merged.defaultPlaylist = parsed;
+      // Drop the legacy field if it exists in storage
+      delete (merged as Record<string, unknown>).defaultPlaylistPath;
     }
     if (body.displayQrSize !== undefined) {
       if (typeof body.displayQrSize !== "number" || body.displayQrSize < 60 || body.displayQrSize > 300) {
@@ -201,30 +249,32 @@ router.patch("/venue/settings", async (req, res, next) => {
       merged.allowFullCatalogSearch = body.allowFullCatalogSearch;
     }
 
+    // Apply default-playlist rebuild before persisting (so we can capture
+    // enriched metadata like Spotify's lastSyncedAt) and reject on errors.
+    if (nextDefaultPlaylist && defaultPlaylistChanged(currentSettings.defaultPlaylist, nextDefaultPlaylist)) {
+      const libraryRoot = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+      try {
+        const enriched = await applyDefaultPlaylistConfig(venue.id, nextDefaultPlaylist, libraryRoot);
+        merged.defaultPlaylist = enriched;
+        clearFallbackCursor(venue.id);
+      } catch (err) {
+        res.status(400).json({
+          error: "default_playlist_rebuild_failed",
+          message: err instanceof Error ? err.message : "Failed to apply default playlist",
+        });
+        return;
+      }
+    } else if (nextDefaultPlaylist) {
+      // Same source identity but maybe shuffle changed — just reset cursor
+      clearFallbackCursor(venue.id);
+    }
+
     const updated = await prisma.venue.update({
       where: { id: venue.id },
       data: { settings: stringifySettings(merged) },
     });
 
-    const s = parseSettings(updated.settings);
-    res.json({
-      id: updated.id,
-      name: updated.name,
-      slug: updated.slug,
-      email: updated.email,
-      phone: updated.phone,
-      settings: {
-        voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
-        maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
-        defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
-        displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
-        displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
-        otpDeliveryMode: (s.otpDeliveryMode as string) ?? DEFAULTS.OTP_DELIVERY_MODE,
-        smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
-        musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
-        allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
-      },
-    });
+    res.json(venueResponse(updated));
   } catch (err) {
     next(err);
   }
@@ -400,6 +450,7 @@ router.patch("/songs/:id", async (req, res, next) => {
       filePath: updated.filePath,
       blocked: updated.blocked,
       isDefault: updated.isDefault,
+      isFallbackOnly: updated.isFallbackOnly,
       totalPlays: updated.totalPlays,
       totalAdds: updated.totalAdds,
       createdAt: updated.createdAt.toISOString(),
@@ -493,6 +544,42 @@ router.get("/stats", async (req, res, next) => {
         playedAt: e.playedAt?.toISOString() ?? null,
       })),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---- Default Playlist Path Validation ----
+// POST /api/admin/default-playlist/validate-path { kind: "folder" | "m3u", path: string }
+router.post("/default-playlist/validate-path", async (req, res, next) => {
+  try {
+    const { kind, path } = req.body ?? {};
+    if (kind !== "folder" && kind !== "m3u") {
+      res.status(400).json({ error: "validation", message: "kind must be 'folder' or 'm3u'" });
+      return;
+    }
+    if (typeof path !== "string" || path.trim().length === 0) {
+      res.status(400).json({ error: "validation", message: "path is required" });
+      return;
+    }
+    const libraryRoot = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    try {
+      const canonical = await validateLocalPath(path, {
+        baseDir: libraryRoot,
+        allowUnc: true,
+        allowAbsoluteOutsideBase: true,
+        mustExist: true,
+        mustBeFile: kind === "m3u",
+        mustBeDirectory: kind === "folder",
+      });
+      res.json({ valid: true, canonical });
+    } catch (err) {
+      if (err instanceof PathValidationError) {
+        res.status(400).json({ valid: false, error: err.code, message: err.message });
+        return;
+      }
+      throw err;
+    }
   } catch (err) {
     next(err);
   }

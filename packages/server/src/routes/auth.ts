@@ -8,7 +8,7 @@ import { DEFAULTS } from "@playplay/shared";
 import type { UserProfile, OtpDeliveryMode } from "@playplay/shared";
 import { getDefaultVenue } from "../lib/venue.js";
 
-const router = Router();
+const router: Router = Router();
 
 function toUserProfile(user: {
   id: string;

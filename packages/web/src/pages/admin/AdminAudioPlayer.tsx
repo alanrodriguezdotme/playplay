@@ -47,7 +47,9 @@ export function AdminAudioPlayer({
 }: AdminAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [needsInteraction, setNeedsInteraction] = useState(false);
-  const lastSongIdRef = useRef<string | null>(null);
+  // Tracks the entry ID currently loaded into the player. Keyed on entry (not
+  // song) so that a fallback re-pick of the same song produces a fresh load.
+  const lastEntryIdRef = useRef<string | null>(null);
   const [playbackSync, setPlaybackSync] = useState<PlaybackSyncState | null>(
     null,
   );
@@ -121,11 +123,10 @@ export function AdminAudioPlayer({
   const ensureLocalAudioLoaded = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !nowPlaying) return audio;
-    const songId = nowPlaying.song.id;
-    if (lastSongIdRef.current !== songId || audio.readyState === 0) {
-      audio.src = getSongStreamUrl(songId);
+    if (lastEntryIdRef.current !== nowPlaying.id || audio.readyState === 0) {
+      audio.src = getSongStreamUrl(nowPlaying.song.id);
       audio.volume = volume;
-      lastSongIdRef.current = songId;
+      lastEntryIdRef.current = nowPlaying.id;
     }
     return audio;
   }, [nowPlaying, volume]);
@@ -190,7 +191,7 @@ export function AdminAudioPlayer({
 
     if (prev && !prev.paused && curr && curr.paused && curr.position === 0) {
       // Track ended — Spotify resets position to 0 when paused at end
-      lastSongIdRef.current = null;
+      lastEntryIdRef.current = null;
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     }
   }, [spotify.playerState, socket, isOwner, needsSpotify]);
@@ -200,11 +201,10 @@ export function AdminAudioPlayer({
     const audio = audioRef.current;
     if (!audio || !nowPlaying) return;
 
-    const songId = nowPlaying.song.id;
-    if (lastSongIdRef.current === songId) return;
-    lastSongIdRef.current = songId;
+    if (lastEntryIdRef.current === nowPlaying.id) return;
+    lastEntryIdRef.current = nowPlaying.id;
 
-    audio.src = getSongStreamUrl(songId);
+    audio.src = getSongStreamUrl(nowPlaying.song.id);
     audio.volume = volume;
     audio.play().catch(() => {
       setNeedsInteraction(true);
@@ -215,9 +215,8 @@ export function AdminAudioPlayer({
   const playCurrentSpotify = useCallback(async () => {
     if (!nowPlaying?.song.spotifyUri || !spotify.isReady) return;
 
-    const songId = nowPlaying.song.id;
-    if (lastSongIdRef.current === songId) return;
-    lastSongIdRef.current = songId;
+    if (lastEntryIdRef.current === nowPlaying.id) return;
+    lastEntryIdRef.current = nowPlaying.id;
 
     await spotify.play(nowPlaying.song.spotifyUri);
   }, [nowPlaying, spotify]);
@@ -230,7 +229,7 @@ export function AdminAudioPlayer({
       if (audio) {
         audio.pause();
         audio.src = "";
-        lastSongIdRef.current = null;
+        lastEntryIdRef.current = null;
       }
       return;
     }
@@ -246,7 +245,7 @@ export function AdminAudioPlayer({
       if (audio) {
         audio.pause();
         audio.src = "";
-        lastSongIdRef.current = null;
+        lastEntryIdRef.current = null;
       }
     }
   }, [
@@ -263,7 +262,7 @@ export function AdminAudioPlayer({
     if (!audio || !socket || !isOwner) return;
 
     const onEnded = () => {
-      lastSongIdRef.current = null;
+      lastEntryIdRef.current = null;
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     };
     const onPlay = () => broadcastLocalState();
@@ -337,8 +336,21 @@ export function AdminAudioPlayer({
   const handleSkip = useCallback(async () => {
     if (queue.length > 0) {
       await playNow(queue[0].id);
+      return;
     }
-  }, [queue]);
+    // No queued items: advance via the same path as a natural track end so
+    // the server picks the configured fallback (history / playlist).
+    if (!socket || !nowPlaying) return;
+    if (isOwner) {
+      if (currentSongSource === "spotify") {
+        spotify.pause().catch(() => {});
+      } else {
+        audioRef.current?.pause();
+      }
+    }
+    lastEntryIdRef.current = null;
+    socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
+  }, [queue, nowPlaying, socket, isOwner, currentSongSource, spotify]);
 
   const handleVolumeChange = useCallback(
     (value: number) => {
@@ -450,7 +462,7 @@ export function AdminAudioPlayer({
                     </button>
                     <button
                       onClick={handleSkip}
-                      disabled={queue.length === 0}
+                      disabled={queue.length === 0 && !nowPlaying}
                       className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-alt transition-colors disabled:opacity-40"
                       title="Skip"
                     >

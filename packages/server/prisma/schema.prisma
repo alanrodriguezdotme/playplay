@@ -74,6 +74,7 @@ model Song {
   previewUrl     String?
   blocked        Boolean  @default(false)
   isDefault      Boolean  @default(false)
+  isFallbackOnly Boolean  @default(false)
   totalPlays     Int      @default(0)
   totalAdds      Int      @default(0)
   venueId        String

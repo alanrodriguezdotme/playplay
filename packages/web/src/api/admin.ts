@@ -86,3 +86,16 @@ export async function changePassword(currentPassword: string, newPassword: strin
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 }
+
+export async function validateDefaultPlaylistPath(
+  kind: "folder" | "m3u",
+  path: string,
+): Promise<{ valid: boolean; canonical?: string; error?: string; message?: string }> {
+  return apiRequest<{ valid: boolean; canonical?: string; error?: string; message?: string }>(
+    "/api/admin/default-playlist/validate-path",
+    {
+      method: "POST",
+      body: JSON.stringify({ kind, path }),
+    },
+  );
+}

@@ -33,20 +33,22 @@ function TopBar({ onEditProfile }: { onEditProfile: () => void }) {
 
   return (
     <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-border">
-      <div className="flex items-center justify-between px-4 py-3">
-        <button
-          type="button"
-          onClick={onEditProfile}
-          className="min-w-0 flex-1 text-left transition-colors hover:bg-surface-alt -mx-2 px-2 py-1"
-          aria-label="Edit profile"
-        >
-          <h1 className="truncate text-lg font-bold text-on-surface font-family-accent">
+      <div className="flex items-center justify-between p-4 h-18">
+        <div className="flex flex-col">
+          <h1 className="truncate text-xl font-bold text-on-surface font-family-accent">
             {venue?.name ?? "Venue"}
           </h1>
-          <p className="text-xs text-on-surface-muted">
-            <UserBadge user={user} />
-          </p>
-        </button>
+          <button
+            type="button"
+            onClick={onEditProfile}
+            className="min-w-0 flex-1 text-left w-fit hover:bg-surface-alt -mx-2 px-2 py-1"
+            aria-label="Edit profile"
+          >
+            <p className="text-xs text-on-surface-muted">
+              <UserBadge user={user} />
+            </p>
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <div className="relative">
             <Button

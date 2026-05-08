@@ -1,6 +1,7 @@
-import { prisma, parseSettings } from "../lib/prisma.js";
-import type { QueueEntry, QueueResponse, QueueHistoryResponse, VenueSettings } from "@playplay/shared";
-import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
+import { prisma } from "../lib/prisma.js";
+import type { QueueEntry, QueueResponse, QueueHistoryResponse } from "@playplay/shared";
+import { QUEUE_STATUS } from "@playplay/shared";
+import { getVenueSettings } from "../lib/settings.js";
 
 // ---- Helpers ----
 
@@ -23,6 +24,7 @@ function formatEntry(
       totalPlays: entry.song.totalPlays,
       totalAdds: entry.song.totalAdds,
       isBlocked: entry.song.blocked,
+      isFallbackOnly: entry.song.isFallbackOnly ?? false,
       source: entry.song.source ?? "local",
       spotifyTrackId: entry.song.spotifyTrackId ?? null,
       artworkUrl: entry.song.artworkUrl ?? null,
@@ -37,21 +39,6 @@ function formatEntry(
     currentUserVote,
     createdAt: entry.createdAt.toISOString(),
     playedAt: entry.playedAt?.toISOString() ?? null,
-  };
-}
-
-function getVenueSettings(venue: { settings: any }): VenueSettings {
-  const s = parseSettings(venue.settings);
-  return {
-    voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
-    maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
-    defaultPlaylistPath: (s.defaultPlaylistPath as string) ?? "",
-    displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
-    displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
-    otpDeliveryMode: (s.otpDeliveryMode as string as VenueSettings["otpDeliveryMode"]) ?? DEFAULTS.OTP_DELIVERY_MODE,
-    smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
-    musicSource: (s.musicSource as string as VenueSettings["musicSource"]) ?? DEFAULTS.MUSIC_SOURCE,
-    allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
   };
 }
 
