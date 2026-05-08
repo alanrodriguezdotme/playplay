@@ -162,12 +162,12 @@ export function Login({
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-8 text-center text-3xl font-bold text-on-surface">
-          PlayPlay
+        <h1 className="mb-8 text-center text-4xl font-bold text-on-surface font-family-accent">
+          {venue?.name}
         </h1>
 
         {error && (
-          <div className="mb-4 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="mb-4 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -187,7 +187,7 @@ export function Login({
                 placeholder="Your name"
                 maxLength={30}
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
             {requiresVenueCode && (
@@ -205,7 +205,7 @@ export function Login({
                   }
                   placeholder="000000"
                   required
-                  className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-center text-2xl tracking-widest text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-center text-2xl tracking-widest text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </label>
             )}
@@ -235,7 +235,7 @@ export function Login({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@venue.local"
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
             <label className="block">
@@ -246,12 +246,13 @@ export function Login({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
             <Button
               type="submit"
               size="lg"
+              rounded="none"
               fullWidth
               disabled={loading || !email.trim() || !password}
             >
@@ -274,7 +275,7 @@ export function Login({
                 placeholder="Your name"
                 maxLength={30}
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
             <Button

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { Play } from "lucide-react";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { getAdminStats } from "../../api/admin";
 import { useQueue } from "../../contexts/QueueContext";
@@ -181,7 +180,7 @@ export function DashboardView() {
               </div>
             ))}
             {queue.length > 5 && (
-              <p className="text-xs text-on-surface-muted">
+              <p className="text-xs text-on-surface-muted p-4 text-center">
                 +{queue.length - 5} more in queue
               </p>
             )}
