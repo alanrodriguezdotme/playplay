@@ -9,9 +9,16 @@ import {
 import { getDeviceId } from "../../api/client";
 import { useAuth } from "../../contexts/AuthContext";
 import { useVenue } from "../../contexts/VenueContext";
+import { useToast } from "../../contexts/ToastContext";
+import {
+  useTheme,
+  BUILT_IN_THEMES,
+  type BuiltInTheme,
+} from "../../contexts/ThemeContext";
 import { ApiRequestError } from "../../api/client";
 import { EmojiAvatarPicker } from "../../components/patron/EmojiAvatarPicker";
 import { Button } from "../../components/common/Button";
+import { validateUsername } from "@playplay/shared";
 import type { AuthResponse } from "@playplay/shared";
 
 type Step = "register" | "admin-login" | "admin-name";
@@ -30,6 +37,23 @@ export function Login({
   const navigate = useNavigate();
   const { login, updateUser, user: currentUser } = useAuth();
   const { venue } = useVenue();
+  const { showToast } = useToast();
+  const { setTheme } = useTheme();
+
+  function seedVenueTheme() {
+    if (!venue) return;
+    if (localStorage.getItem("playplay-theme")) return;
+    if ((BUILT_IN_THEMES as readonly string[]).includes(venue.displayTheme)) {
+      setTheme(venue.displayTheme as BuiltInTheme);
+    }
+  }
+
+  // Apply the venue's default theme to the login screen for users who
+  // haven't picked their own theme yet (e.g. first visit / incognito).
+  useEffect(() => {
+    seedVenueTheme();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [venue]);
 
   const [step, setStep] = useState<Step>(
     isAdmin ? getInitialAdminStep(currentUser) : "register",
@@ -51,11 +75,6 @@ export function Login({
     if (autoLoginAttempted) return;
     setAutoLoginAttempted(true);
 
-    // Set venue code requirement from context
-    if (!isAdmin && venue?.requiresVenueCode) {
-      setRequiresVenueCode(true);
-    }
-
     // Auto-login with existing device
     if (!isAdmin && !skipAutoLogin) {
       deviceLogin(deviceId)
@@ -67,30 +86,36 @@ export function Login({
           // Not registered yet — stay on registration form
         });
     }
-  }, [
-    deviceId,
-    isAdmin,
-    skipAutoLogin,
-    autoLoginAttempted,
-    login,
-    navigate,
-    venue,
-  ]);
+  }, [deviceId, isAdmin, skipAutoLogin, autoLoginAttempted, login, navigate]);
+
+  // Reflect venue OTP setting whenever venue info loads/changes.
+  useEffect(() => {
+    if (isAdmin) return;
+    if (venue?.requiresVenueCode) setRequiresVenueCode(true);
+  }, [isAdmin, venue]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    const nameCheck = validateUsername(name);
+    if (!nameCheck.ok) {
+      showToast(nameCheck.reason, "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await deviceRegister(
         deviceId,
-        name,
+        nameCheck.value,
         avatarEmoji,
         requiresVenueCode ? venueCode : undefined,
       );
 
       const authRes = res as AuthResponse;
+      seedVenueTheme();
       login(authRes.token, authRes.user);
       navigate("/queue");
     } catch (err) {
@@ -144,10 +169,17 @@ export function Login({
   async function handleSetName(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    const nameCheck = validateUsername(name);
+    if (!nameCheck.ok) {
+      showToast(nameCheck.reason, "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const updated = await setDisplayName(name);
+      const updated = await setDisplayName(nameCheck.value);
       updateUser(updated);
       navigate("/admin");
     } catch (err) {

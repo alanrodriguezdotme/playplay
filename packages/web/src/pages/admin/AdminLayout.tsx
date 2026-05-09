@@ -17,7 +17,11 @@ import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "../patron/Login";
 import { AdminAudioPlayer } from "./AdminAudioPlayer";
 import { useCallback, useState } from "react";
-import { BUILT_IN_THEMES, useTheme } from "../../contexts/ThemeContext";
+import {
+  BUILT_IN_THEMES,
+  THEME_LABELS,
+  useTheme,
+} from "../../contexts/ThemeContext";
 import { Button } from "../../components/common/Button";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { UserBadge } from "../../components/common/UserBadge";
@@ -87,13 +91,13 @@ function AdminTopBar({ onLogout }: { onLogout: () => void }) {
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                    className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium transition-colors ${
                       theme === t
                         ? "bg-primary text-on-primary"
                         : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
                     }`}
                   >
-                    {t}
+                    {THEME_LABELS[t]}
                   </Button>
                 ))}
               </div>
@@ -201,32 +205,30 @@ export function AdminLayout() {
   }
 
   return (
-    <ToastProvider>
-      <QueueProvider>
-        <div className="flex min-h-screen flex-col bg-surface text-on-surface">
-          <ConnectionIndicator />
-          <AdminTopBar onLogout={requestLogout} />
-          <div className="flex flex-1">
-            <Sidebar activeTab={activeTab} />
-            <main className="flex-1 overflow-y-auto pb-42 md:pb-24">
-              <Outlet />
-            </main>
-          </div>
-          <div className="fixed bottom-0 left-0 right-0 z-30">
-            <AudioPlayerBridge />
-            <BottomNav activeTab={activeTab} />
-          </div>
-          <ConfirmDialog
-            open={showLogoutConfirm}
-            title="Log out?"
-            message="You'll be signed out of the admin console."
-            confirmLabel="Log out"
-            variant="destructive"
-            onConfirm={confirmLogout}
-            onCancel={() => setShowLogoutConfirm(false)}
-          />
+    <QueueProvider>
+      <div className="flex min-h-screen flex-col bg-surface text-on-surface">
+        <ConnectionIndicator />
+        <AdminTopBar onLogout={requestLogout} />
+        <div className="flex flex-1">
+          <Sidebar activeTab={activeTab} />
+          <main className="flex-1 overflow-y-auto pb-42 md:pb-24">
+            <Outlet />
+          </main>
         </div>
-      </QueueProvider>
-    </ToastProvider>
+        <div className="fixed bottom-0 left-0 right-0 z-30">
+          <AudioPlayerBridge />
+          <BottomNav activeTab={activeTab} />
+        </div>
+        <ConfirmDialog
+          open={showLogoutConfirm}
+          title="Log out?"
+          message="You'll be signed out of the admin console."
+          confirmLabel="Log out"
+          variant="destructive"
+          onConfirm={confirmLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      </div>
+    </QueueProvider>
   );
 }

@@ -59,7 +59,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = "primary",
       size = "md",
-      rounded = "lg",
+      rounded = "none",
       fullWidth = false,
       active = false,
       leftIcon,

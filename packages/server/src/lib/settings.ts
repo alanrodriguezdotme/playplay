@@ -57,12 +57,16 @@ function parseDefaultPlaylist(raw: unknown, legacyPath: string): DefaultPlaylist
 
 export function getVenueSettings(venue: { settings: string | unknown }): VenueSettings {
   const s = parseSettings(venue.settings);
+  // Migration: legacy "neon" / "edm" themes were renamed to "synthwave".
+  const rawTheme = (s.displayTheme as string) ?? DEFAULTS.DISPLAY_THEME;
+  const displayTheme = rawTheme === "neon" || rawTheme === "edm" ? "synthwave" : rawTheme;
   return {
     voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
     maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
     defaultPlaylist: parseDefaultPlaylist(s.defaultPlaylist, (s.defaultPlaylistPath as string) ?? ""),
     displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+    displayTheme,
     otpDeliveryMode: (s.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE,
     smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
     musicSource: (s.musicSource as MusicSource) ?? DEFAULTS.MUSIC_SOURCE,

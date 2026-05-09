@@ -67,7 +67,7 @@ export function FormToggle({
 }: FormToggleProps) {
   return (
     <div
-      className={`flex items-center justify-between ${compact ? "pt-2 border-t border-border" : "p-4"}`}
+      className={`flex items-center justify-between ${compact ? "py-4border-t border-border" : "p-4"}`}
     >
       <div>
         <label className="block text-sm font-medium text-on-surface">

@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { useToast } from "../../contexts/ToastContext";
-import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
+import {
+  useTheme,
+  BUILT_IN_THEMES,
+  THEME_LABELS,
+} from "../../contexts/ThemeContext";
 import {
   getVenue,
   updateVenueSettings,
@@ -56,6 +60,7 @@ export function SettingsView() {
   );
   const [displayQrSize, setDisplayQrSize] = useState(120);
   const [displayShowHeader, setDisplayShowHeader] = useState(true);
+  const [displayTheme, setDisplayTheme] = useState<string>("dark");
   const [otpDeliveryMode, setOtpDeliveryMode] =
     useState<OtpDeliveryMode>("none");
   const [smsGatewayUrl, setSmsGatewayUrl] = useState("");
@@ -74,6 +79,7 @@ export function SettingsView() {
   const debouncedMaxSongsPerUser = useDebounce(maxSongsPerUser, 800);
   const debouncedDisplayQrSize = useDebounce(displayQrSize, 800);
   const debouncedDisplayShowHeader = useDebounce(displayShowHeader, 400);
+  const debouncedDisplayTheme = useDebounce(displayTheme, 400);
   const debouncedOtpDeliveryMode = useDebounce(otpDeliveryMode, 400);
   const debouncedSmsGatewayUrl = useDebounce(smsGatewayUrl, 800);
   const debouncedMusicSource = useDebounce(musicSource, 400);
@@ -94,6 +100,7 @@ export function SettingsView() {
       setDefaultPlaylist(data.settings.defaultPlaylist);
       setDisplayQrSize(data.settings.displayQrSize);
       setDisplayShowHeader(data.settings.displayShowHeader);
+      setDisplayTheme(data.settings.displayTheme);
       setOtpDeliveryMode(data.settings.otpDeliveryMode);
       setSmsGatewayUrl(data.settings.smsGatewayUrl);
       setMusicSource(data.settings.musicSource);
@@ -160,6 +167,7 @@ export function SettingsView() {
       maxSongsPerUser: debouncedMaxSongsPerUser,
       displayQrSize: debouncedDisplayQrSize,
       displayShowHeader: debouncedDisplayShowHeader,
+      displayTheme: debouncedDisplayTheme,
       otpDeliveryMode: debouncedOtpDeliveryMode,
       smsGatewayUrl: debouncedSmsGatewayUrl,
       musicSource: debouncedMusicSource,
@@ -172,6 +180,7 @@ export function SettingsView() {
       debouncedMaxSongsPerUser === s.maxSongsPerUser &&
       debouncedDisplayQrSize === s.displayQrSize &&
       debouncedDisplayShowHeader === s.displayShowHeader &&
+      debouncedDisplayTheme === s.displayTheme &&
       debouncedOtpDeliveryMode === s.otpDeliveryMode &&
       debouncedSmsGatewayUrl === s.smsGatewayUrl &&
       debouncedMusicSource === s.musicSource &&
@@ -195,6 +204,7 @@ export function SettingsView() {
     debouncedMaxSongsPerUser,
     debouncedDisplayQrSize,
     debouncedDisplayShowHeader,
+    debouncedDisplayTheme,
     debouncedOtpDeliveryMode,
     debouncedSmsGatewayUrl,
     debouncedMusicSource,
@@ -444,6 +454,29 @@ export function SettingsView() {
           checked={displayShowHeader}
           onChange={setDisplayShowHeader}
         />
+        <div className="p-4">
+          <p className="text-sm font-medium text-on-surface">Display Theme</p>
+          <p className="text-xs text-on-surface-muted">
+            Default theme for the Now Playing display and the initial theme for
+            new patrons. Existing patrons keep their own choice.
+          </p>
+          <div className="mt-4 flex flex-wrap">
+            {BUILT_IN_THEMES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setDisplayTheme(t)}
+                className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium border transition-colors ${
+                  displayTheme === t
+                    ? "bg-primary text-on-primary border-primary"
+                    : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt border-border"
+                }`}
+              >
+                {THEME_LABELS[t]}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Patron Authentication */}

@@ -101,6 +101,10 @@ router.get("/display-settings", async (req, res, next) => {
     res.json({
       displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
       displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+      displayTheme: (() => {
+        const t = (s.displayTheme as string) ?? DEFAULTS.DISPLAY_THEME;
+        return t === "neon" || t === "edm" ? "synthwave" : t;
+      })(),
       lanIp: getLocalIp(),
     });
   } catch (err) {

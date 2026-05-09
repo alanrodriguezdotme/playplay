@@ -5,6 +5,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SocketProvider } from "./contexts/SocketContext";
 import { VenueProvider } from "./contexts/VenueContext";
+import { ToastProvider } from "./contexts/ToastContext";
 import { App } from "./App";
 import "./index.css";
 
@@ -12,13 +13,15 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <AuthProvider>
-          <VenueProvider>
-            <SocketProvider>
-              <App />
-            </SocketProvider>
-          </VenueProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <VenueProvider>
+              <SocketProvider>
+                <App />
+              </SocketProvider>
+            </VenueProvider>
+          </AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,

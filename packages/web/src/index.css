@@ -159,8 +159,8 @@
   --theme-ring: #06b6d480;
   --theme-overlay: #00000090;
 
-  --theme-font-family: "Exo 2", sans-serif;
-  --theme-font-accent: "Rajdhani", sans-serif;
+  --theme-font-family: "IBM Plex Mono", monospace;
+  --theme-font-accent: "Din", sans-serif;
 }
 
 /* ============================================================
@@ -194,15 +194,15 @@
   --theme-ring: #f9731680;
   --theme-overlay: #00000090;
 
-  --theme-font-family: "Nunito", sans-serif;
+  --theme-font-family: "Open Sans", sans-serif;
   --theme-font-accent: "Playfair Display", serif;
 }
 
 /* ============================================================
-   BUILT-IN THEME: Neon Pulse
+   BUILT-IN THEME: Synthwave (formerly "neon" / "edm")
    Hot pink/magenta — energetic, electronic music vibe
    ============================================================ */
-[data-theme="neon"] {
+[data-theme="synthwave"] {
   --theme-surface: #0a0010;
   --theme-surface-alt: #110018;
   --theme-surface-raised: #1c0028;
@@ -229,8 +229,183 @@
   --theme-ring: #ec489980;
   --theme-overlay: #00000090;
 
-  --theme-font-family: "Orbitron", sans-serif;
-  --theme-font-accent: "Syncopate", sans-serif;
+  --theme-font-family: "Share Tech Mono", monospace;
+  --theme-font-accent: "Electrolize", sans-serif;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Country
+   Honky-tonk denim, cream, saddle brown
+   ============================================================ */
+[data-theme="country"] {
+  --theme-surface: #f5ecd9;
+  --theme-surface-alt: #ebe0c4;
+  --theme-surface-raised: #ffffff;
+
+  --theme-on-surface: #2a1c10;
+  --theme-on-surface-muted: #6e553a;
+  --theme-on-surface-subtle: #9e8868;
+
+  --theme-primary: #2a4a7f;
+  --theme-primary-hover: #3a5e9a;
+  --theme-on-primary: #fff8ea;
+
+  --theme-secondary: #8a4b2a;
+  --theme-secondary-hover: #a55e3a;
+  --theme-on-secondary: #fff8ea;
+
+  --theme-border: #d6c39a;
+  --theme-border-focus: #2a4a7f;
+
+  --theme-success: #3f7d44;
+  --theme-destructive: #b03030;
+  --theme-warning: #c98a2b;
+
+  --theme-ring: #2a4a7f80;
+  --theme-overlay: #2a1c1080;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Bitter", serif;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Disco
+   Charcoal, chrome silver, magenta dance floor
+   ============================================================ */
+[data-theme="disco"] {
+  --theme-surface: #14141a;
+  --theme-surface-alt: #1d1d24;
+  --theme-surface-raised: #2a2a34;
+
+  --theme-on-surface: #f0e8ff;
+  --theme-on-surface-muted: #b8b0c8;
+  --theme-on-surface-subtle: #807890;
+
+  --theme-primary: #d946ef;
+  --theme-primary-hover: #e879f9;
+  --theme-on-primary: #1a0020;
+
+  --theme-secondary: #c0c4cc;
+  --theme-secondary-hover: #d8dce4;
+  --theme-on-secondary: #1a1a20;
+
+  --theme-border: #3a3a48;
+  --theme-border-focus: #d946ef;
+
+  --theme-success: #4ade80;
+  --theme-destructive: #f87171;
+  --theme-warning: #facc15;
+
+  --theme-ring: #d946ef80;
+  --theme-overlay: #00000099;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Audiowide", sans-serif;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Punk
+   DIY zine — black, safety red, off-white
+   ============================================================ */
+[data-theme="punk"] {
+  --theme-surface: #0a0a0a;
+  --theme-surface-alt: #141414;
+  --theme-surface-raised: #1f1f1f;
+
+  --theme-on-surface: #f4f0e6;
+  --theme-on-surface-muted: #b8b0a0;
+  --theme-on-surface-subtle: #807868;
+
+  --theme-primary: #e10600;
+  --theme-primary-hover: #ff2a1a;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #f4f0e6;
+  --theme-secondary-hover: #ffffff;
+  --theme-on-secondary: #0a0a0a;
+
+  --theme-border: #2a2a2a;
+  --theme-border-focus: #e10600;
+
+  --theme-success: #5fbf5f;
+  --theme-destructive: #ff2a1a;
+  --theme-warning: #ffb000;
+
+  --theme-ring: #e1060080;
+  --theme-overlay: #000000aa;
+
+  --theme-font-family: "Special Elite", monospace;
+  --theme-font-accent: "Anton", sans-serif;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Pop
+   Bubblegum chart — bright pink, sky blue, sunshine yellow
+   ============================================================ */
+[data-theme="pop"] {
+  --theme-surface: #fff5fb;
+  --theme-surface-alt: #ffe8f4;
+  --theme-surface-raised: #ffffff;
+
+  --theme-on-surface: #1d1830;
+  --theme-on-surface-muted: #6f5f88;
+  --theme-on-surface-subtle: #a89bba;
+
+  --theme-primary: #ff3da6;
+  --theme-primary-hover: #ff6bbd;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #38bdf8;
+  --theme-secondary-hover: #5fcdff;
+  --theme-on-secondary: #04243a;
+
+  --theme-border: #f7c2dd;
+  --theme-border-focus: #ff3da6;
+
+  --theme-success: #34c759;
+  --theme-destructive: #ff4d6d;
+  --theme-warning: #f4c41a;
+
+  --theme-ring: #ff3da680;
+  --theme-overlay: #1d183080;
+
+  --theme-font-family: "Poppins", sans-serif;
+  --theme-font-accent: "Fredoka", sans-serif;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Hip-hop
+   Gold-chain street — matte black, gold, concrete grey
+   ============================================================ */
+[data-theme="hiphop"] {
+  --theme-surface: #0c0c0c;
+  --theme-surface-alt: #161616;
+  --theme-surface-raised: #1f1f1f;
+
+  --theme-on-surface: #f2efe6;
+  --theme-on-surface-muted: #a8a294;
+  --theme-on-surface-subtle: #6f6a5e;
+
+  --theme-primary: #d4af37;
+  --theme-primary-hover: #e6c34a;
+  --theme-on-primary: #14110a;
+
+  --theme-secondary: #6a6a6a;
+  --theme-secondary-hover: #8a8a8a;
+  --theme-on-secondary: #fafafa;
+
+  --theme-border: #2a2620;
+  --theme-border-focus: #d4af37;
+
+  --theme-success: #5cb85c;
+  --theme-destructive: #d9534f;
+  --theme-warning: #d4af37;
+
+  --theme-ring: #d4af3780;
+  --theme-overlay: #000000a0;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Bebas Neue", sans-serif;
 }
 
 /* ============================================================

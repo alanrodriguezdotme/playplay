@@ -46,12 +46,11 @@ export function ConfirmDialog({
         <h2 className="text-lg font-semibold text-on-surface">{title}</h2>
         <p className="text-sm text-on-surface-muted">{message}</p>
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" rounded="none" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel}>
             {cancelLabel}
           </Button>
           <Button
             variant={variant === "destructive" ? "destructive" : "primary"}
-            rounded="none"
             onClick={onConfirm}
           >
             {confirmLabel}

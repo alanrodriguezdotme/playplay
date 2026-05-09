@@ -11,6 +11,7 @@ interface VenueInfo {
   name: string;
   slug: string;
   requiresVenueCode: boolean;
+  displayTheme: string;
 }
 
 interface VenueContextValue {

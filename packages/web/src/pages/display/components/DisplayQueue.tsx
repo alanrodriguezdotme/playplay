@@ -63,7 +63,7 @@ export function DisplayQueue({ queue }: DisplayQueueProps) {
               <p className="truncate text-sm text-on-surface-muted">
                 {entry.song.artist}
               </p>
-              <p className="truncate text-sm text-on-surface-muted">
+              <p className="truncate text-sm text-on-surface-subtle">
                 {entry.addedBy && <UserBadge user={entry.addedBy} />}
               </p>
             </div>

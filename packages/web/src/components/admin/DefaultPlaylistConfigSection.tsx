@@ -70,8 +70,8 @@ export function DefaultPlaylistConfigSection({
     musicSource === "spotify" ? SOURCE_OPTIONS_SPOTIFY : SOURCE_OPTIONS_LOCAL;
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <p className="text-xs text-on-surface-muted">
+    <div className="flex flex-col gap-4 py-4">
+      <p className="text-xs text-on-surface-muted px-4">
         Plays automatically when the queue is empty. Network paths (UNC) are
         supported for local files.
       </p>
@@ -82,30 +82,31 @@ export function DefaultPlaylistConfigSection({
         value={config.source}
         onChange={(v) => onChange({ ...config, source: v })}
       />
-
-      <FormToggle
-        label="Shuffle"
-        description="Randomize the order of fallback tracks. When off, plays them in source order and cycles."
-        checked={config.shuffle}
-        onChange={(v) => onChange({ ...config, shuffle: v })}
-        compact
-      />
-
-      {config.source === "history" && (
-        <HistorySection config={config} onChange={onChange} />
-      )}
-
-      {config.source === "local" && (
-        <LocalSection config={config} onChange={onChange} saving={saving} />
-      )}
-
-      {config.source === "spotify" && (
-        <SpotifySection
-          config={config}
-          onChange={onChange}
-          spotifyStatus={spotifyStatus}
+      <div className="flex flex-col gap-4 px-4">
+        <FormToggle
+          label="Shuffle"
+          description="Randomize the order of fallback tracks. When off, plays them in source order and cycles."
+          checked={config.shuffle}
+          onChange={(v) => onChange({ ...config, shuffle: v })}
+          compact
         />
-      )}
+
+        {config.source === "history" && (
+          <HistorySection config={config} onChange={onChange} />
+        )}
+
+        {config.source === "local" && (
+          <LocalSection config={config} onChange={onChange} saving={saving} />
+        )}
+
+        {config.source === "spotify" && (
+          <SpotifySection
+            config={config}
+            onChange={onChange}
+            spotifyStatus={spotifyStatus}
+          />
+        )}
+      </div>
     </div>
   );
 }

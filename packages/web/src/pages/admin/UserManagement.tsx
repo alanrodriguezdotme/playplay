@@ -260,7 +260,7 @@ export function UserManagement() {
                       <button
                         onClick={() => handleToggleRole(user)}
                         disabled={isSelf}
-                        className="rounded-md border border-border px-2 py-1 text-xs font-medium text-on-surface-muted hover:text-on-surface disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="border border-border px-2 py-1 text-xs font-medium text-on-surface-muted hover:text-on-surface disabled:opacity-30 disabled:cursor-not-allowed"
                         title={
                           isSelf
                             ? "Cannot change own role"
@@ -272,7 +272,7 @@ export function UserManagement() {
                       <button
                         onClick={() => handleToggleBlock(user)}
                         disabled={isSelf}
-                        className={`rounded-md px-2 py-1 text-xs font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                        className={`px-2 py-1 text-xs font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
                           user.blocked
                             ? "border border-success/30 text-success hover:bg-success/15"
                             : "border border-destructive/30 text-destructive hover:bg-destructive/15"

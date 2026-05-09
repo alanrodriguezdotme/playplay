@@ -4,7 +4,11 @@ import { Music, Search, Clock, Sun } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
-import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
+import {
+  useTheme,
+  BUILT_IN_THEMES,
+  THEME_LABELS,
+} from "../../contexts/ThemeContext";
 import { useVenue } from "../../contexts/VenueContext";
 import { QueueProvider } from "../../contexts/QueueContext";
 import { ToastProvider } from "../../contexts/ToastContext";
@@ -73,13 +77,13 @@ function TopBar({ onEditProfile }: { onEditProfile: () => void }) {
                       setTheme(t);
                       setShowThemes(false);
                     }}
-                    className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                    className={`whitespace-nowrap px-3 py-1.5 text-xs font-medium transition-colors ${
                       theme === t
                         ? "bg-primary text-on-primary"
                         : "text-on-surface-muted hover:text-on-surface hover:bg-surface-alt"
                     }`}
                   >
-                    {t}
+                    {THEME_LABELS[t]}
                   </Button>
                 ))}
               </div>
@@ -139,21 +143,19 @@ export function PatronLayout() {
   }
 
   return (
-    <ToastProvider>
-      <QueueProvider>
-        <div className="flex min-h-screen flex-col bg-surface text-on-surface">
-          <ConnectionIndicator />
-          <TopBar onEditProfile={() => setShowEditProfile(true)} />
-          <main className="flex flex-1 flex-col pb-16">
-            <Outlet />
-          </main>
-          <BottomNav activeTab={activeTab} />
-          <EditProfileDialog
-            open={showEditProfile}
-            onClose={() => setShowEditProfile(false)}
-          />
-        </div>
-      </QueueProvider>
-    </ToastProvider>
+    <QueueProvider>
+      <div className="flex min-h-screen flex-col bg-surface text-on-surface">
+        <ConnectionIndicator />
+        <TopBar onEditProfile={() => setShowEditProfile(true)} />
+        <main className="flex flex-1 flex-col pb-16">
+          <Outlet />
+        </main>
+        <BottomNav activeTab={activeTab} />
+        <EditProfileDialog
+          open={showEditProfile}
+          onClose={() => setShowEditProfile(false)}
+        />
+      </div>
+    </QueueProvider>
   );
 }

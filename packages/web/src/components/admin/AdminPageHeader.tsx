@@ -38,7 +38,7 @@ export function AdminPageHeader({
             Views
           </Button>
           {open && (
-            <div className="absolute right-0 z-50 mt-1 min-w-[140px] rounded-lg border border-border bg-surface-raised py-1 shadow-lg">
+            <div className="absolute right-0 z-50 mt-1 min-w-[140px] border border-border bg-surface-raised py-1 shadow-lg">
               <Link
                 to="/"
                 className="block px-3 py-2 text-xs font-medium text-on-surface-muted hover:bg-surface hover:text-on-surface"

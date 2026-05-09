@@ -3,7 +3,9 @@ import { Button } from "../common/Button";
 import { updateProfile } from "../../api/auth";
 import { ApiRequestError } from "../../api/client";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { EmojiAvatarPicker } from "../patron/EmojiAvatarPicker";
+import { validateUsername } from "@playplay/shared";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -12,6 +14,7 @@ interface EditProfileDialogProps {
 
 export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
   const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [name, setName] = useState(user?.displayName ?? "");
@@ -50,18 +53,26 @@ export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
     e.preventDefault();
     if (disabled) return;
     setError("");
+
+    const nameCheck = validateUsername(name);
+    if (!nameCheck.ok) {
+      showToast(nameCheck.reason, "error");
+      return;
+    }
+
     setSaving(true);
     try {
       const updated = await updateProfile({
-        displayName: trimmed,
+        displayName: nameCheck.value,
         avatarEmoji,
       });
       updateUser(updated);
       onClose();
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Failed to save profile",
-      );
+      const msg =
+        err instanceof ApiRequestError ? err.message : "Failed to save profile";
+      setError(msg);
+      showToast(msg, "error");
     } finally {
       setSaving(false);
     }

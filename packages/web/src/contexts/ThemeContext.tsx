@@ -14,10 +14,29 @@ export const BUILT_IN_THEMES = [
   "light",
   "midnight",
   "sunset",
-  "neon",
+  "synthwave",
+  "country",
+  "disco",
+  "punk",
+  "pop",
+  "hiphop",
 ] as const;
 
 export type BuiltInTheme = (typeof BUILT_IN_THEMES)[number];
+
+/** Display label for each theme. Picker UIs should render this, not the key. */
+export const THEME_LABELS: Record<BuiltInTheme, string> = {
+  dark: "Dark",
+  light: "Light",
+  midnight: "Midnight",
+  sunset: "Sunset",
+  synthwave: "Outrun",
+  country: "Hank",
+  disco: "Y2K",
+  punk: "Sid",
+  pop: "Bubblegum",
+  hiphop: "Cypher",
+};
 
 /** CSS variable overrides an admin can set per-venue */
 export type ThemeOverrides = Partial<Record<string, string>>;
@@ -49,17 +68,28 @@ const THEME_FONT_URL: Record<BuiltInTheme, string> = {
   light:
     "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
   midnight:
-    "https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Din:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap",
   sunset:
-    "https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap",
-  neon: "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap",
+    "https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap",
+  synthwave:
+    "https://fonts.googleapis.com/css2?family=Electrolize:wght@400;500;600;700&family=Share+Tech+Mono:wght@400&display=swap",
+  country:
+    "https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap",
+  disco:
+    "https://fonts.googleapis.com/css2?family=Audiowide&family=Inter:wght@400;500;600;700&display=swap",
+  punk: "https://fonts.googleapis.com/css2?family=Anton&family=Special+Elite&display=swap",
+  pop: "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap",
+  hiphop:
+    "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap",
 };
 
 const FONT_LINK_ID = "playplay-theme-font";
 
 function loadThemeFont(theme: BuiltInTheme) {
   const url = THEME_FONT_URL[theme];
-  const existing = document.getElementById(FONT_LINK_ID) as HTMLLinkElement | null;
+  const existing = document.getElementById(
+    FONT_LINK_ID,
+  ) as HTMLLinkElement | null;
 
   // If the correct font is already loaded, do nothing
   if (existing && existing.href === url) return;
@@ -125,6 +155,15 @@ function clearCSSOverrides() {
 function getStoredTheme(): BuiltInTheme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
+    // Migration: legacy "neon" / "edm" values were renamed to "synthwave".
+    if (stored === "neon" || stored === "edm") {
+      try {
+        localStorage.setItem(STORAGE_KEY, "synthwave");
+      } catch {
+        // ignore
+      }
+      return "synthwave";
+    }
     if (stored && BUILT_IN_THEMES.includes(stored as BuiltInTheme)) {
       return stored as BuiltInTheme;
     }

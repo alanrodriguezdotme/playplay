@@ -48,7 +48,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
         />
       )}
       <div className="flex portrait:flex-1 flex-col gap-1 landscape:gap-2 px-4 min-w-0 landscape:w-full landscape:text-center landscape:items-center landscape:justify-center">
-        <p className="landscape:hidden text-md font-bold uppercase tracking-widest text-primary">
+        <p className="landscape:hidden text-md font-bold uppercase tracking-wide text-primary">
           Now Playing
         </p>
         <h1 className="mt-auto max-w-full w-full text-3xl font-extrabold text-on-surface lg:text-5xl font-family-accent line-clamp-3 pb-2">
@@ -57,9 +57,12 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
         <p className="max-w-full text-lg text-on-surface-muted line-clamp-2">
           {entry.song.artist} {entry.song.album && `• ${entry.song.album}`}
         </p>
-        <div className="flex items-center gap-1 text-sm font-semibold text-on-surface-subtle uppercase">
+        <div className="flex items-center gap-1 text-sm font-semibold uppercase">
           {entry.addedBy && (
-            <UserBadge user={entry.addedBy} className="text-on-surface" />
+            <UserBadge
+              user={entry.addedBy}
+              className="text-on-surface text-on-surface-subtle"
+            />
           )}
           <span className="mx-1">•</span>
           <span className="uppercase font-bold tabular-nums text-on-surface-subtle">

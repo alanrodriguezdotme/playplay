@@ -7,6 +7,8 @@ import type {
 import { DEFAULTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
 import { useVenue } from "../../contexts/VenueContext";
+import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
+import type { BuiltInTheme } from "../../contexts/ThemeContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
 import { getDisplaySettings, getQueueHistory } from "../../api/queue";
@@ -29,8 +31,11 @@ export function NowPlayingDisplay() {
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
     displayQrSize: DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: DEFAULTS.DISPLAY_SHOW_HEADER,
+    displayTheme: DEFAULTS.DISPLAY_THEME,
     lanIp: null,
   });
+
+  const { setTheme } = useTheme();
 
   // Fetch display settings
   useEffect(() => {
@@ -38,6 +43,18 @@ export function NowPlayingDisplay() {
       .then(setDisplaySettings)
       .catch(() => {});
   }, []);
+
+  // Always force the venue's display theme (overrides any local preference)
+  useEffect(() => {
+    if (
+      displaySettings.displayTheme &&
+      (BUILT_IN_THEMES as readonly string[]).includes(
+        displaySettings.displayTheme,
+      )
+    ) {
+      setTheme(displaySettings.displayTheme as BuiltInTheme);
+    }
+  }, [displaySettings.displayTheme, setTheme]);
 
   // Track the last now-playing ID to detect transitions for history
   const lastNowPlayingIdRef = useRef<string | null>(null);

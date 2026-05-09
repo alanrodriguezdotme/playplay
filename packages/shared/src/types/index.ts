@@ -22,6 +22,7 @@ export interface VenueSettings {
   defaultPlaylist: DefaultPlaylistConfig;
   displayQrSize: number;
   displayShowHeader: boolean;
+  displayTheme: string;
   otpDeliveryMode: OtpDeliveryMode;
   smsGatewayUrl: string;
   musicSource: MusicSource;
@@ -210,6 +211,7 @@ export interface ApiError {
 export interface DisplaySettings {
   displayQrSize: number;
   displayShowHeader: boolean;
+  displayTheme: string;
   lanIp: string | null;
 }
 
@@ -242,6 +244,7 @@ export interface AdminVenueSettingsUpdateBody {
   defaultPlaylist?: DefaultPlaylistConfig;
   displayQrSize?: number;
   displayShowHeader?: boolean;
+  displayTheme?: string;
   otpDeliveryMode?: OtpDeliveryMode;
   smsGatewayUrl?: string;
   musicSource?: MusicSource;

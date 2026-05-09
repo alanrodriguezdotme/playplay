@@ -26,9 +26,12 @@ export function deviceLogin(deviceId: string) {
 }
 
 export function getVenueInfo() {
-  return apiRequest<{ name: string; slug: string; requiresVenueCode: boolean }>(
-    "/api/auth/venue-info",
-  );
+  return apiRequest<{
+    name: string;
+    slug: string;
+    requiresVenueCode: boolean;
+    displayTheme: string;
+  }>("/api/auth/venue-info");
 }
 
 export function getVenueCode() {

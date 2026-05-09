@@ -218,6 +218,14 @@ router.patch("/venue/settings", async (req, res, next) => {
       }
       merged.displayShowHeader = body.displayShowHeader;
     }
+    if (body.displayTheme !== undefined) {
+      const validThemes = ["dark", "light", "midnight", "sunset", "synthwave", "country", "disco", "punk", "pop", "hiphop"];
+      if (typeof body.displayTheme !== "string" || !validThemes.includes(body.displayTheme)) {
+        res.status(400).json({ error: "validation", message: "Invalid displayTheme" });
+        return;
+      }
+      merged.displayTheme = body.displayTheme;
+    }
     if (body.otpDeliveryMode !== undefined) {
       const validModes = ["none", "venue-display", "sms-gateway", "paid"];
       if (!validModes.includes(body.otpDeliveryMode)) {

@@ -7,6 +7,7 @@ export const DEFAULTS = {
   PORT: 3001,
   DISPLAY_QR_SIZE: 120,
   DISPLAY_SHOW_HEADER: true,
+  DISPLAY_THEME: "dark" as const,
   OTP_DELIVERY_MODE: "none" as const,
   MUSIC_SOURCE: "local" as const,
   ALLOW_FULL_CATALOG_SEARCH: false,
