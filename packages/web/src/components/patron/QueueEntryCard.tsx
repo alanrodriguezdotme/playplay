@@ -46,12 +46,12 @@ export function QueueEntryCard({
         onConfirm={handleRemove}
         onCancel={() => setShowRemoveConfirm(false)}
       />
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-3 px-4 py-4">
         {/* <span className="w-6 shrink-0 text-center text-sm font-medium text-on-surface-muted">
         {position}
       </span> */}
-        <div className="min-w-0 flex-1 flex flex-col gap-1">
-          <p className="truncate text-md font-semibold text-on-surface font-family-accent">
+        <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+          <p className="truncate text-lg text-on-surface font-family-accent">
             {entry.song.title}
           </p>
           <p className="truncate text-sm text-on-surface-muted font-semibold">

@@ -34,7 +34,7 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
           <img
             src={entry.song.artworkUrl}
             alt=""
-            className="h-36 w-36 shrink-0 object-cover"
+            className="h-32 w-32 shrink-0 object-cover"
           />
         ) : (
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-2xl">
@@ -43,7 +43,7 @@ export function NowPlayingCard({ entry, onVote }: NowPlayingCardProps) {
         )}
         <div className="min-w-0 w-full self-stretch h-full flex-1 flex flex-col gap-1 items-start">
           <div className="w-full">
-            <h2 className="text-lg font-bold text-on-surface leading-tight line-clamp-3 font-family-accent">
+            <h2 className="text-xl text-on-surface leading-tight line-clamp-3 font-family-accent">
               {entry.song.title}
             </h2>
           </div>

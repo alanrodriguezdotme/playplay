@@ -397,7 +397,7 @@ export function AdminAudioPlayer({
               <div className="min-w-0 flex-1">
                 {nowPlaying ? (
                   <div className="flex flex-col gap-1">
-                    <p className="truncate text-sm font-semibold text-on-surface font-family-accent">
+                    <p className="truncate text-sm text-on-surface font-family-accent">
                       {nowPlaying.song.title}
                     </p>
                     <p className="truncate text-xs text-on-surface-muted">
@@ -613,7 +613,7 @@ export function AdminAudioPlayer({
           >
             <div className="rounded-2xl border border-border bg-surface-raised px-8 py-6 text-center shadow-2xl">
               <div className="text-4xl">🔊</div>
-              <p className="mt-3 text-lg font-bold text-on-surface">
+              <p className="mt-3 text-lg text-on-surface">
                 Click to enable audio
               </p>
               <p className="mt-1 text-sm text-on-surface-muted">

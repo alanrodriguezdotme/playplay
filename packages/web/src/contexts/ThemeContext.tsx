@@ -77,7 +77,7 @@ const THEME_FONT_URL: Record<BuiltInTheme, string> = {
     "https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap",
   disco:
     "https://fonts.googleapis.com/css2?family=Audiowide&family=Inter:wght@400;500;600;700&display=swap",
-  punk: "https://fonts.googleapis.com/css2?family=Anton&family=Special+Elite&display=swap",
+  punk: "https://fonts.googleapis.com/css2?family=Rubik+Spray+Paint&family=Special+Elite&display=swap",
   pop: "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap",
   hiphop:
     "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap",

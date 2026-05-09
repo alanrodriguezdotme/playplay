@@ -14,7 +14,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="text-6xl">🎵</div>
-        <p className="mt-4 text-2xl font-semibold text-on-surface-muted font-family-accent">
+        <p className="mt-4 text-2xl text-on-surface-muted font-family-accent">
           No song playing
         </p>
         <p className="mt-2 text-lg text-on-surface-muted">
@@ -32,7 +32,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
 
   return (
     <div className="flex flex-1 landscape:flex-col landscape:items-center landscape:justify-center gap-4 shrink-0 h-50 lg:h-66 w-full landscape:h-full">
-      <p className="hidden landscape:block mb-4 text-md font-bold uppercase tracking-widest text-primary">
+      <p className="hidden landscape:block mb-4 text-md uppercase tracking-widest text-primary">
         Now Playing
       </p>
       {showFallback ? (
@@ -48,10 +48,10 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
         />
       )}
       <div className="flex portrait:flex-1 flex-col gap-1 landscape:gap-2 px-4 min-w-0 landscape:w-full landscape:text-center landscape:items-center landscape:justify-center">
-        <p className="landscape:hidden text-md font-bold uppercase tracking-wide text-primary">
+        <p className="landscape:hidden text-md uppercase tracking-wide text-primary">
           Now Playing
         </p>
-        <h1 className="mt-auto max-w-full w-full text-3xl font-extrabold text-on-surface lg:text-5xl font-family-accent line-clamp-3 pb-2">
+        <h1 className="mt-auto max-w-full w-full text-3xl text-on-surface lg:text-5xl font-family-accent line-clamp-3">
           {entry.song.title}
         </h1>
         <p className="max-w-full text-lg text-on-surface-muted line-clamp-2">
@@ -65,7 +65,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
             />
           )}
           <span className="mx-1">•</span>
-          <span className="uppercase font-bold tabular-nums text-on-surface-subtle">
+          <span className="uppercase tabular-nums text-on-surface-subtle">
             {entry.voteScore} VOTES
           </span>
         </div>

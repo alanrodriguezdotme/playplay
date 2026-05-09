@@ -58,6 +58,11 @@
   /* Typography */
   --font-family-theme: var(--theme-font-family);
   --font-family-accent: var(--theme-font-accent);
+  --tracking-theme: var(--theme-tracking);
+  --tracking-accent: var(--theme-tracking-accent);
+  --leading-theme: var(--theme-leading);
+  --leading-accent: var(--theme-leading-accent);
+  --font-weight-accent: var(--theme-weight-accent);
 }
 
 /* ============================================================
@@ -92,6 +97,8 @@
 
   --theme-font-family: "Inter", sans-serif;
   --theme-font-accent: "Space Grotesk", sans-serif;
+  --theme-tracking-accent: -0.03em;
+  --theme-weight-accent: 600;
 }
 
 /* ============================================================
@@ -126,6 +133,8 @@
 
   --theme-font-family: "Inter", sans-serif;
   --theme-font-accent: "Space Grotesk", sans-serif;
+  --theme-tracking-accent: -0.03em;
+  --theme-font-weight-accent: 800;
 }
 
 /* ============================================================
@@ -161,6 +170,8 @@
 
   --theme-font-family: "IBM Plex Mono", monospace;
   --theme-font-accent: "Din", sans-serif;
+  --theme-tracking-accent: 0;
+  --theme-font-weight-accent: 600;
 }
 
 /* ============================================================
@@ -196,6 +207,8 @@
 
   --theme-font-family: "Open Sans", sans-serif;
   --theme-font-accent: "Playfair Display", serif;
+  --theme-leading-accent: 1.05;
+  --theme-tracking-accent: 0.02em;
 }
 
 /* ============================================================
@@ -231,6 +244,9 @@
 
   --theme-font-family: "Share Tech Mono", monospace;
   --theme-font-accent: "Electrolize", sans-serif;
+  --theme-tracking: -0.02em;
+  --theme-tracking-accent: 0.02em;
+  --theme-leading-accent: 1.15;
 }
 
 /* ============================================================
@@ -266,6 +282,8 @@
 
   --theme-font-family: "Inter", sans-serif;
   --theme-font-accent: "Bitter", serif;
+  --theme-leading: 1.55;
+  --theme-tracking-accent: 0.01em;
 }
 
 /* ============================================================
@@ -301,6 +319,8 @@
 
   --theme-font-family: "Inter", sans-serif;
   --theme-font-accent: "Audiowide", sans-serif;
+  --theme-tracking-accent: 0.03em;
+  --theme-leading-accent: 1.1;
 }
 
 /* ============================================================
@@ -335,7 +355,9 @@
   --theme-overlay: #000000aa;
 
   --theme-font-family: "Special Elite", monospace;
-  --theme-font-accent: "Anton", sans-serif;
+  --theme-font-accent: "Rubik Spray Paint", sans-serif;
+  --theme-tracking-accent: 0.02em;
+  --theme-weight-accent: 400;
 }
 
 /* ============================================================
@@ -371,6 +393,9 @@
 
   --theme-font-family: "Poppins", sans-serif;
   --theme-font-accent: "Fredoka", sans-serif;
+  --theme-tracking-accent: -0.01em;
+  --theme-weight-accent: 800;
+  --theme-tracking: -0.01em;
 }
 
 /* ============================================================
@@ -406,13 +431,33 @@
 
   --theme-font-family: "Inter", sans-serif;
   --theme-font-accent: "Bebas Neue", sans-serif;
+  --theme-tracking-accent: 0em;
+  --theme-leading-accent: 0.90;
+  --theme-weight-accent: 400;
 }
 
 /* ============================================================
    THEME FONT APPLICATION
+   Wrapped in @layer base so component-level Tailwind utilities
+   (font-bold, leading-tight, tracking-wide, etc.) can override
+   the theme defaults when intentional.
    ============================================================ */
-body {
-  font-family: var(--theme-font-family);
+@layer base {
+  body {
+    font-family: var(--theme-font-family);
+    letter-spacing: var(--theme-tracking);
+    line-height: var(--theme-leading);
+    font-weight: var(--theme-weight-body);
+  }
+
+  /* Accent typography — used by `font-family-accent` utility on titles
+     and headlines. Themes drive the look via the variables above. */
+  .font-family-accent {
+    font-family: var(--theme-font-accent);
+    letter-spacing: var(--theme-tracking-accent);
+    line-height: var(--theme-leading-accent);
+    font-weight: var(--theme-weight-accent);
+  }
 }
 
 /* ============================================================

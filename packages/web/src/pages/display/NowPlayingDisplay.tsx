@@ -155,7 +155,7 @@ export function NowPlayingDisplay() {
           <div className="flex-1 border-t border-border overflow-hidden">
             <DisplayHistory entries={recentHistory} />
           </div>
-          <div className="landscape:hidden fixed bottom-4 right-4 bg-surface shrink-0 border border-border px-6 py-4 flex items-center justify-center">
+          <div className="landscape:hidden fixed bottom-4 right-4 bg-surface-alt shrink-0 border border-border px-6 py-4 flex items-center justify-center">
             <DisplayQRCode
               size={displaySettings.displayQrSize}
               lanIp={displaySettings.lanIp}

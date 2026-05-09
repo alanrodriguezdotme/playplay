@@ -199,7 +199,7 @@ export function MusicLibrary() {
                 >
                   <div className="min-w-0 flex-1 flex flex-col gap-1">
                     <div className="flex gap-2">
-                      <p className="truncate text-sm font-semibold font-family-accent">
+                      <p className="truncate text-sm font-family-accent">
                         {song.title}
                       </p>
                       <span
@@ -237,7 +237,7 @@ export function MusicLibrary() {
                   <span className="w-20 text-center">
                     <button
                       onClick={() => handleToggleBlock(song)}
-                      className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      className={`px-2.5 py-1 text-xs font-medium transition-colors ${
                         song.isBlocked
                           ? "border border-success/30 text-success hover:bg-success/15"
                           : "border border-destructive/30 text-destructive hover:bg-destructive/15"

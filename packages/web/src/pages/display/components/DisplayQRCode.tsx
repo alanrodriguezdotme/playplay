@@ -19,7 +19,7 @@ export function DisplayQRCode({ size = 120, lanIp }: DisplayQRCodeProps) {
       </div>
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-sm font-bold uppercase tracking-widest text-primary">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">
             Scan to add a song
           </p>
           <p className="mt-1 text-xs text-on-surface-muted">{patronUrl}</p>

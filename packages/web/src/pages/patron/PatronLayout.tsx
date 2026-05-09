@@ -39,7 +39,7 @@ function TopBar({ onEditProfile }: { onEditProfile: () => void }) {
     <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur border-b border-border">
       <div className="flex items-center justify-between p-4 h-18">
         <div className="flex flex-col">
-          <h1 className="truncate text-xl font-bold text-on-surface font-family-accent">
+          <h1 className="truncate text-xl text-on-surface font-family-accent">
             {venue?.name ?? "Venue"}
           </h1>
           <button

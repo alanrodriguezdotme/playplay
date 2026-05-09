@@ -57,7 +57,7 @@ function AdminTopBar({ onLogout }: { onLogout: () => void }) {
       <div className="flex items-center justify-between px-4 py-3">
         <div className="min-w-0 flex-1 flex flex-col">
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-lg font-bold text-on-surface font-family-accent">
+            <h1 className="truncate text-lg text-on-surface font-family-accent">
               {venue?.name ?? "Venue"}
             </h1>
           </div>

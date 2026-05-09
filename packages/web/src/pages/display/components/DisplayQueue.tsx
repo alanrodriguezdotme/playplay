@@ -57,7 +57,7 @@ export function DisplayQueue({ queue }: DisplayQueueProps) {
             </span>
             <QueueItemArt song={entry.song} />
             <div className="min-w-0 flex-1 flex flex-col gap-0.5">
-              <p className="truncate text-lg font-semibold text-on-surface font-family-accent">
+              <p className="truncate text-lg text-on-surface font-family-accent">
                 {entry.song.title}
               </p>
               <p className="truncate text-sm text-on-surface-muted">
@@ -67,7 +67,7 @@ export function DisplayQueue({ queue }: DisplayQueueProps) {
                 {entry.addedBy && <UserBadge user={entry.addedBy} />}
               </p>
             </div>
-            <span className="shrink-0 min-w-8 text-center text-primary text-lg font-bold tabular-nums text-on-surface-muted font-family-accent">
+            <span className="shrink-0 min-w-8 text-center text-primary text-lg tabular-nums text-on-surface-muted font-family-accent">
               {entry.voteScore}
             </span>
           </div>

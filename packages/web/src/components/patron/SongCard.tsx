@@ -182,8 +182,8 @@ export function SongCard({ song }: SongCardProps) {
             )}
           </button>
         )}
-        <div className="min-w-0 flex-1 flex flex-col gap-1">
-          <p className="truncate text-md font-semibold text-on-surface font-family-accent">
+        <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+          <p className="truncate text-md text-on-surface font-family-accent">
             {song.title}
           </p>
           <p className="truncate text-xs text-on-surface-muted">

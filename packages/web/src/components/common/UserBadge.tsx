@@ -31,10 +31,7 @@ export function UserBadge({
       {emoji && <span aria-hidden>{emoji}</span>}
       <span className={nameClassName}>{name}</span>
       {isAdmin && (
-        <Crown
-          className="h-3.5 w-3.5 shrink-0 text-primary"
-          aria-label="Admin"
-        />
+        <Crown className="h-3.5 w-3.5 text-primary" aria-label="Admin" />
       )}
     </span>
   );

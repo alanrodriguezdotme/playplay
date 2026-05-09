@@ -245,8 +245,8 @@ export function QueueManagement() {
                   />
                 )}
               </button>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-md font-semibold font-family-accent">
+              <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                <p className="truncate text-md font-family-accent">
                   {nowPlaying.song.title}
                 </p>
                 <p className="truncate text-xs text-on-surface-muted">
@@ -335,8 +335,8 @@ export function QueueManagement() {
           <div className="flex flex-col divide-y divide-border">
             {history.map((entry) => (
               <div key={entry.id} className="flex items-center gap-2 p-4">
-                <div className="min-w-0 flex-1 flex flex-col gap-1">
-                  <p className="truncate text-sm font-semibold font-family-accent">
+                <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                  <p className="truncate text-sm font-family-accent">
                     {entry.song.title}
                   </p>
                   <p className="truncate text-xs text-on-surface-muted">

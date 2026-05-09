@@ -24,7 +24,7 @@ function StatCard({
       <p className="text-xs font-medium text-on-surface-muted uppercase">
         {label}
       </p>
-      <p className="mt-1 text-2xl text-primary font-bold text-on-surface font-family-accent">
+      <p className="mt-1 text-2xl text-primary text-on-surface font-family-accent">
         {value}
       </p>
     </div>
@@ -128,10 +128,10 @@ export function DashboardView() {
                 className="h-16 w-16 shrink-0 object-cover"
               />
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-primary/15" />
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center bg-primary/15" />
             )}
             <div className="min-w-0 flex-1 flex flex-col gap-1">
-              <p className="truncate text-lg font-semibold font-family-accent">
+              <p className="truncate text-lg font-family-accent">
                 {nowPlaying.song.title}
               </p>
               <p className="truncate text-xs text-on-surface-muted">
