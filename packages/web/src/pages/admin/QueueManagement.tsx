@@ -322,7 +322,7 @@ export function QueueManagement() {
             </SortableContext>
           </DndContext>
         ) : (
-          <div className="p-8 text-center">
+          <div className="p-8 w-full text-center">
             <p className="text-on-surface-subtle">Queue is empty</p>
           </div>
         )}

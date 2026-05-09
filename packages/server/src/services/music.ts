@@ -18,14 +18,23 @@ export interface ScanResult {
   errors: string[];
 }
 
-export async function collectAudioFiles(dir: string): Promise<string[]> {
+export async function collectAudioFiles(
+  dir: string,
+  onError?: (path: string, err: Error) => void
+): Promise<string[]> {
   const files: string[] = [];
-  const entries = await readdir(dir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch (err) {
+    onError?.(dir, err as Error);
+    return files;
+  }
 
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      const nested = await collectAudioFiles(fullPath);
+      const nested = await collectAudioFiles(fullPath, onError);
       files.push(...nested);
     } else if (SUPPORTED_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
       files.push(fullPath);
@@ -49,7 +58,12 @@ export async function scanMusicLibrary(
   // Collect all audio files
   let audioFiles: string[];
   try {
-    audioFiles = await collectAudioFiles(resolvedPath);
+    audioFiles = await collectAudioFiles(resolvedPath, (path, err) => {
+      const rel = path.startsWith(resolvedPath)
+        ? path.slice(resolvedPath.length + 1) || "."
+        : path;
+      result.errors.push(`${rel}: ${err.message}`);
+    });
   } catch (err) {
     throw new Error(
       `Cannot read music library at ${resolvedPath}: ${(err as Error).message}`

@@ -99,3 +99,15 @@ export async function validateDefaultPlaylistPath(
     },
   );
 }
+
+export async function validateMusicLibraryPath(
+  path: string,
+): Promise<{ valid: boolean; canonical?: string; error?: string; message?: string }> {
+  return apiRequest<{ valid: boolean; canonical?: string; error?: string; message?: string }>(
+    "/api/admin/music-library/validate-path",
+    {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    },
+  );
+}

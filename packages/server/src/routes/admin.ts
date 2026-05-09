@@ -6,7 +6,7 @@ import { applyDefaultPlaylistConfig } from "../services/defaultPlaylist.js";
 import { clearFallbackCursor } from "../services/playbackState.js";
 import { validateLocalPath, PathValidationError } from "../lib/paths.js";
 import { prisma, stringifySettings } from "../lib/prisma.js";
-import { getVenueSettings } from "../lib/settings.js";
+import { getVenueSettings, getLibraryRoot } from "../lib/settings.js";
 import { broadcastQueueUpdated } from "../socket/broadcast.js";
 import { QUEUE_STATUS } from "@playplay/shared";
 import type {
@@ -249,6 +249,32 @@ router.patch("/venue/settings", async (req, res, next) => {
       }
       merged.musicSource = body.musicSource;
     }
+    if (body.musicLibraryPath !== undefined) {
+      if (typeof body.musicLibraryPath !== "string") {
+        res.status(400).json({ error: "validation", message: "musicLibraryPath must be a string" });
+        return;
+      }
+      const trimmed = body.musicLibraryPath.trim();
+      if (trimmed.length > 0) {
+        try {
+          const canonical = await validateLocalPath(trimmed, {
+            allowUnc: true,
+            allowAbsoluteOutsideBase: true,
+            mustExist: true,
+            mustBeDirectory: true,
+          });
+          merged.musicLibraryPath = canonical;
+        } catch (err) {
+          if (err instanceof PathValidationError) {
+            res.status(400).json({ error: err.code, message: err.message });
+            return;
+          }
+          throw err;
+        }
+      } else {
+        merged.musicLibraryPath = "";
+      }
+    }
     if (body.allowFullCatalogSearch !== undefined) {
       if (typeof body.allowFullCatalogSearch !== "boolean") {
         res.status(400).json({ error: "validation", message: "allowFullCatalogSearch must be a boolean" });
@@ -260,7 +286,7 @@ router.patch("/venue/settings", async (req, res, next) => {
     // Apply default-playlist rebuild before persisting (so we can capture
     // enriched metadata like Spotify's lastSyncedAt) and reject on errors.
     if (nextDefaultPlaylist && defaultPlaylistChanged(currentSettings.defaultPlaylist, nextDefaultPlaylist)) {
-      const libraryRoot = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+      const libraryRoot = getLibraryRoot({ ...currentSettings, ...merged } as VenueSettings);
       try {
         const enriched = await applyDefaultPlaylistConfig(venue.id, nextDefaultPlaylist, libraryRoot);
         merged.defaultPlaylist = enriched;
@@ -570,7 +596,12 @@ router.post("/default-playlist/validate-path", async (req, res, next) => {
       res.status(400).json({ error: "validation", message: "path is required" });
       return;
     }
-    const libraryRoot = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    const venue = await prisma.venue.findUnique({ where: { id: req.user!.venueId } });
+    if (!venue) {
+      res.status(404).json({ error: "not_found", message: "Venue not found" });
+      return;
+    }
+    const libraryRoot = getLibraryRoot(getVenueSettings(venue));
     try {
       const canonical = await validateLocalPath(path, {
         baseDir: libraryRoot,
@@ -579,6 +610,35 @@ router.post("/default-playlist/validate-path", async (req, res, next) => {
         mustExist: true,
         mustBeFile: kind === "m3u",
         mustBeDirectory: kind === "folder",
+      });
+      res.json({ valid: true, canonical });
+    } catch (err) {
+      if (err instanceof PathValidationError) {
+        res.status(400).json({ valid: false, error: err.code, message: err.message });
+        return;
+      }
+      throw err;
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---- Music Library Path Validation ----
+// POST /api/admin/music-library/validate-path { path: string }
+router.post("/music-library/validate-path", async (req, res, next) => {
+  try {
+    const { path } = req.body ?? {};
+    if (typeof path !== "string" || path.trim().length === 0) {
+      res.status(400).json({ error: "validation", message: "path is required" });
+      return;
+    }
+    try {
+      const canonical = await validateLocalPath(path, {
+        allowUnc: true,
+        allowAbsoluteOutsideBase: true,
+        mustExist: true,
+        mustBeDirectory: true,
       });
       res.json({ valid: true, canonical });
     } catch (err) {
@@ -605,11 +665,17 @@ router.post("/music/scan", async (req, res, next) => {
       return;
     }
 
-    const libraryPath = resolve(
-      process.env.MUSIC_LIBRARY_PATH || "./music"
-    );
+    const libraryPath = getLibraryRoot(getVenueSettings(venue));
 
-    const result = await scanMusicLibrary(venue.id, libraryPath);
+    let result;
+    try {
+      result = await scanMusicLibrary(venue.id, libraryPath);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Scan failed";
+      console.error(`[Music Scan] venue=${venue.slug}: ${message}`);
+      res.status(400).json({ error: "scan_failed", message });
+      return;
+    }
 
     console.log(
       `[Music Scan] venue=${venue.slug}: added=${result.added} updated=${result.updated} removed=${result.removed} errors=${result.errors.length}`

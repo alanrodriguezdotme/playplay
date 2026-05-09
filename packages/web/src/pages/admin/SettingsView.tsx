@@ -10,6 +10,7 @@ import {
   getVenue,
   updateVenueSettings,
   updateVenueInfo,
+  validateMusicLibraryPath,
 } from "../../api/admin";
 import {
   getSpotifyStatus,
@@ -65,6 +66,12 @@ export function SettingsView() {
     useState<OtpDeliveryMode>("none");
   const [smsGatewayUrl, setSmsGatewayUrl] = useState("");
   const [musicSource, setMusicSource] = useState<MusicSource>("local");
+  const [musicLibraryPath, setMusicLibraryPath] = useState("");
+  const [musicLibraryPathDraft, setMusicLibraryPathDraft] = useState("");
+  const [libraryPathValidating, setLibraryPathValidating] = useState(false);
+  const [libraryPathSaving, setLibraryPathSaving] = useState(false);
+  const [libraryPathMsg, setLibraryPathMsg] = useState<string | null>(null);
+  const [libraryPathOk, setLibraryPathOk] = useState<boolean | null>(null);
   const [allowFullCatalogSearch, setAllowFullCatalogSearch] = useState(false);
   const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus | null>(
     null,
@@ -104,6 +111,8 @@ export function SettingsView() {
       setOtpDeliveryMode(data.settings.otpDeliveryMode);
       setSmsGatewayUrl(data.settings.smsGatewayUrl);
       setMusicSource(data.settings.musicSource);
+      setMusicLibraryPath(data.settings.musicLibraryPath ?? "");
+      setMusicLibraryPathDraft(data.settings.musicLibraryPath ?? "");
       setAllowFullCatalogSearch(data.settings.allowFullCatalogSearch);
       // Fetch Spotify status
       try {
@@ -237,6 +246,58 @@ export function SettingsView() {
     [venue, showToast],
   );
 
+  const handleValidateLibraryPath = useCallback(async () => {
+    setLibraryPathValidating(true);
+    setLibraryPathMsg(null);
+    setLibraryPathOk(null);
+    try {
+      const trimmed = musicLibraryPathDraft.trim();
+      if (trimmed.length === 0) {
+        setLibraryPathOk(true);
+        setLibraryPathMsg("Will use server default (MUSIC_LIBRARY_PATH env)");
+        return;
+      }
+      const res = await validateMusicLibraryPath(trimmed);
+      if (res.valid) {
+        setLibraryPathOk(true);
+        setLibraryPathMsg(`OK · ${res.canonical ?? trimmed}`);
+      } else {
+        setLibraryPathOk(false);
+        setLibraryPathMsg(res.message ?? "Invalid path");
+      }
+    } catch (err) {
+      setLibraryPathOk(false);
+      setLibraryPathMsg(
+        err instanceof Error ? err.message : "Validation failed",
+      );
+    } finally {
+      setLibraryPathValidating(false);
+    }
+  }, [musicLibraryPathDraft]);
+
+  const handleSaveLibraryPath = useCallback(async () => {
+    if (!venue) return;
+    setLibraryPathSaving(true);
+    try {
+      const updated = await updateVenueSettings({
+        musicLibraryPath: musicLibraryPathDraft.trim(),
+      });
+      setVenue(updated);
+      setMusicLibraryPath(updated.settings.musicLibraryPath ?? "");
+      setMusicLibraryPathDraft(updated.settings.musicLibraryPath ?? "");
+      setLibraryPathOk(true);
+      setLibraryPathMsg("Saved");
+      showToast("Music library path saved", "success");
+    } catch (err) {
+      setLibraryPathOk(false);
+      const msg = err instanceof Error ? err.message : "Failed to save";
+      setLibraryPathMsg(msg);
+      showToast(msg, "error");
+    } finally {
+      setLibraryPathSaving(false);
+    }
+  }, [venue, musicLibraryPathDraft, showToast]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -333,6 +394,54 @@ export function SettingsView() {
           onChange={setMusicSource}
         />
         <div className="m-4 mt-0 bg-surface-raised">
+          {musicSource === "local" && (
+            <div className="space-y-3 p-4">
+              <h4 className="text-sm font-medium text-on-surface">
+                Music Library Folder
+              </h4>
+              <p className="text-xs text-on-surface-muted">
+                Folder on the server (or a UNC share like{" "}
+                <code className="text-xs">\\server\share\music</code>) that
+                holds your MP3s. Leave blank to use the server's default (
+                <code className="text-xs">MUSIC_LIBRARY_PATH</code> env var).
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={musicLibraryPathDraft}
+                  onChange={(e) => setMusicLibraryPathDraft(e.target.value)}
+                  placeholder="C:\Music or \\server\share\music"
+                  className="flex-1 border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleValidateLibraryPath}
+                  disabled={libraryPathValidating}
+                  className="border border-border px-3 py-2 text-xs font-medium text-on-surface hover:bg-surface disabled:opacity-50"
+                >
+                  {libraryPathValidating ? "…" : "Validate"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveLibraryPath}
+                  disabled={
+                    libraryPathSaving ||
+                    musicLibraryPathDraft.trim() === musicLibraryPath
+                  }
+                  className="border border-primary bg-primary px-3 py-2 text-xs font-medium text-on-primary hover:opacity-90 disabled:opacity-50"
+                >
+                  {libraryPathSaving ? "…" : "Save"}
+                </button>
+              </div>
+              {libraryPathMsg && (
+                <p
+                  className={`mt-1 text-xs ${libraryPathOk ? "text-success" : "text-error"}`}
+                >
+                  {libraryPathMsg}
+                </p>
+              )}
+            </div>
+          )}
           {musicSource === "spotify" && (
             <div className="space-y-3 p-4">
               <h4 className="text-sm font-medium text-on-surface">

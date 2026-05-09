@@ -186,7 +186,9 @@ export function DashboardView() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-on-surface-muted">Queue is empty</p>
+          <p className="p-4 w-full text-center text-sm text-on-surface-muted">
+            Queue is empty
+          </p>
         )}
       </div>
 

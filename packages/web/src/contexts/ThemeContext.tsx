@@ -85,7 +85,7 @@ const THEME_FONT_URL: Record<BuiltInTheme, string> = {
 
 const FONT_LINK_ID = "playplay-theme-font";
 
-function loadThemeFont(theme: BuiltInTheme) {
+export function loadThemeFont(theme: BuiltInTheme) {
   const url = THEME_FONT_URL[theme];
   const existing = document.getElementById(
     FONT_LINK_ID,

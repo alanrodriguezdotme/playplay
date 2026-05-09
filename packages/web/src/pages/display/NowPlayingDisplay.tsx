@@ -7,7 +7,7 @@ import type {
 import { DEFAULTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
 import { useVenue } from "../../contexts/VenueContext";
-import { useTheme, BUILT_IN_THEMES } from "../../contexts/ThemeContext";
+import { BUILT_IN_THEMES, loadThemeFont } from "../../contexts/ThemeContext";
 import type { BuiltInTheme } from "../../contexts/ThemeContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
@@ -35,8 +35,6 @@ export function NowPlayingDisplay() {
     lanIp: null,
   });
 
-  const { setTheme } = useTheme();
-
   // Fetch display settings
   useEffect(() => {
     getDisplaySettings()
@@ -44,17 +42,25 @@ export function NowPlayingDisplay() {
       .catch(() => {});
   }, []);
 
-  // Always force the venue's display theme (overrides any local preference)
+  // Apply the venue's display theme to the document WITHOUT touching
+  // localStorage — the display is its own surface and shouldn't change
+  // the theme of admin/patron tabs in the same browser.
   useEffect(() => {
-    if (
-      displaySettings.displayTheme &&
-      (BUILT_IN_THEMES as readonly string[]).includes(
-        displaySettings.displayTheme,
-      )
-    ) {
-      setTheme(displaySettings.displayTheme as BuiltInTheme);
+    const t = displaySettings.displayTheme;
+    if (!t || !(BUILT_IN_THEMES as readonly string[]).includes(t)) return;
+    const root = document.documentElement;
+    if (t === "dark") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.setAttribute("data-theme", t);
     }
-  }, [displaySettings.displayTheme, setTheme]);
+    loadThemeFont(t as BuiltInTheme);
+    return () => {
+      // On unmount, hand control back to the patron/admin theme stored
+      // in localStorage (handled by ThemeProvider on next mount).
+      root.removeAttribute("data-theme");
+    };
+  }, [displaySettings.displayTheme]);
 
   // Track the last now-playing ID to detect transitions for history
   const lastNowPlayingIdRef = useRef<string | null>(null);

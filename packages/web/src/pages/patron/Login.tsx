@@ -194,7 +194,7 @@ export function Login({
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-8 text-center text-4xl font-bold text-on-surface font-family-accent">
+        <h1 className="mb-8 text-center text-4xl text-on-surface font-family-accent">
           {venue?.name}
         </h1>
 

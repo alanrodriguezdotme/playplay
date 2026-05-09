@@ -26,6 +26,7 @@ export interface VenueSettings {
   otpDeliveryMode: OtpDeliveryMode;
   smsGatewayUrl: string;
   musicSource: MusicSource;
+  musicLibraryPath: string;
   allowFullCatalogSearch: boolean;
 }
 
@@ -248,6 +249,7 @@ export interface AdminVenueSettingsUpdateBody {
   otpDeliveryMode?: OtpDeliveryMode;
   smsGatewayUrl?: string;
   musicSource?: MusicSource;
+  musicLibraryPath?: string;
   allowFullCatalogSearch?: boolean;
 }
 

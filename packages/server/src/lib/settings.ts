@@ -1,4 +1,5 @@
 import { DEFAULTS } from "@playplay/shared";
+import { resolve as resolvePath } from "node:path";
 import type {
   VenueSettings,
   DefaultPlaylistConfig,
@@ -70,6 +71,22 @@ export function getVenueSettings(venue: { settings: string | unknown }): VenueSe
     otpDeliveryMode: (s.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE,
     smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
     musicSource: (s.musicSource as MusicSource) ?? DEFAULTS.MUSIC_SOURCE,
+    musicLibraryPath: typeof s.musicLibraryPath === "string" ? s.musicLibraryPath : "",
     allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
   };
+}
+
+/**
+ * Returns the absolute, canonical filesystem root where this venue's local
+ * music library lives. Prefers the per-venue `musicLibraryPath` setting when
+ * present, falling back to the `MUSIC_LIBRARY_PATH` env var or `./music`.
+ */
+export function getLibraryRoot(settings: VenueSettings): string {
+  const configured = settings.musicLibraryPath?.trim();
+  const raw = configured && configured.length > 0
+    ? configured
+    : (process.env.MUSIC_LIBRARY_PATH || "./music");
+  // UNC stays as-is; everything else gets resolved to absolute.
+  if (/^(\\\\|\/\/)/.test(raw)) return raw;
+  return resolvePath(raw);
 }

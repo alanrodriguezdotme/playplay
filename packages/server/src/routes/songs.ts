@@ -6,7 +6,7 @@ import { parseFile } from "music-metadata";
 import { prisma, parseSettings } from "../lib/prisma.js";
 import { authenticate } from "../middleware/auth.js";
 import { DEFAULTS } from "@playplay/shared";
-import { getVenueSettings } from "../lib/settings.js";
+import { getVenueSettings, getLibraryRoot } from "../lib/settings.js";
 import { isUnderPath } from "../lib/paths.js";
 
 const router: Router = Router();
@@ -198,7 +198,10 @@ router.get("/:id/stream", async (req, res, next) => {
       return;
     }
 
-    const libraryPath = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    const venue = await prisma.venue.findUnique({ where: { id: song.venueId } });
+    const libraryPath = venue
+      ? getLibraryRoot(getVenueSettings(venue))
+      : resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
     const filePath = await resolveSongFilePath(song, libraryPath);
     if (!filePath) {
       res.status(403).json({ error: "forbidden", message: "This song's file path is no longer accessible" });
@@ -276,7 +279,10 @@ router.get("/:id/artwork", async (req, res, next) => {
       return;
     }
 
-    const libraryPath = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    const venue = await prisma.venue.findUnique({ where: { id: song.venueId } });
+    const libraryPath = venue
+      ? getLibraryRoot(getVenueSettings(venue))
+      : resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
     const filePath = await resolveSongFilePath(song, libraryPath);
     if (!filePath) {
       res.status(403).json({ error: "forbidden", message: "This song's file path is no longer accessible" });
