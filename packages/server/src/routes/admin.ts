@@ -5,8 +5,9 @@ import { startScanJob, getJob, getActiveJobForVenue, cancelJob, type ScanJob } f
 import { applyDefaultPlaylistConfig } from "../services/defaultPlaylist.js";
 import { clearFallbackCursor } from "../services/playbackState.js";
 import { validateLocalPath, PathValidationError } from "../lib/paths.js";
-import { prisma, stringifySettings } from "../lib/prisma.js";
+import { prisma, parseSettings, stringifySettings } from "../lib/prisma.js";
 import { getVenueSettings, getLibraryRoot } from "../lib/settings.js";
+import { encryptSecret } from "../lib/secrets.js";
 import { broadcastQueueUpdated } from "../socket/broadcast.js";
 import { QUEUE_STATUS } from "@playplay/shared";
 import type {
@@ -819,6 +820,74 @@ router.patch("/change-password", async (req, res, next) => {
     });
 
     res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---- Spotify Credentials ----
+
+// PATCH /api/admin/spotify/config
+// Body: { clientId?: string, clientSecret?: string, relayUrl?: string | null }
+// Updates only the provided fields. Sending empty strings is treated as "leave unchanged".
+router.patch("/spotify/config", async (req, res, next) => {
+  try {
+    const { clientId, clientSecret, relayUrl } = req.body ?? {};
+    const venue = await prisma.venue.findUnique({ where: { id: req.user!.venueId } });
+    if (!venue) {
+      res.status(404).json({ error: "not_found", message: "Venue not found" });
+      return;
+    }
+    const raw = parseSettings(venue.settings);
+    const spotify = (raw.spotify && typeof raw.spotify === "object")
+      ? { ...(raw.spotify as Record<string, unknown>) }
+      : {};
+
+    if (typeof clientId === "string" && clientId.trim().length > 0) {
+      spotify.clientIdEnc = encryptSecret(clientId.trim());
+    }
+    if (typeof clientSecret === "string" && clientSecret.trim().length > 0) {
+      spotify.clientSecretEnc = encryptSecret(clientSecret.trim());
+    }
+    if (relayUrl === null) {
+      delete spotify.relayUrl;
+    } else if (typeof relayUrl === "string") {
+      const trimmed = relayUrl.trim();
+      if (trimmed.length === 0) {
+        delete spotify.relayUrl;
+      } else {
+        spotify.relayUrl = trimmed;
+      }
+    }
+
+    raw.spotify = spotify;
+    const updated = await prisma.venue.update({
+      where: { id: venue.id },
+      data: { settings: stringifySettings(raw) },
+    });
+    res.json(venueResponse(updated));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/admin/spotify/config — clear stored Spotify creds for this venue.
+router.delete("/spotify/config", async (req, res, next) => {
+  try {
+    const venue = await prisma.venue.findUnique({ where: { id: req.user!.venueId } });
+    if (!venue) {
+      res.status(404).json({ error: "not_found", message: "Venue not found" });
+      return;
+    }
+    const raw = parseSettings(venue.settings);
+    delete raw.spotify;
+    // Also clear the OAuth tokens, since those were authorized against the old creds.
+    await prisma.spotifyAuth.deleteMany({ where: { venueId: venue.id } });
+    const updated = await prisma.venue.update({
+      where: { id: venue.id },
+      data: { settings: stringifySettings(raw) },
+    });
+    res.json(venueResponse(updated));
   } catch (err) {
     next(err);
   }

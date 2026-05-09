@@ -108,6 +108,23 @@ export async function changePassword(currentPassword: string, newPassword: strin
   });
 }
 
+export async function updateSpotifyCredentials(body: {
+  clientId?: string;
+  clientSecret?: string;
+  relayUrl?: string | null;
+}): Promise<AdminVenueResponse> {
+  return apiRequest<AdminVenueResponse>("/api/admin/spotify/config", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function clearSpotifyCredentials(): Promise<AdminVenueResponse> {
+  return apiRequest<AdminVenueResponse>("/api/admin/spotify/config", {
+    method: "DELETE",
+  });
+}
+
 export async function validateDefaultPlaylistPath(
   kind: "folder" | "m3u",
   path: string,

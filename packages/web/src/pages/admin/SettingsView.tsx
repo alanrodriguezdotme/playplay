@@ -11,6 +11,8 @@ import {
   updateVenueSettings,
   updateVenueInfo,
   validateMusicLibraryPath,
+  updateSpotifyCredentials,
+  clearSpotifyCredentials,
 } from "../../api/admin";
 import {
   getSpotifyStatus,
@@ -77,6 +79,11 @@ export function SettingsView() {
     null,
   );
   const [spotifyLoading, setSpotifyLoading] = useState(false);
+  const [credsClientId, setCredsClientId] = useState("");
+  const [credsClientSecret, setCredsClientSecret] = useState("");
+  const [credsRelayUrl, setCredsRelayUrl] = useState("");
+  const [credsSaving, setCredsSaving] = useState(false);
+  const [credsEditing, setCredsEditing] = useState(false);
 
   // Debounced values for auto-save
   const debouncedVenueName = useDebounce(venueName, 800);
@@ -114,12 +121,17 @@ export function SettingsView() {
       setMusicLibraryPath(data.settings.musicLibraryPath ?? "");
       setMusicLibraryPathDraft(data.settings.musicLibraryPath ?? "");
       setAllowFullCatalogSearch(data.settings.allowFullCatalogSearch);
-      // Fetch Spotify status
-      try {
-        const status = await getSpotifyStatus();
-        setSpotifyStatus(status);
-      } catch {
-        // Spotify not configured — ignore
+      setCredsRelayUrl(data.settings.spotify?.relayUrl ?? "");
+      // Fetch Spotify status (only if creds are present, otherwise it 400s)
+      if (data.settings.spotify?.configured) {
+        try {
+          const status = await getSpotifyStatus();
+          setSpotifyStatus(status);
+        } catch {
+          // Spotify not configured — ignore
+        }
+      } else {
+        setSpotifyStatus(null);
       }
     } catch (err) {
       showToast(
@@ -444,11 +456,161 @@ export function SettingsView() {
           )}
           {musicSource === "spotify" && (
             <div className="space-y-3 p-4">
+              <div className="space-y-2 border border-outline/30 p-3">
+                <h4 className="text-sm font-medium text-on-surface">
+                  Spotify App Credentials
+                </h4>
+                <p className="text-xs text-on-surface-muted">
+                  Create a free Spotify app at{" "}
+                  <a
+                    href="https://developer.spotify.com/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                  >
+                    developer.spotify.com/dashboard
+                  </a>
+                  , then paste this Redirect URI into the app's settings:
+                </p>
+                <code className="block break-all bg-surface-variant px-2 py-1 text-[11px] text-on-surface">
+                  {credsRelayUrl || "https://spotify-relay.vercel.app"}
+                </code>
+
+                {!credsEditing && venue?.settings.spotify?.configured ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="flex items-center gap-2 text-xs text-on-surface">
+                      <span className="h-2 w-2 rounded-full bg-success" />
+                      Configured (id ending in{" "}
+                      <code className="bg-surface-variant px-1">
+                        ...{venue.settings.spotify.clientIdHint ?? "????"}
+                      </code>
+                      )
+                    </span>
+                    <button
+                      onClick={() => {
+                        setCredsClientId("");
+                        setCredsClientSecret("");
+                        setCredsEditing(true);
+                      }}
+                      className="border border-outline px-3 py-1.5 text-xs hover:bg-surface-variant"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (
+                          !confirm(
+                            "Clear Spotify credentials? This also disconnects the current OAuth session.",
+                          )
+                        )
+                          return;
+                        setCredsSaving(true);
+                        try {
+                          const updated = await clearSpotifyCredentials();
+                          setVenue(updated);
+                          setSpotifyStatus(null);
+                          showToast("Spotify credentials cleared", "success");
+                        } catch (err) {
+                          showToast(
+                            err instanceof Error
+                              ? err.message
+                              : "Failed to clear",
+                            "error",
+                          );
+                        } finally {
+                          setCredsSaving(false);
+                        }
+                      }}
+                      disabled={credsSaving}
+                      className="border border-error/50 px-3 py-1.5 text-xs text-error hover:bg-error/10 disabled:opacity-50"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <FormInput
+                      label="Client ID"
+                      value={credsClientId}
+                      onChange={setCredsClientId}
+                      placeholder="From your Spotify app dashboard"
+                      compact
+                    />
+                    <FormInput
+                      label="Client Secret"
+                      value={credsClientSecret}
+                      onChange={setCredsClientSecret}
+                      placeholder="Never shown again after saving"
+                      type="password"
+                      compact
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={async () => {
+                          if (
+                            !credsClientId.trim() ||
+                            !credsClientSecret.trim()
+                          ) {
+                            showToast(
+                              "Both Client ID and Secret are required",
+                              "error",
+                            );
+                            return;
+                          }
+                          setCredsSaving(true);
+                          try {
+                            const updated = await updateSpotifyCredentials({
+                              clientId: credsClientId.trim(),
+                              clientSecret: credsClientSecret.trim(),
+                              relayUrl: credsRelayUrl.trim() || null,
+                            });
+                            setVenue(updated);
+                            setCredsClientId("");
+                            setCredsClientSecret("");
+                            setCredsEditing(false);
+                            showToast("Spotify credentials saved", "success");
+                          } catch (err) {
+                            showToast(
+                              err instanceof Error
+                                ? err.message
+                                : "Failed to save",
+                              "error",
+                            );
+                          } finally {
+                            setCredsSaving(false);
+                          }
+                        }}
+                        disabled={credsSaving}
+                        className="bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:opacity-90 disabled:opacity-50"
+                      >
+                        {credsSaving ? "Saving..." : "Save credentials"}
+                      </button>
+                      {venue?.settings.spotify?.configured && (
+                        <button
+                          onClick={() => {
+                            setCredsClientId("");
+                            setCredsClientSecret("");
+                            setCredsEditing(false);
+                          }}
+                          className="border border-outline px-3 py-1.5 text-xs hover:bg-surface-variant"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <h4 className="text-sm font-medium text-on-surface">
                 Spotify Connection
               </h4>
 
-              {spotifyStatus?.connected ? (
+              {!venue?.settings.spotify?.configured ? (
+                <p className="text-xs text-on-surface-muted">
+                  Add credentials above before connecting an account.
+                </p>
+              ) : spotifyStatus?.connected ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-success" />

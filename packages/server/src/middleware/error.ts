@@ -6,7 +6,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error("[Error]", err.message);
+  console.error("[Error]", err);
 
   if (err.name === "JsonWebTokenError") {
     res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid token" });

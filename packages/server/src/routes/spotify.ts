@@ -13,36 +13,35 @@ import {
     searchPlaylists,
     getPlaylistMeta,
     SpotifyPremiumRequiredError,
+    SpotifyNotConfiguredError,
 } from "../services/spotify.js";
 import { rebuildSpotifyFallbackPool } from "../services/defaultPlaylist.js";
 import { clearFallbackCursor } from "../services/playbackState.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { prisma, stringifySettings } from "../lib/prisma.js";
-import { getVenueSettings } from "../lib/settings.js";
+import { getVenueSettings, getSpotifyConfig } from "../lib/settings.js";
 
 const router: Router = Router();
 
 // GET /api/spotify/auth-url — initiate OAuth (admin only)
 router.get("/auth-url", authenticate, requireAdmin, async (req, res, next) => {
     try {
-        if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
+        const venue = await prisma.venue.findUnique({ where: { id: req.user!.venueId } });
+        if (!venue || !getSpotifyConfig(venue)) {
             res.status(400).json({
                 error: "spotify_not_configured",
-                message: "Spotify credentials are not configured on the server",
-            });
-            return;
-        }
-        if (!process.env.SPOTIFY_RELAY_URL) {
-            res.status(400).json({
-                error: "spotify_not_configured",
-                message: "SPOTIFY_RELAY_URL is not configured on the server",
+                message: "Spotify credentials are not configured for this venue. Add them in Admin Settings.",
             });
             return;
         }
         const returnUrl = (req.query.returnUrl as string) || "";
-        const url = getAuthUrl(req.user!.venueId, returnUrl);
+        const url = await getAuthUrl(req.user!.venueId, returnUrl);
         res.json({ url });
     } catch (err) {
+        if (err instanceof SpotifyNotConfiguredError) {
+            res.status(400).json({ error: "spotify_not_configured", message: err.message });
+            return;
+        }
         next(err);
     }
 });

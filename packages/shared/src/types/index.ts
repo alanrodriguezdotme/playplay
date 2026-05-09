@@ -28,6 +28,19 @@ export interface VenueSettings {
   musicSource: MusicSource;
   musicLibraryPath: string;
   allowFullCatalogSearch: boolean;
+  /** Per-venue Spotify app credentials. Stored encrypted server-side. */
+  spotify?: SpotifyCredentialsConfig;
+  /** Set true after first-run setup completes. */
+  isConfigured?: boolean;
+}
+
+export interface SpotifyCredentialsConfig {
+  /** Whether the venue has client id + secret stored. */
+  configured: boolean;
+  /** Last 4 chars of the client id, for UI display. Never returns the secret. */
+  clientIdHint: string | null;
+  /** Override for the OAuth relay URL; null/undefined uses the project default. */
+  relayUrl: string | null;
 }
 
 // ---- Default Playlist (plays when queue is empty) ----

@@ -1,5 +1,6 @@
 import SpotifyWebApi from "spotify-web-api-node";
 import { prisma } from "../lib/prisma.js";
+import { getSpotifyConfig } from "../lib/settings.js";
 import type { SpotifyTrack, SpotifyPlaylistSummary } from "@playplay/shared";
 
 const SCOPES = [
@@ -12,11 +13,27 @@ const SCOPES = [
     "playlist-read-collaborative",
 ];
 
-function createClient(): SpotifyWebApi {
+export class SpotifyNotConfiguredError extends Error {
+    constructor() {
+        super("Spotify credentials are not configured for this venue.");
+        this.name = "SpotifyNotConfiguredError";
+    }
+}
+
+async function loadSpotifyConfigForVenue(venueId: string) {
+    const venue = await prisma.venue.findUnique({ where: { id: venueId } });
+    if (!venue) throw new Error(`Venue not found: ${venueId}`);
+    const cfg = getSpotifyConfig(venue);
+    if (!cfg) throw new SpotifyNotConfiguredError();
+    return cfg;
+}
+
+async function createClientForVenue(venueId: string): Promise<SpotifyWebApi> {
+    const cfg = await loadSpotifyConfigForVenue(venueId);
     return new SpotifyWebApi({
-        clientId: process.env.SPOTIFY_CLIENT_ID,
-        clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-        redirectUri: process.env.SPOTIFY_RELAY_URL,
+        clientId: cfg.clientId,
+        clientSecret: cfg.clientSecret,
+        redirectUri: cfg.relayUrl,
     });
 }
 
@@ -24,7 +41,7 @@ async function getAuthenticatedClient(venueId: string): Promise<SpotifyWebApi> {
     const auth = await prisma.spotifyAuth.findUnique({ where: { venueId } });
     if (!auth) throw new Error("Spotify not connected for this venue");
 
-    const client = createClient();
+    const client = await createClientForVenue(venueId);
     client.setAccessToken(auth.accessToken);
     client.setRefreshToken(auth.refreshToken);
 
@@ -47,8 +64,8 @@ async function getAuthenticatedClient(venueId: string): Promise<SpotifyWebApi> {
     return client;
 }
 
-export function getAuthUrl(venueId: string, returnUrl?: string): string {
-    const client = createClient();
+export async function getAuthUrl(venueId: string, returnUrl?: string): Promise<string> {
+    const client = await createClientForVenue(venueId);
     const port = process.env.PORT || "3001";
     // state = venueId:port:returnUrl — relay uses port, callback-local uses venueId + returnUrl
     const state = `${venueId}:${port}:${returnUrl || ""}`;
@@ -59,7 +76,7 @@ export async function handleCallback(
     code: string,
     venueId: string
 ): Promise<{ spotifyUserId: string; displayName: string; isPremium: boolean }> {
-    const client = createClient();
+    const client = await createClientForVenue(venueId);
     const grant = await client.authorizationCodeGrant(code);
 
     client.setAccessToken(grant.body.access_token);

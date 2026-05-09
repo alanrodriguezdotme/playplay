@@ -5,8 +5,36 @@ import type {
   DefaultPlaylistConfig,
   OtpDeliveryMode,
   MusicSource,
+  SpotifyCredentialsConfig,
 } from "@playplay/shared";
 import { parseSettings } from "./prisma.js";
+import { tryDecryptSecret } from "./secrets.js";
+
+interface StoredSpotifyCreds {
+  clientIdEnc?: string;
+  clientSecretEnc?: string;
+  relayUrl?: string;
+}
+
+function readStoredSpotify(raw: unknown): StoredSpotifyCreds {
+  if (!raw || typeof raw !== "object") return {};
+  const o = raw as Record<string, unknown>;
+  const out: StoredSpotifyCreds = {};
+  if (typeof o.clientIdEnc === "string") out.clientIdEnc = o.clientIdEnc;
+  if (typeof o.clientSecretEnc === "string") out.clientSecretEnc = o.clientSecretEnc;
+  if (typeof o.relayUrl === "string") out.relayUrl = o.relayUrl;
+  return out;
+}
+
+function publicSpotifyView(stored: StoredSpotifyCreds): SpotifyCredentialsConfig {
+  const clientId = tryDecryptSecret(stored.clientIdEnc);
+  const configured = !!(stored.clientIdEnc && stored.clientSecretEnc);
+  return {
+    configured,
+    clientIdHint: clientId ? clientId.slice(-4) : null,
+    relayUrl: stored.relayUrl ?? null,
+  };
+}
 
 function parseDefaultPlaylist(raw: unknown, legacyPath: string): DefaultPlaylistConfig {
   if (raw && typeof raw === "object") {
@@ -61,6 +89,7 @@ export function getVenueSettings(venue: { settings: string | unknown }): VenueSe
   // Migration: legacy "neon" / "edm" themes were renamed to "synthwave".
   const rawTheme = (s.displayTheme as string) ?? DEFAULTS.DISPLAY_THEME;
   const displayTheme = rawTheme === "neon" || rawTheme === "edm" ? "synthwave" : rawTheme;
+  const storedSpotify = readStoredSpotify(s.spotify);
   return {
     voteThreshold: (s.voteThreshold as number) ?? DEFAULTS.VOTE_THRESHOLD,
     maxSongsPerUser: (s.maxSongsPerUser as number) ?? DEFAULTS.MAX_SONGS_PER_USER,
@@ -73,7 +102,28 @@ export function getVenueSettings(venue: { settings: string | unknown }): VenueSe
     musicSource: (s.musicSource as MusicSource) ?? DEFAULTS.MUSIC_SOURCE,
     musicLibraryPath: typeof s.musicLibraryPath === "string" ? s.musicLibraryPath : "",
     allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
+    spotify: publicSpotifyView(storedSpotify),
+    isConfigured: s.isConfigured === true,
   };
+}
+
+/**
+ * Server-only: returns the decrypted Spotify credentials for a venue, falling
+ * back to environment variables for backwards compatibility with installs
+ * predating DB-backed credentials. Returns null if no creds are configured.
+ */
+export function getSpotifyConfig(venue: { settings: string | unknown }): {
+  clientId: string;
+  clientSecret: string;
+  relayUrl: string;
+} | null {
+  const s = parseSettings(venue.settings);
+  const stored = readStoredSpotify(s.spotify);
+  const clientId = tryDecryptSecret(stored.clientIdEnc) ?? process.env.SPOTIFY_CLIENT_ID ?? "";
+  const clientSecret = tryDecryptSecret(stored.clientSecretEnc) ?? process.env.SPOTIFY_CLIENT_SECRET ?? "";
+  const relayUrl = stored.relayUrl || process.env.SPOTIFY_RELAY_URL || DEFAULTS.SPOTIFY_RELAY_URL;
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret, relayUrl };
 }
 
 /**

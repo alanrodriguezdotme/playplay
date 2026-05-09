@@ -7,7 +7,7 @@ interface FormInputProps {
   description?: string;
   value: string | number;
   onChange: (value: string) => void;
-  type?: "text" | "number" | "email" | "tel" | "url";
+  type?: "text" | "number" | "email" | "tel" | "url" | "password";
   placeholder?: string;
   min?: number;
   max?: number;

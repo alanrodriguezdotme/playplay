@@ -15,6 +15,7 @@ export const DEFAULTS = {
   DEFAULT_PLAYLIST_SHUFFLE: true,
   RATE_LIMIT_MAX_REGISTRATIONS: 3,
   RATE_LIMIT_WINDOW_MS: 30 * 60 * 1000, // 30 minutes
+  SPOTIFY_RELAY_URL: "https://spotify-relay.vercel.app",
 } as const;
 
 // ---- Socket.IO Events ----

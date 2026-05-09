@@ -1,5 +1,9 @@
 import "dotenv/config";
 import http from "node:http";
+import os from "node:os";
+import { existsSync, statSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve as resolvePath } from "node:path";
 import express from "express";
 import cors from "cors";
 import authRouter from "./routes/auth.js";
@@ -28,12 +32,38 @@ app.use("/api/queue", queueRouter);
 app.use("/api/spotify", spotifyRouter);
 app.use("/api/admin", authenticate, requireAdmin, adminRouter);
 
+// Serve the built web app in production. The built server lives at
+// `packages/server/dist/index.js`, so the web build sits at `../../web/dist`.
+// In dev (tsx), this directory may not exist — Vite serves the UI instead.
+const webDist = resolvePath(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
+if (existsSync(webDist) && statSync(webDist).isDirectory()) {
+  app.use(express.static(webDist));
+  app.get(/^\/(?!api\/|socket\.io\/).*/, (_req, res) => {
+    res.sendFile(resolvePath(webDist, "index.html"));
+  });
+}
+
 app.use(errorHandler);
 
 initSocket(server);
 
 const port = Number(PORT);
 
+function lanAddresses(): string[] {
+  const out: string[] = [];
+  for (const ifaces of Object.values(os.networkInterfaces())) {
+    for (const iface of ifaces ?? []) {
+      if (iface.family === "IPv4" && !iface.internal) out.push(iface.address);
+    }
+  }
+  return out;
+}
+
 server.listen(port, "0.0.0.0", () => {
-  console.log(`Server running on http://0.0.0.0:${port}`);
+  const urls = ["127.0.0.1", ...lanAddresses()].map((ip) => `http://${ip}:${port}`);
+  console.log("\nPlayPlay Venue is running:");
+  for (const url of urls) console.log(`  ${url}`);
+  console.log("\n  Admin:    /admin");
+  console.log("  Patron:   /  (share this URL with patrons)");
+  console.log("  Display:  /now-playing\n");
 });
