@@ -67,6 +67,8 @@ model Song {
   album          String   @default("")
   duration       Int      @default(0)
   filePath       String?
+  fileMtime      BigInt?
+  fileSize       BigInt?
   source         String   @default("local")
   spotifyTrackId String?
   spotifyUri     String?

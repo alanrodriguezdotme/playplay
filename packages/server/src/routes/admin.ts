@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { resolve } from "node:path";
 import bcrypt from "bcryptjs";
-import { scanMusicLibrary } from "../services/music.js";
+import { startScanJob, getJob, getActiveJobForVenue, cancelJob, type ScanJob } from "../services/scanJobs.js";
 import { applyDefaultPlaylistConfig } from "../services/defaultPlaylist.js";
 import { clearFallbackCursor } from "../services/playbackState.js";
 import { validateLocalPath, PathValidationError } from "../lib/paths.js";
@@ -654,33 +654,127 @@ router.post("/music-library/validate-path", async (req, res, next) => {
 });
 
 // ---- Music Scan ----
+function serializeJob(job: ScanJob) {
+  return {
+    id: job.id,
+    status: job.status,
+    phase: job.phase,
+    startedAt: new Date(job.startedAt).toISOString(),
+    finishedAt: job.finishedAt ? new Date(job.finishedAt).toISOString() : null,
+    total: job.total,
+    processed: job.processed,
+    added: job.added,
+    updated: job.updated,
+    skipped: job.skipped,
+    removed: job.removed,
+    errors: job.errors,
+    currentFile: job.currentFile,
+    errorMessage: job.errorMessage,
+  };
+}
+
+// POST /api/admin/music/scan — start (or attach to) a background scan
 router.post("/music/scan", async (req, res, next) => {
   try {
     const venue = await prisma.venue.findUnique({
       where: { id: req.user!.venueId },
     });
-
     if (!venue) {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;
     }
 
     const libraryPath = getLibraryRoot(getVenueSettings(venue));
+    const job = startScanJob(venue.id, libraryPath);
+    console.log(`[Music Scan] venue=${venue.slug}: job=${job.id} started`);
+    res.status(202).json(serializeJob(job));
+  } catch (err) {
+    next(err);
+  }
+});
 
-    let result;
-    try {
-      result = await scanMusicLibrary(venue.id, libraryPath);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Scan failed";
-      console.error(`[Music Scan] venue=${venue.slug}: ${message}`);
-      res.status(400).json({ error: "scan_failed", message });
+// GET /api/admin/music/scan — current/last job for this venue
+router.get("/music/scan", async (req, res, next) => {
+  try {
+    const job = getActiveJobForVenue(req.user!.venueId);
+    if (!job) {
+      res.json(null);
+      return;
+    }
+    res.json(serializeJob(job));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/admin/music/scan/:id — fetch a specific job by id
+router.get("/music/scan/:id", async (req, res, next) => {
+  try {
+    const job = getJob(req.params.id);
+    if (!job || job.venueId !== req.user!.venueId) {
+      res.status(404).json({ error: "not_found", message: "Scan job not found" });
+      return;
+    }
+    res.json(serializeJob(job));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/admin/music/scan/:id — cancel a running scan
+router.delete("/music/scan/:id", async (req, res, next) => {
+  try {
+    const job = getJob(req.params.id);
+    if (!job || job.venueId !== req.user!.venueId) {
+      res.status(404).json({ error: "not_found", message: "Scan job not found" });
+      return;
+    }
+    cancelJob(job.id);
+    res.json(serializeJob(job));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/music/clear — wipe all local songs (and their queue history)
+// for this venue. Fallback-only rows used by the default playlist are kept.
+router.post("/music/clear", async (req, res, next) => {
+  try {
+    const venueId = req.user!.venueId;
+
+    const active = getActiveJobForVenue(venueId);
+    if (active) {
+      res.status(409).json({
+        error: "scan_in_progress",
+        message: "Stop the active scan before clearing the library",
+      });
       return;
     }
 
-    console.log(
-      `[Music Scan] venue=${venue.slug}: added=${result.added} updated=${result.updated} removed=${result.removed} errors=${result.errors.length}`
-    );
+    const result = await prisma.$transaction(async (tx) => {
+      const songs = await tx.song.findMany({
+        where: { venueId, source: "local", isFallbackOnly: false },
+        select: { id: true },
+      });
+      const songIds = songs.map((s) => s.id);
+      if (songIds.length === 0) {
+        return { deletedSongs: 0, deletedQueueEntries: 0 };
+      }
+      const queueDel = await tx.queueEntry.deleteMany({
+        where: { songId: { in: songIds } },
+      });
+      const songDel = await tx.song.deleteMany({
+        where: { id: { in: songIds } },
+      });
+      return {
+        deletedSongs: songDel.count,
+        deletedQueueEntries: queueDel.count,
+      };
+    });
 
+    console.log(
+      `[Music Clear] venue=${venueId}: songs=${result.deletedSongs} queueEntries=${result.deletedQueueEntries}`
+    );
     res.json(result);
   } catch (err) {
     next(err);

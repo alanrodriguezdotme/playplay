@@ -7,6 +7,7 @@ import type { AdminStatsResponse } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
 import { Button } from "../../components/common/Button";
 import { UserBadge } from "../../components/common/UserBadge";
+import { SongArtwork } from "../../components/common/SongArtwork";
 
 function StatCard({
   label,
@@ -121,15 +122,11 @@ export function DashboardView() {
         <SectionHeader title="Now Playing" />
         {nowPlaying ? (
           <div className="flex items-center gap-4 p-4 pt-2">
-            {nowPlaying.song.artworkUrl ? (
-              <img
-                src={nowPlaying.song.artworkUrl}
-                alt={nowPlaying.song.album ?? nowPlaying.song.title}
-                className="h-16 w-16 shrink-0 object-cover"
-              />
-            ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center bg-primary/15" />
-            )}
+            <SongArtwork
+              song={nowPlaying.song}
+              alt={nowPlaying.song.album || nowPlaying.song.title}
+              className="h-16 w-16 shrink-0"
+            />
             <div className="min-w-0 flex-1 flex flex-col gap-1">
               <p className="truncate text-lg font-family-accent">
                 {nowPlaying.song.title}

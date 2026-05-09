@@ -6,6 +6,7 @@ import { useToast } from "../../contexts/ToastContext";
 import { getSongStreamUrl } from "../../api/songs";
 import { ConfirmDialog } from "../common/ConfirmDialog";
 import { Button } from "../common/Button";
+import { SongArtwork } from "../common/SongArtwork";
 
 interface SongCardProps {
   song: Song;
@@ -133,55 +134,33 @@ export function SongCard({ song }: SongCardProps) {
         onCancel={() => setShowRemoveConfirm(false)}
       />
       <div className="flex items-center gap-3 px-4 py-3">
-        {/* Artwork for Spotify songs */}
-        {song.source === "spotify" && song.artworkUrl ? (
-          <button
-            onClick={togglePreview}
-            className="relative h-10 w-10 shrink-0 overflow-hidden group"
-            aria-label={isPlaying ? "Stop preview" : "Preview song"}
-          >
-            <img
-              src={song.artworkUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-            <span
-              className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
-                isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-              }`}
-            >
-              {isPlaying ? (
-                <Pause
-                  fill="currentColor"
-                  stroke="none"
-                  className="h-4 w-4 text-white"
-                />
-              ) : (
-                <Play
-                  fill="currentColor"
-                  stroke="none"
-                  className="h-4 w-4 text-white"
-                />
-              )}
-            </span>
-          </button>
-        ) : (
-          <button
-            onClick={togglePreview}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
-              isPlaying
-                ? "bg-primary text-on-primary"
-                : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
+        {/* Artwork doubles as preview play/pause control */}
+        <button
+          onClick={togglePreview}
+          className="relative h-10 w-10 shrink-0 overflow-hidden group"
+          aria-label={isPlaying ? "Stop preview" : "Preview song"}
+        >
+          <SongArtwork song={song} className="h-full w-full" fallback={null} />
+          <span
+            className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
+              isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             }`}
-            aria-label={isPlaying ? "Stop preview" : "Preview song"}
           >
             {isPlaying ? (
-              <Pause fill="currentColor" stroke="none" className="h-4 w-4" />
+              <Pause
+                fill="currentColor"
+                stroke="none"
+                className="h-4 w-4 text-white"
+              />
             ) : (
-              <Play fill="currentColor" stroke="none" className="h-4 w-4" />
+              <Play
+                fill="currentColor"
+                stroke="none"
+                className="h-4 w-4 text-white"
+              />
             )}
-          </button>
-        )}
+          </span>
+        </button>
         <div className="min-w-0 flex-1 flex flex-col gap-0.5">
           <p className="truncate text-md text-on-surface font-family-accent">
             {song.title}

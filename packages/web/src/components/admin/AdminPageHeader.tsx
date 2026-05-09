@@ -31,7 +31,7 @@ export function AdminPageHeader({
         <div ref={ref} className="relative">
           <Button
             variant="secondary"
-            size="xs"
+            size="sm"
             onClick={() => setOpen((v) => !v)}
             rightIcon={<ChevronDown className="h-3 w-3" />}
           >

@@ -191,6 +191,26 @@ export interface ScanResult {
   errors: string[];
 }
 
+export type ScanJobStatus = "running" | "completed" | "failed" | "cancelled";
+export type ScanJobPhase = "discovering" | "indexing" | "pruning" | "done";
+
+export interface ScanJob {
+  id: string;
+  status: ScanJobStatus;
+  phase: ScanJobPhase;
+  startedAt: string;
+  finishedAt: string | null;
+  total: number;
+  processed: number;
+  added: number;
+  updated: number;
+  skipped: number;
+  removed: number;
+  errors: string[];
+  currentFile?: string;
+  errorMessage?: string;
+}
+
 export interface ReorderQueueBody {
   entryIds: string[];
 }

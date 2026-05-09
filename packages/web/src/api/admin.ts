@@ -9,7 +9,7 @@ import type {
   AdminSong,
   AdminSongUpdateBody,
   AdminStatsResponse,
-  ScanResult,
+  ScanJob,
 } from "@playplay/shared";
 
 export async function getVenue(): Promise<AdminVenueResponse> {
@@ -74,10 +74,31 @@ export async function getAdminStats(): Promise<AdminStatsResponse> {
   return apiRequest<AdminStatsResponse>("/api/admin/stats");
 }
 
-export async function triggerMusicScan(): Promise<ScanResult> {
-  return apiRequest<ScanResult>("/api/admin/music/scan", {
+export async function triggerMusicScan(): Promise<ScanJob> {
+  return apiRequest<ScanJob>("/api/admin/music/scan", {
     method: "POST",
   });
+}
+
+export async function getActiveMusicScan(): Promise<ScanJob | null> {
+  return apiRequest<ScanJob | null>("/api/admin/music/scan");
+}
+
+export async function getMusicScanJob(id: string): Promise<ScanJob> {
+  return apiRequest<ScanJob>(`/api/admin/music/scan/${id}`);
+}
+
+export async function cancelMusicScan(id: string): Promise<ScanJob> {
+  return apiRequest<ScanJob>(`/api/admin/music/scan/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function clearMusicLibrary(): Promise<{
+  deletedSongs: number;
+  deletedQueueEntries: number;
+}> {
+  return apiRequest("/api/admin/music/clear", { method: "POST" });
 }
 
 export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
