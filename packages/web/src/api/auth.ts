@@ -5,7 +5,6 @@ import type { AuthResponse, UserProfile } from "@playplay/shared";
 
 export function deviceRegister(
   deviceId: string,
-  venueSlug: string,
   displayName: string,
   avatarEmoji: string,
   venueCode?: string,
@@ -14,27 +13,30 @@ export function deviceRegister(
     "/api/auth/register",
     {
       method: "POST",
-      body: JSON.stringify({ deviceId, venueSlug, displayName, avatarEmoji, venueCode }),
+      body: JSON.stringify({ deviceId, displayName, avatarEmoji, venueCode }),
     },
   );
 }
 
-export function deviceLogin(deviceId: string, venueSlug: string) {
+export function deviceLogin(deviceId: string) {
   return apiRequest<AuthResponse>("/api/auth/device-login", {
     method: "POST",
-    body: JSON.stringify({ deviceId, venueSlug }),
+    body: JSON.stringify({ deviceId }),
   });
 }
 
-export function getVenueInfo(venueSlug: string) {
-  return apiRequest<{ requiresVenueCode: boolean }>(
-    `/api/auth/venue-info/${encodeURIComponent(venueSlug)}`,
-  );
+export function getVenueInfo() {
+  return apiRequest<{
+    name: string;
+    slug: string;
+    requiresVenueCode: boolean;
+    displayTheme: string;
+  }>("/api/auth/venue-info");
 }
 
-export function getVenueCode(venueSlug: string) {
+export function getVenueCode() {
   return apiRequest<{ code: string; expiresAt: number }>(
-    `/api/auth/venue-code/${encodeURIComponent(venueSlug)}`,
+    "/api/auth/venue-code",
   );
 }
 
@@ -47,10 +49,10 @@ export function updateProfile(data: { displayName?: string; avatarEmoji?: string
 
 // ---- Admin Login ----
 
-export function adminLogin(email: string, password: string, venueSlug: string) {
+export function adminLogin(email: string, password: string) {
   return apiRequest<AuthResponse>("/api/auth/admin-login", {
     method: "POST",
-    body: JSON.stringify({ email, password, venueSlug }),
+    body: JSON.stringify({ email, password }),
   });
 }
 

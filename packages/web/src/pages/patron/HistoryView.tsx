@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import type { QueueEntry } from "@playplay/shared";
 import { getQueueHistory } from "../../api/queue";
 import { timeAgo } from "../../utils/time";
+import { Button } from "../../components/common/Button";
+import { UserBadge } from "../../components/common/UserBadge";
 
 export function HistoryView() {
   const [entries, setEntries] = useState<QueueEntry[]>([]);
@@ -58,42 +60,51 @@ export function HistoryView() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="divide-y divide-border">
-        {entries.map((entry) => (
-          <div key={entry.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-on-surface">
-                {entry.song.title}
-              </p>
-              <p className="truncate text-xs text-on-surface-muted">
-                {entry.song.artist}
-              </p>
-              {entry.addedBy && (
-                <p className="mt-0.5 text-xs text-on-surface-muted">
-                  {entry.addedBy.displayName || "Someone"}
+        {entries.map((entry) => {
+          const isFallback = entry.addedBy === null;
+          return (
+            <div key={entry.id} className="flex items-center gap-4 px-4 py-4">
+              <div className="min-w-0 flex-1 flex flex-col gap-1">
+                <p className="truncate text-md text-on-surface font-family-accent">
+                  {entry.song.title}
                 </p>
+                <p className="truncate text-sm text-on-surface-muted">
+                  {entry.song.artist}
+                </p>
+                <div className="flex gap-1 mt-0.5 text-xs text-on-surface-subtle">
+                  {entry.addedBy ? (
+                    <UserBadge user={entry.addedBy} />
+                  ) : (
+                    <span className="uppercase text-on-surface-subtle">
+                      Auto-played
+                    </span>
+                  )}
+                  <p>•</p>
+                  <p className="uppercase">
+                    {entry.playedAt ? timeAgo(entry.playedAt) : "—"}
+                  </p>
+                </div>
+              </div>
+              {!isFallback && (
+                <div className="flex flex-col items-center gap-1">
+                  <div className="text-xl tabular-nums text-primary font-family-accent">
+                    {entry.voteScore}
+                  </div>
+                  <div className="text-xs uppercase font-semibold text-on-surface-muted">
+                    votes
+                  </div>
+                </div>
               )}
             </div>
-            <div className="shrink-0 text-right">
-              <p className="text-xs tabular-nums text-on-surface-muted">
-                {entry.playedAt ? timeAgo(entry.playedAt) : "—"}
-              </p>
-              <p className="text-xs tabular-nums text-on-surface-muted">
-                {entry.voteScore > 0 ? "+" : ""}
-                {entry.voteScore} votes
-              </p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {hasMore && !isLoading && (
         <div className="px-4 py-4">
-          <button
-            onClick={loadMore}
-            className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-on-surface-muted hover:text-on-surface"
-          >
+          <Button variant="secondary" fullWidth onClick={loadMore}>
             Load More ({entries.length} of {total})
-          </button>
+          </Button>
         </div>
       )}
 

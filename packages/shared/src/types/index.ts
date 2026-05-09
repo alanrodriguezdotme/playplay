@@ -19,13 +19,45 @@ export interface Venue {
 export interface VenueSettings {
   voteThreshold: number;
   maxSongsPerUser: number;
-  defaultPlaylistPath: string;
+  defaultPlaylist: DefaultPlaylistConfig;
   displayQrSize: number;
   displayShowHeader: boolean;
+  displayTheme: string;
   otpDeliveryMode: OtpDeliveryMode;
   smsGatewayUrl: string;
   musicSource: MusicSource;
+  musicLibraryPath: string;
   allowFullCatalogSearch: boolean;
+}
+
+// ---- Default Playlist (plays when queue is empty) ----
+
+export type DefaultPlaylistSourceKind = "history" | "local" | "spotify";
+export type LocalDefaultPlaylistKind = "folder" | "m3u";
+
+export interface LocalDefaultPlaylistSource {
+  kind: LocalDefaultPlaylistKind;
+  path: string;
+}
+
+export interface SpotifyDefaultPlaylistSource {
+  playlistId: string;
+  playlistName: string;
+  ownerName: string;
+  trackCount: number;
+  lastSyncedAt: string | null;
+}
+
+export interface HistoryDefaultPlaylistSource {
+  lookbackDays: number | null;
+}
+
+export interface DefaultPlaylistConfig {
+  source: DefaultPlaylistSourceKind;
+  shuffle: boolean;
+  local?: LocalDefaultPlaylistSource;
+  spotify?: SpotifyDefaultPlaylistSource;
+  history?: HistoryDefaultPlaylistSource;
 }
 
 export interface UserProfile {
@@ -48,6 +80,7 @@ export interface Song {
   totalPlays: number;
   totalAdds: number;
   isBlocked: boolean;
+  isFallbackOnly?: boolean;
   source: MusicSource;
   spotifyTrackId?: string | null;
   artworkUrl?: string | null;
@@ -58,7 +91,7 @@ export interface Song {
 export interface QueueEntry {
   id: string;
   song: Song;
-  addedBy: { id: string; displayName: string | null } | null;
+  addedBy: { id: string; displayName: string | null; avatarEmoji: string | null; role: UserRole } | null;
   status: QueueEntryStatus;
   voteScore: number;
   currentUserVote?: number | null;
@@ -158,6 +191,26 @@ export interface ScanResult {
   errors: string[];
 }
 
+export type ScanJobStatus = "running" | "completed" | "failed" | "cancelled";
+export type ScanJobPhase = "discovering" | "indexing" | "pruning" | "done";
+
+export interface ScanJob {
+  id: string;
+  status: ScanJobStatus;
+  phase: ScanJobPhase;
+  startedAt: string;
+  finishedAt: string | null;
+  total: number;
+  processed: number;
+  added: number;
+  updated: number;
+  skipped: number;
+  removed: number;
+  errors: string[];
+  currentFile?: string;
+  errorMessage?: string;
+}
+
 export interface ReorderQueueBody {
   entryIds: string[];
 }
@@ -179,6 +232,7 @@ export interface ApiError {
 export interface DisplaySettings {
   displayQrSize: number;
   displayShowHeader: boolean;
+  displayTheme: string;
   lanIp: string | null;
 }
 
@@ -208,13 +262,21 @@ export interface AdminVenueResponse {
 export interface AdminVenueSettingsUpdateBody {
   voteThreshold?: number;
   maxSongsPerUser?: number;
-  defaultPlaylistPath?: string;
+  defaultPlaylist?: DefaultPlaylistConfig;
   displayQrSize?: number;
   displayShowHeader?: boolean;
+  displayTheme?: string;
   otpDeliveryMode?: OtpDeliveryMode;
   smsGatewayUrl?: string;
   musicSource?: MusicSource;
+  musicLibraryPath?: string;
   allowFullCatalogSearch?: boolean;
+}
+
+export interface AdminVenueInfoUpdateBody {
+  name?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface AdminUser {
@@ -253,6 +315,7 @@ export interface AdminSong {
   filePath: string | null;
   blocked: boolean;
   isDefault: boolean;
+  isFallbackOnly: boolean;
   totalPlays: number;
   totalAdds: number;
   createdAt: string;
@@ -300,4 +363,24 @@ export interface SpotifySearchResult {
 export interface SpotifyTokenResponse {
   accessToken: string;
   expiresIn: number;
+}
+
+export interface SpotifyPlaylistSummary {
+  id: string;
+  name: string;
+  ownerName: string;
+  trackCount: number;
+  artworkUrl: string | null;
+  isPublic: boolean | null;
+}
+
+export interface SpotifyPlaylistListResult {
+  playlists: SpotifyPlaylistSummary[];
+  total: number;
+}
+
+export interface DefaultPlaylistRebuildResult {
+  source: DefaultPlaylistSourceKind;
+  trackCount: number;
+  errors: string[];
 }

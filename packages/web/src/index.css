@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================================
@@ -21,6 +28,7 @@
   /* Text */
   --color-on-surface: var(--theme-on-surface);
   --color-on-surface-muted: var(--theme-on-surface-muted);
+  --color-on-surface-subtle: var(--theme-on-surface-subtle);
 
   /* Primary accent */
   --color-primary: var(--theme-primary);
@@ -46,6 +54,15 @@
 
   /* Misc */
   --color-overlay: var(--theme-overlay);
+
+  /* Typography */
+  --font-family-theme: var(--theme-font-family);
+  --font-family-accent: var(--theme-font-accent);
+  --tracking-theme: var(--theme-tracking);
+  --tracking-accent: var(--theme-tracking-accent);
+  --leading-theme: var(--theme-leading);
+  --leading-accent: var(--theme-leading-accent);
+  --font-weight-accent: var(--theme-weight-accent);
 }
 
 /* ============================================================
@@ -58,6 +75,7 @@
 
   --theme-on-surface: #f0f0f5;
   --theme-on-surface-muted: #8888a0;
+  --theme-on-surface-subtle: #55556a;
 
   --theme-primary: #6366f1;
   --theme-primary-hover: #818cf8;
@@ -76,6 +94,11 @@
 
   --theme-ring: #6366f180;
   --theme-overlay: #00000080;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Space Grotesk", sans-serif;
+  --theme-tracking-accent: -0.03em;
+  --theme-weight-accent: 600;
 }
 
 /* ============================================================
@@ -88,6 +111,7 @@
 
   --theme-on-surface: #111118;
   --theme-on-surface-muted: #6b6b80;
+  --theme-on-surface-subtle: #9b9bac;
 
   --theme-primary: #4f46e5;
   --theme-primary-hover: #4338ca;
@@ -106,6 +130,11 @@
 
   --theme-ring: #4f46e580;
   --theme-overlay: #00000040;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Space Grotesk", sans-serif;
+  --theme-tracking-accent: -0.03em;
+  --theme-font-weight-accent: 800;
 }
 
 /* ============================================================
@@ -119,6 +148,7 @@
 
   --theme-on-surface: #e0e8ff;
   --theme-on-surface-muted: #6880a8;
+  --theme-on-surface-subtle: #405070;
 
   --theme-primary: #06b6d4;
   --theme-primary-hover: #22d3ee;
@@ -137,6 +167,11 @@
 
   --theme-ring: #06b6d480;
   --theme-overlay: #00000090;
+
+  --theme-font-family: "IBM Plex Mono", monospace;
+  --theme-font-accent: "Din", sans-serif;
+  --theme-tracking-accent: 0;
+  --theme-font-weight-accent: 600;
 }
 
 /* ============================================================
@@ -150,6 +185,7 @@
 
   --theme-on-surface: #fff0e0;
   --theme-on-surface-muted: #a08060;
+  --theme-on-surface-subtle: #6e5840;
 
   --theme-primary: #f97316;
   --theme-primary-hover: #fb923c;
@@ -168,19 +204,25 @@
 
   --theme-ring: #f9731680;
   --theme-overlay: #00000090;
+
+  --theme-font-family: "Open Sans", sans-serif;
+  --theme-font-accent: "Playfair Display", serif;
+  --theme-leading-accent: 1.05;
+  --theme-tracking-accent: 0.02em;
 }
 
 /* ============================================================
-   BUILT-IN THEME: Neon Pulse
+   BUILT-IN THEME: Synthwave (formerly "neon" / "edm")
    Hot pink/magenta — energetic, electronic music vibe
    ============================================================ */
-[data-theme="neon"] {
+[data-theme="synthwave"] {
   --theme-surface: #0a0010;
   --theme-surface-alt: #110018;
   --theme-surface-raised: #1c0028;
 
   --theme-on-surface: #f5e0ff;
   --theme-on-surface-muted: #9060b0;
+  --theme-on-surface-subtle: #604078;
 
   --theme-primary: #ec4899;
   --theme-primary-hover: #f472b6;
@@ -199,6 +241,223 @@
 
   --theme-ring: #ec489980;
   --theme-overlay: #00000090;
+
+  --theme-font-family: "Share Tech Mono", monospace;
+  --theme-font-accent: "Electrolize", sans-serif;
+  --theme-tracking: -0.02em;
+  --theme-tracking-accent: 0.02em;
+  --theme-leading-accent: 1.15;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Country
+   Honky-tonk denim, cream, saddle brown
+   ============================================================ */
+[data-theme="country"] {
+  --theme-surface: #f5ecd9;
+  --theme-surface-alt: #ebe0c4;
+  --theme-surface-raised: #ffffff;
+
+  --theme-on-surface: #2a1c10;
+  --theme-on-surface-muted: #6e553a;
+  --theme-on-surface-subtle: #9e8868;
+
+  --theme-primary: #2a4a7f;
+  --theme-primary-hover: #3a5e9a;
+  --theme-on-primary: #fff8ea;
+
+  --theme-secondary: #8a4b2a;
+  --theme-secondary-hover: #a55e3a;
+  --theme-on-secondary: #fff8ea;
+
+  --theme-border: #d6c39a;
+  --theme-border-focus: #2a4a7f;
+
+  --theme-success: #3f7d44;
+  --theme-destructive: #b03030;
+  --theme-warning: #c98a2b;
+
+  --theme-ring: #2a4a7f80;
+  --theme-overlay: #2a1c1080;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Bitter", serif;
+  --theme-leading: 1.55;
+  --theme-tracking-accent: 0.01em;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Disco
+   Charcoal, chrome silver, magenta dance floor
+   ============================================================ */
+[data-theme="disco"] {
+  --theme-surface: #14141a;
+  --theme-surface-alt: #1d1d24;
+  --theme-surface-raised: #2a2a34;
+
+  --theme-on-surface: #f0e8ff;
+  --theme-on-surface-muted: #b8b0c8;
+  --theme-on-surface-subtle: #807890;
+
+  --theme-primary: #d946ef;
+  --theme-primary-hover: #e879f9;
+  --theme-on-primary: #1a0020;
+
+  --theme-secondary: #c0c4cc;
+  --theme-secondary-hover: #d8dce4;
+  --theme-on-secondary: #1a1a20;
+
+  --theme-border: #3a3a48;
+  --theme-border-focus: #d946ef;
+
+  --theme-success: #4ade80;
+  --theme-destructive: #f87171;
+  --theme-warning: #facc15;
+
+  --theme-ring: #d946ef80;
+  --theme-overlay: #00000099;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Audiowide", sans-serif;
+  --theme-tracking-accent: 0.03em;
+  --theme-leading-accent: 1.1;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Punk
+   DIY zine — black, safety red, off-white
+   ============================================================ */
+[data-theme="punk"] {
+  --theme-surface: #0a0a0a;
+  --theme-surface-alt: #141414;
+  --theme-surface-raised: #1f1f1f;
+
+  --theme-on-surface: #f4f0e6;
+  --theme-on-surface-muted: #b8b0a0;
+  --theme-on-surface-subtle: #807868;
+
+  --theme-primary: #e10600;
+  --theme-primary-hover: #ff2a1a;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #f4f0e6;
+  --theme-secondary-hover: #ffffff;
+  --theme-on-secondary: #0a0a0a;
+
+  --theme-border: #2a2a2a;
+  --theme-border-focus: #e10600;
+
+  --theme-success: #5fbf5f;
+  --theme-destructive: #ff2a1a;
+  --theme-warning: #ffb000;
+
+  --theme-ring: #e1060080;
+  --theme-overlay: #000000aa;
+
+  --theme-font-family: "Special Elite", monospace;
+  --theme-font-accent: "Rubik Spray Paint", sans-serif;
+  --theme-tracking-accent: 0.02em;
+  --theme-weight-accent: 400;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Pop
+   Bubblegum chart — bright pink, sky blue, sunshine yellow
+   ============================================================ */
+[data-theme="pop"] {
+  --theme-surface: #fff5fb;
+  --theme-surface-alt: #ffe8f4;
+  --theme-surface-raised: #ffffff;
+
+  --theme-on-surface: #1d1830;
+  --theme-on-surface-muted: #6f5f88;
+  --theme-on-surface-subtle: #a89bba;
+
+  --theme-primary: #ff3da6;
+  --theme-primary-hover: #ff6bbd;
+  --theme-on-primary: #ffffff;
+
+  --theme-secondary: #38bdf8;
+  --theme-secondary-hover: #5fcdff;
+  --theme-on-secondary: #04243a;
+
+  --theme-border: #f7c2dd;
+  --theme-border-focus: #ff3da6;
+
+  --theme-success: #34c759;
+  --theme-destructive: #ff4d6d;
+  --theme-warning: #f4c41a;
+
+  --theme-ring: #ff3da680;
+  --theme-overlay: #1d183080;
+
+  --theme-font-family: "Poppins", sans-serif;
+  --theme-font-accent: "Fredoka", sans-serif;
+  --theme-tracking-accent: -0.01em;
+  --theme-weight-accent: 800;
+  --theme-tracking: -0.01em;
+}
+
+/* ============================================================
+   BUILT-IN THEME: Hip-hop
+   Gold-chain street — matte black, gold, concrete grey
+   ============================================================ */
+[data-theme="hiphop"] {
+  --theme-surface: #0c0c0c;
+  --theme-surface-alt: #161616;
+  --theme-surface-raised: #1f1f1f;
+
+  --theme-on-surface: #f2efe6;
+  --theme-on-surface-muted: #a8a294;
+  --theme-on-surface-subtle: #6f6a5e;
+
+  --theme-primary: #d4af37;
+  --theme-primary-hover: #e6c34a;
+  --theme-on-primary: #14110a;
+
+  --theme-secondary: #6a6a6a;
+  --theme-secondary-hover: #8a8a8a;
+  --theme-on-secondary: #fafafa;
+
+  --theme-border: #2a2620;
+  --theme-border-focus: #d4af37;
+
+  --theme-success: #5cb85c;
+  --theme-destructive: #d9534f;
+  --theme-warning: #d4af37;
+
+  --theme-ring: #d4af3780;
+  --theme-overlay: #000000a0;
+
+  --theme-font-family: "Inter", sans-serif;
+  --theme-font-accent: "Bebas Neue", sans-serif;
+  --theme-tracking-accent: 0em;
+  --theme-leading-accent: 0.90;
+  --theme-weight-accent: 400;
+}
+
+/* ============================================================
+   THEME FONT APPLICATION
+   Wrapped in @layer base so component-level Tailwind utilities
+   (font-bold, leading-tight, tracking-wide, etc.) can override
+   the theme defaults when intentional.
+   ============================================================ */
+@layer base {
+  body {
+    font-family: var(--theme-font-family);
+    letter-spacing: var(--theme-tracking);
+    line-height: var(--theme-leading);
+    font-weight: var(--theme-weight-body);
+  }
+
+  /* Accent typography — used by `font-family-accent` utility on titles
+     and headlines. Themes drive the look via the variables above. */
+  .font-family-accent {
+    font-family: var(--theme-font-accent);
+    letter-spacing: var(--theme-tracking-accent);
+    line-height: var(--theme-leading-accent);
+    font-weight: var(--theme-weight-accent);
+  }
 }
 
 /* ============================================================

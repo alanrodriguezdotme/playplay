@@ -62,7 +62,7 @@ function ToastItem({
 
   return (
     <div
-      className={`pointer-events-auto animate-[slideUp_0.2s_ease-out] rounded-lg px-4 py-3 text-sm font-medium shadow-lg ${
+      className={`pointer-events-auto animate-[slideUp_0.2s_ease-out] px-4 py-3 text-sm font-medium shadow-lg ${
         toast.type === "error"
           ? "bg-destructive text-white"
           : "bg-success text-white"

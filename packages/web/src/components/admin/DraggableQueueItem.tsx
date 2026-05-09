@@ -1,6 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Play, X } from "lucide-react";
 import type { QueueEntry } from "@playplay/shared";
+import { UserBadge } from "../common/UserBadge";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -36,7 +38,7 @@ export function DraggableQueueItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2.5"
+      className="flex items-center gap-2 p-4 pl-3"
     >
       {/* Drag handle */}
       <button
@@ -45,85 +47,53 @@ export function DraggableQueueItem({
         className="shrink-0 cursor-grab touch-none text-on-surface-muted hover:text-on-surface active:cursor-grabbing"
         aria-label="Drag to reorder"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="h-5 w-5"
-        >
-          <circle cx="9" cy="6" r="1.5" />
-          <circle cx="15" cy="6" r="1.5" />
-          <circle cx="9" cy="12" r="1.5" />
-          <circle cx="15" cy="12" r="1.5" />
-          <circle cx="9" cy="18" r="1.5" />
-          <circle cx="15" cy="18" r="1.5" />
-        </svg>
+        <GripVertical className="h-5 w-5" />
       </button>
 
       {/* Song info */}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{entry.song.title}</p>
-        <p className="truncate text-xs text-on-surface-muted">
-          {entry.song.artist}
-          {entry.addedBy && (
-            <span> · Added by {entry.addedBy.displayName ?? "Unknown"}</span>
-          )}
+      <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+        <p className="truncate text-sm font-family-accent">
+          {entry.song.title}
         </p>
+        <p className="truncate text-xs text-on-surface-muted">
+          {entry.song.artist} · {entry.song.album}
+        </p>
+        <div className="flex gap-1">
+          {entry.addedBy && (
+            <UserBadge
+              user={entry.addedBy}
+              className="text-xs text-on-surface-subtle"
+            />
+          )}
+          <span className="text-xs text-on-surface-subtle">·</span>
+          <span
+            className={`text-xs font-semibold text-on-surface-subtle uppercase`}
+          >
+            {entry.voteScore} votes
+          </span>
+        </div>
       </div>
 
-      {/* Vote score */}
-      <span
-        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-          entry.voteScore > 0
-            ? "bg-success/15 text-success"
-            : entry.voteScore < 0
-              ? "bg-destructive/15 text-destructive"
-              : "bg-on-surface-muted/15 text-on-surface-muted"
-        }`}
-      >
-        {entry.voteScore > 0 ? "+" : ""}
-        {entry.voteScore}
-      </span>
-
       {/* Duration */}
-      <span className="shrink-0 text-xs text-on-surface-muted">
+      <span className="shrink-0 text-xs text-on-surface-muted pt-1">
         {formatDuration(entry.song.duration)}
       </span>
 
       {/* Actions */}
-      <div className="flex shrink-0 gap-1">
+      <div className="flex shrink-0 gap-2">
         <button
           onClick={() => onPlayNow(entry.id)}
-          className="rounded-md p-1.5 text-on-surface-muted hover:bg-primary/15 hover:text-primary"
+          className="rounded-full p-2 text-on-surface-muted hover:bg-primary/15 hover:text-primary"
           title="Play now"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-4 w-4"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
+          <Play fill="currentColor" stroke="none" className="h-4 w-4" />
         </button>
         <button
           onClick={() => onRemove(entry.id)}
-          className="rounded-md p-1.5 text-on-surface-muted hover:bg-destructive/15 hover:text-destructive"
+          className="rounded-full p-2 text-on-surface-muted hover:bg-destructive/15 hover:text-destructive"
           title="Remove"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <X className="h-4 w-4" />
         </button>
       </div>
     </div>

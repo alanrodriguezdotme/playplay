@@ -13,7 +13,6 @@ export interface QueueUpdateHandlers {
 }
 
 export function useQueueUpdates(
-  venueSlug: string | undefined,
   handlers: QueueUpdateHandlers
 ): void {
   const { socket, joinVenue } = useSocketContext();
@@ -21,7 +20,7 @@ export function useQueueUpdates(
   // Subscribe to queue events AND join venue in a single effect
   // to ensure listeners are registered before the join response arrives
   useEffect(() => {
-    if (!socket || !venueSlug) return;
+    if (!socket) return;
 
     const { onQueueUpdated, onNowPlayingChanged, onEntryAdded, onEntryRemoved } = handlers;
 
@@ -32,7 +31,7 @@ export function useQueueUpdates(
     if (onEntryRemoved) socket.on(SOCKET_EVENTS.QUEUE_ENTRY_REMOVED, onEntryRemoved);
 
     // Then join the venue room (server sends QUEUE_UPDATED in response)
-    joinVenue(venueSlug);
+    joinVenue();
 
     return () => {
       if (onQueueUpdated) socket.off(SOCKET_EVENTS.QUEUE_UPDATED, onQueueUpdated);
@@ -40,5 +39,5 @@ export function useQueueUpdates(
       if (onEntryAdded) socket.off(SOCKET_EVENTS.QUEUE_ENTRY_ADDED, onEntryAdded);
       if (onEntryRemoved) socket.off(SOCKET_EVENTS.QUEUE_ENTRY_REMOVED, onEntryRemoved);
     };
-  }, [socket, venueSlug, joinVenue, handlers.onQueueUpdated, handlers.onNowPlayingChanged, handlers.onEntryAdded, handlers.onEntryRemoved]);
+  }, [socket, joinVenue, handlers.onQueueUpdated, handlers.onNowPlayingChanged, handlers.onEntryAdded, handlers.onEntryRemoved]);
 }

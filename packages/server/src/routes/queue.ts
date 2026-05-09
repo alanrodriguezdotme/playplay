@@ -16,8 +16,9 @@ import { QUEUE_STATUS, DEFAULTS } from "@playplay/shared";
 import { getLocalIp } from "../services/network.js";
 import { broadcastQueueUpdated, broadcastEntryAdded, broadcastEntryRemoved, broadcastNowPlayingChanged } from "../socket/broadcast.js";
 import { advanceQueue } from "../services/playback.js";
+import { getDefaultVenue } from "../lib/venue.js";
 
-const router = Router();
+const router: Router = Router();
 
 // POST /api/queue/add — add a song to the queue
 router.post("/add", authenticate, async (req, res, next) => {
@@ -90,13 +91,7 @@ router.get("/", authenticate, async (req, res, next) => {
 // GET /api/queue/display-settings — no auth (for display view)
 router.get("/display-settings", async (req, res, next) => {
   try {
-    const venueSlug = req.query.venue as string;
-    if (!venueSlug) {
-      res.status(400).json({ error: "bad_request", message: "venue query param is required" });
-      return;
-    }
-
-    const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+    const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
     if (!venue) {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;
@@ -106,6 +101,10 @@ router.get("/display-settings", async (req, res, next) => {
     res.json({
       displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
       displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
+      displayTheme: (() => {
+        const t = (s.displayTheme as string) ?? DEFAULTS.DISPLAY_THEME;
+        return t === "neon" || t === "edm" ? "synthwave" : t;
+      })(),
       lanIp: getLocalIp(),
     });
   } catch (err) {
@@ -116,13 +115,7 @@ router.get("/display-settings", async (req, res, next) => {
 // GET /api/queue/now-playing — no auth (for display view)
 router.get("/now-playing", async (req, res, next) => {
   try {
-    const venueSlug = req.query.venue as string;
-    if (!venueSlug) {
-      res.status(400).json({ error: "bad_request", message: "venue query param is required" });
-      return;
-    }
-
-    const venue = await prisma.venue.findUnique({ where: { slug: venueSlug } });
+    const venue = await prisma.venue.findUnique({ where: { id: (await getDefaultVenue()).id } });
     if (!venue) {
       res.status(404).json({ error: "not_found", message: "Venue not found" });
       return;
@@ -132,7 +125,7 @@ router.get("/now-playing", async (req, res, next) => {
       where: { venueId: venue.id, status: QUEUE_STATUS.PLAYING },
       include: {
         song: true,
-        addedBy: { select: { id: true, displayName: true } },
+        addedBy: { select: { id: true, displayName: true, avatarEmoji: true, role: true } },
       },
     });
 
@@ -152,9 +145,10 @@ router.get("/now-playing", async (req, res, next) => {
         totalPlays: entry.song.totalPlays,
         totalAdds: entry.song.totalAdds,
         isBlocked: entry.song.blocked,
+        isFallbackOnly: entry.song.isFallbackOnly,
       },
       addedBy: entry.addedBy
-        ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName }
+        ? { id: entry.addedBy.id, displayName: entry.addedBy.displayName, avatarEmoji: entry.addedBy.avatarEmoji ?? null, role: entry.addedBy.role }
         : null,
       status: entry.status,
       voteScore: entry.voteScore,
@@ -179,9 +173,20 @@ router.get("/history", authenticate, async (req, res, next) => {
   }
 });
 
-// DELETE /api/queue/:entryId — admin remove from queue
-router.delete("/:entryId", authenticate, requireAdmin, async (req, res, next) => {
+// DELETE /api/queue/:entryId — remove from queue (admin or the patron who added it)
+router.delete("/:entryId", authenticate, async (req, res, next) => {
   try {
+    const entry = await prisma.queueEntry.findFirst({
+      where: { id: req.params.entryId as string, venueId: req.user!.venueId, status: QUEUE_STATUS.QUEUED },
+    });
+    if (!entry) {
+      res.status(404).json({ error: "entry_not_found", message: "Queued entry not found" });
+      return;
+    }
+    if (req.user!.role !== "ADMIN" && entry.addedById !== req.user!.id) {
+      res.status(403).json({ error: "forbidden", message: "You can only remove your own songs" });
+      return;
+    }
     await removeEntry(req.params.entryId as string, req.user!.venueId);
     res.status(204).end();
     broadcastEntryRemoved(req.user!.venueId, req.params.entryId as string).catch(console.error);

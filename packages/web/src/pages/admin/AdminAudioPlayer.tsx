@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import {
+  Play,
+  Pause,
+  SkipForward,
+  Volume2,
+  Volume1,
+  VolumeX,
+} from "lucide-react";
 import { SOCKET_EVENTS } from "@playplay/shared";
 import type { QueueEntry, PlaybackSyncState } from "@playplay/shared";
 import type { Socket } from "socket.io-client";
@@ -7,6 +15,7 @@ import { getSongStreamUrl } from "../../api/songs";
 import { playNow } from "../../api/queue";
 import { useSpotifyPlayer } from "../../hooks/useSpotifyPlayer";
 import { useSpotifyConnect } from "../../hooks/useSpotifyConnect";
+import { UserBadge } from "../../components/common/UserBadge";
 
 function getDeviceHint(): string {
   const ua = navigator.userAgent;
@@ -38,7 +47,9 @@ export function AdminAudioPlayer({
 }: AdminAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [needsInteraction, setNeedsInteraction] = useState(false);
-  const lastSongIdRef = useRef<string | null>(null);
+  // Tracks the entry ID currently loaded into the player. Keyed on entry (not
+  // song) so that a fallback re-pick of the same song produces a fresh load.
+  const lastEntryIdRef = useRef<string | null>(null);
   const [playbackSync, setPlaybackSync] = useState<PlaybackSyncState | null>(
     null,
   );
@@ -91,7 +102,9 @@ export function AdminAudioPlayer({
 
   // Spotify Web Playback SDK — enable if owner and either server or song says spotify
   const spotify = useSpotifyPlayer(isOwner && needsSpotify);
-  const spotifyConnect = useSpotifyConnect(isOwner && needsSpotify && !spotify.isReady);
+  const spotifyConnect = useSpotifyConnect(
+    isOwner && needsSpotify && !spotify.isReady,
+  );
   const prevSpotifyStateRef = useRef<any>(null);
 
   // Listen for PLAYBACK_SYNC
@@ -110,11 +123,10 @@ export function AdminAudioPlayer({
   const ensureLocalAudioLoaded = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !nowPlaying) return audio;
-    const songId = nowPlaying.song.id;
-    if (lastSongIdRef.current !== songId || audio.readyState === 0) {
-      audio.src = getSongStreamUrl(songId);
+    if (lastEntryIdRef.current !== nowPlaying.id || audio.readyState === 0) {
+      audio.src = getSongStreamUrl(nowPlaying.song.id);
       audio.volume = volume;
-      lastSongIdRef.current = songId;
+      lastEntryIdRef.current = nowPlaying.id;
     }
     return audio;
   }, [nowPlaying, volume]);
@@ -127,7 +139,7 @@ export function AdminAudioPlayer({
         spotify.resume();
       } else {
         const audio = ensureLocalAudioLoaded();
-        audio?.play().catch(() => { });
+        audio?.play().catch(() => {});
       }
     };
     const onPause = () => {
@@ -179,7 +191,7 @@ export function AdminAudioPlayer({
 
     if (prev && !prev.paused && curr && curr.paused && curr.position === 0) {
       // Track ended — Spotify resets position to 0 when paused at end
-      lastSongIdRef.current = null;
+      lastEntryIdRef.current = null;
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     }
   }, [spotify.playerState, socket, isOwner, needsSpotify]);
@@ -189,11 +201,10 @@ export function AdminAudioPlayer({
     const audio = audioRef.current;
     if (!audio || !nowPlaying) return;
 
-    const songId = nowPlaying.song.id;
-    if (lastSongIdRef.current === songId) return;
-    lastSongIdRef.current = songId;
+    if (lastEntryIdRef.current === nowPlaying.id) return;
+    lastEntryIdRef.current = nowPlaying.id;
 
-    audio.src = getSongStreamUrl(songId);
+    audio.src = getSongStreamUrl(nowPlaying.song.id);
     audio.volume = volume;
     audio.play().catch(() => {
       setNeedsInteraction(true);
@@ -204,9 +215,8 @@ export function AdminAudioPlayer({
   const playCurrentSpotify = useCallback(async () => {
     if (!nowPlaying?.song.spotifyUri || !spotify.isReady) return;
 
-    const songId = nowPlaying.song.id;
-    if (lastSongIdRef.current === songId) return;
-    lastSongIdRef.current = songId;
+    if (lastEntryIdRef.current === nowPlaying.id) return;
+    lastEntryIdRef.current = nowPlaying.id;
 
     await spotify.play(nowPlaying.song.spotifyUri);
   }, [nowPlaying, spotify]);
@@ -219,7 +229,7 @@ export function AdminAudioPlayer({
       if (audio) {
         audio.pause();
         audio.src = "";
-        lastSongIdRef.current = null;
+        lastEntryIdRef.current = null;
       }
       return;
     }
@@ -235,10 +245,16 @@ export function AdminAudioPlayer({
       if (audio) {
         audio.pause();
         audio.src = "";
-        lastSongIdRef.current = null;
+        lastEntryIdRef.current = null;
       }
     }
-  }, [isOwner, nowPlaying, currentSongSource, playCurrentLocal, playCurrentSpotify]);
+  }, [
+    isOwner,
+    nowPlaying,
+    currentSongSource,
+    playCurrentLocal,
+    playCurrentSpotify,
+  ]);
 
   // Audio event listeners for local playback (ended, play, pause, periodic sync)
   useEffect(() => {
@@ -246,7 +262,7 @@ export function AdminAudioPlayer({
     if (!audio || !socket || !isOwner) return;
 
     const onEnded = () => {
-      lastSongIdRef.current = null;
+      lastEntryIdRef.current = null;
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     };
     const onPlay = () => broadcastLocalState();
@@ -281,7 +297,7 @@ export function AdminAudioPlayer({
 
   const handleUnlock = () => {
     setNeedsInteraction(false);
-    audioRef.current?.play().catch(() => { });
+    audioRef.current?.play().catch(() => {});
   };
 
   const handlePlayPause = useCallback(() => {
@@ -308,13 +324,33 @@ export function AdminAudioPlayer({
         }
       }
     }
-  }, [socket, isPlaying, isOwner, currentSongSource, spotify, ensureLocalAudioLoaded]);
+  }, [
+    socket,
+    isPlaying,
+    isOwner,
+    currentSongSource,
+    spotify,
+    ensureLocalAudioLoaded,
+  ]);
 
   const handleSkip = useCallback(async () => {
     if (queue.length > 0) {
       await playNow(queue[0].id);
+      return;
     }
-  }, [queue]);
+    // No queued items: advance via the same path as a natural track end so
+    // the server picks the configured fallback (history / playlist).
+    if (!socket || !nowPlaying) return;
+    if (isOwner) {
+      if (currentSongSource === "spotify") {
+        spotify.pause().catch(() => {});
+      } else {
+        audioRef.current?.pause();
+      }
+    }
+    lastEntryIdRef.current = null;
+    socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
+  }, [queue, nowPlaying, socket, isOwner, currentSongSource, spotify]);
 
   const handleVolumeChange = useCallback(
     (value: number) => {
@@ -354,29 +390,44 @@ export function AdminAudioPlayer({
       <div className="shrink-0 border-t border-border bg-surface-raised">
         {isOwner ? (
           /* ---- Expanded control bar (audio owner) ---- */
-          <div className="px-4 py-2 space-y-2">
+          <div className="p-4 space-y-4">
             {/* Row 1: Song info | Controls | Volume | Release */}
             <div className="flex items-center gap-3">
               {/* Song info */}
               <div className="min-w-0 flex-1">
                 {nowPlaying ? (
-                  <>
-                    <p className="truncate text-sm font-semibold text-on-surface">
+                  <div className="flex flex-col gap-1">
+                    <p className="truncate text-sm text-on-surface font-family-accent">
                       {nowPlaying.song.title}
                     </p>
                     <p className="truncate text-xs text-on-surface-muted">
-                      {nowPlaying.song.artist}
+                      {nowPlaying.song.artist} ·{" "}
+                      <UserBadge user={nowPlaying.addedBy} />
                     </p>
-                  </>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-success animate-pulse" />
                     <span className="text-xs font-medium text-on-surface">
-                      {needsSpotify ? "Spotify" : "Audio"} playing on this device
+                      {needsSpotify ? "Spotify" : "Audio"} playing on this
+                      device
                     </span>
                   </div>
                 )}
               </div>
+
+              {/* Spotify Connect fallback */}
+              {needsSpotify && !spotify.isReady && (
+                <button
+                  onClick={() => {
+                    setShowConnectDevices(!showConnectDevices);
+                    if (!showConnectDevices) spotifyConnect.refreshDevices();
+                  }}
+                  className="rounded-lg border border-[#1DB954] px-2.5 py-1 text-xs font-medium text-[#1DB954] hover:bg-[#1DB954]/10"
+                >
+                  Spotify Connect
+                </button>
+              )}
 
               {/* Playback controls */}
               <div className="flex items-center gap-1">
@@ -396,26 +447,26 @@ export function AdminAudioPlayer({
                       title={isPlaying ? "Pause" : "Play"}
                     >
                       {isPlaying ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-on-primary">
-                          <rect x="6" y="4" width="4" height="16" rx="1" />
-                          <rect x="14" y="4" width="4" height="16" rx="1" />
-                        </svg>
+                        <Pause
+                          fill="currentColor"
+                          stroke="none"
+                          className="h-4 w-4 text-on-primary"
+                        />
                       ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-on-primary">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
+                        <Play
+                          fill="currentColor"
+                          stroke="none"
+                          className="h-4 w-4 text-on-primary"
+                        />
                       )}
                     </button>
                     <button
                       onClick={handleSkip}
-                      disabled={queue.length === 0}
+                      disabled={queue.length === 0 && !nowPlaying}
                       className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-alt transition-colors disabled:opacity-40"
                       title="Skip"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 text-on-surface">
-                        <path d="M5 5v14l11-7z" />
-                        <rect x="17" y="5" width="2" height="14" rx="0.5" />
-                      </svg>
+                      <SkipForward className="h-4 w-4 text-on-surface" />
                     </button>
                   </>
                 )}
@@ -423,26 +474,13 @@ export function AdminAudioPlayer({
 
               {/* Volume slider */}
               <div className="hidden sm:flex items-center gap-2 w-32">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-on-surface-muted">
-                  {volume === 0 ? (
-                    <>
-                      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
-                      <line x1="22" x2="16" y1="9" y2="15" />
-                      <line x1="16" x2="22" y1="9" y2="15" />
-                    </>
-                  ) : volume < 0.5 ? (
-                    <>
-                      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                    </>
-                  ) : (
-                    <>
-                      <path d="M11 5 6 9H2v6h4l5 4V5Z" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                    </>
-                  )}
-                </svg>
+                {volume === 0 ? (
+                  <VolumeX className="h-4 w-4 shrink-0 text-on-surface-muted" />
+                ) : volume < 0.5 ? (
+                  <Volume1 className="h-4 w-4 shrink-0 text-on-surface-muted" />
+                ) : (
+                  <Volume2 className="h-4 w-4 shrink-0 text-on-surface-muted" />
+                )}
                 <input
                   type="range"
                   min="0"
@@ -453,19 +491,6 @@ export function AdminAudioPlayer({
                   className="w-full h-1 rounded-full appearance-none bg-border cursor-pointer accent-primary"
                 />
               </div>
-
-              {/* Spotify Connect fallback */}
-              {needsSpotify && !spotify.isReady && (
-                <button
-                  onClick={() => {
-                    setShowConnectDevices(!showConnectDevices);
-                    if (!showConnectDevices) spotifyConnect.refreshDevices();
-                  }}
-                  className="rounded-lg border border-[#1DB954] px-2.5 py-1 text-xs font-medium text-[#1DB954] hover:bg-[#1DB954]/10"
-                >
-                  Spotify Connect
-                </button>
-              )}
             </div>
 
             {/* Row 2: Scrubber bar */}
@@ -512,7 +537,9 @@ export function AdminAudioPlayer({
                   Spotify Connect Devices
                 </p>
                 {spotifyConnect.loading ? (
-                  <p className="text-xs text-on-surface-muted">Loading devices...</p>
+                  <p className="text-xs text-on-surface-muted">
+                    Loading devices...
+                  </p>
                 ) : spotifyConnect.devices.length === 0 ? (
                   <p className="text-xs text-on-surface-muted">
                     No devices found. Open Spotify on another device first.
@@ -529,7 +556,9 @@ export function AdminAudioPlayer({
                         className={`w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-surface-alt ${d.isActive ? "border border-[#1DB954]" : "border border-border"}`}
                       >
                         <span className="font-medium">{d.name}</span>
-                        <span className="text-on-surface-muted">({d.type})</span>
+                        <span className="text-on-surface-muted">
+                          ({d.type})
+                        </span>
                         {d.isActive && (
                           <span className="ml-auto text-[10px] font-semibold text-[#1DB954]">
                             ACTIVE
@@ -567,7 +596,7 @@ export function AdminAudioPlayer({
             </div>
             <button
               onClick={handleClaim}
-              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover"
+              className="bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover"
             >
               Play Audio Here
             </button>
@@ -576,23 +605,24 @@ export function AdminAudioPlayer({
       </div>
 
       {/* Autoplay unlock overlay — portaled to body to escape stacking context */}
-      {needsInteraction && createPortal(
-        <button
-          onClick={handleUnlock}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
-        >
-          <div className="rounded-2xl border border-border bg-surface-raised px-8 py-6 text-center shadow-2xl">
-            <div className="text-4xl">🔊</div>
-            <p className="mt-3 text-lg font-bold text-on-surface">
-              Click to enable audio
-            </p>
-            <p className="mt-1 text-sm text-on-surface-muted">
-              Browser requires interaction to play audio
-            </p>
-          </div>
-        </button>,
-        document.body,
-      )}
+      {needsInteraction &&
+        createPortal(
+          <button
+            onClick={handleUnlock}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
+          >
+            <div className="rounded-2xl border border-border bg-surface-raised px-8 py-6 text-center shadow-2xl">
+              <div className="text-4xl">🔊</div>
+              <p className="mt-3 text-lg text-on-surface">
+                Click to enable audio
+              </p>
+              <p className="mt-1 text-sm text-on-surface-muted">
+                Browser requires interaction to play audio
+              </p>
+            </div>
+          </button>,
+          document.body,
+        )}
     </>
   );
 }

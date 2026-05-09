@@ -6,6 +6,7 @@ import { prisma } from "../lib/prisma.js";
 import { getQueue } from "../services/queue.js";
 import { advanceQueue } from "../services/playback.js";
 import { broadcastQueueUpdated, broadcastNowPlayingChanged } from "./broadcast.js";
+import { getDefaultVenue } from "../lib/venue.js";
 import {
   getPlaybackState,
   claimAudio,
@@ -56,13 +57,9 @@ export function initSocket(server: HttpServer): Server {
   io.on("connection", (socket) => {
     console.log(`Socket connected: ${socket.id} (user: ${socket.data.userId ?? "anonymous"})`);
 
-    socket.on(SOCKET_EVENTS.VENUE_JOIN, async (slug: string) => {
+    socket.on(SOCKET_EVENTS.VENUE_JOIN, async () => {
       try {
-        const venue = await prisma.venue.findUnique({ where: { slug } });
-        if (!venue) {
-          socket.emit("error", { message: "Venue not found" });
-          return;
-        }
+        const venue = await getDefaultVenue();
 
         // Leave any previous venue rooms
         for (const room of socket.rooms) {
@@ -71,9 +68,9 @@ export function initSocket(server: HttpServer): Server {
           }
         }
 
-        const roomName = `venue:${slug}`;
+        const roomName = `venue:${venue.slug}`;
         socket.join(roomName);
-        socket.data.venueSlug = slug;
+        socket.data.venueSlug = venue.slug;
         socket.data.venueId = venue.id;
 
         // Send current queue state to the joining client

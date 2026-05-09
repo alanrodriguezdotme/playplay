@@ -1,13 +1,15 @@
 import { Router } from "express";
 import { createReadStream, statSync } from "node:fs";
 import { access } from "node:fs/promises";
-import { join, resolve, extname } from "node:path";
+import { isAbsolute, join, resolve, extname } from "node:path";
 import { parseFile } from "music-metadata";
 import { prisma, parseSettings } from "../lib/prisma.js";
 import { authenticate } from "../middleware/auth.js";
 import { DEFAULTS } from "@playplay/shared";
+import { getVenueSettings, getLibraryRoot } from "../lib/settings.js";
+import { isUnderPath } from "../lib/paths.js";
 
-const router = Router();
+const router: Router = Router();
 
 const MIME_TYPES: Record<string, string> = {
   ".mp3": "audio/mpeg",
@@ -16,6 +18,43 @@ const MIME_TYPES: Record<string, string> = {
   ".ogg": "audio/ogg",
   ".wav": "audio/wav",
 };
+
+/**
+ * Resolve a Song's stored filePath to an absolute on-disk path, enforcing that
+ * fallback-only rows can only point at the configured default-playlist source
+ * (so a malicious DB row can't be used to read arbitrary files).
+ */
+async function resolveSongFilePath(song: {
+  filePath: string | null;
+  isFallbackOnly: boolean;
+  venueId: string;
+}, libraryRoot: string): Promise<string | null> {
+  if (!song.filePath) return null;
+
+  // Library-relative path
+  if (!isAbsolute(song.filePath) && !song.filePath.startsWith("\\\\") && !song.filePath.startsWith("//")) {
+    return join(libraryRoot, song.filePath);
+  }
+
+  // Absolute or UNC: only allowed for fallback-only rows, and must be under the
+  // currently-configured default playlist source.
+  if (!song.isFallbackOnly) return null;
+
+  const venue = await prisma.venue.findUnique({ where: { id: song.venueId } });
+  if (!venue) return null;
+  const settings = getVenueSettings(venue);
+  const config = settings.defaultPlaylist;
+  if (config.source !== "local" || !config.local?.path) return null;
+
+  const sourcePath = resolve(config.local.path);
+  // For folder source: file must be inside the folder.
+  // For m3u source: the m3u file is at sourcePath; allowed entries can live anywhere
+  // the m3u points to, so we trust the row (it was vetted at rebuild time).
+  if (config.local.kind === "folder") {
+    if (!isUnderPath(song.filePath, sourcePath)) return null;
+  }
+  return song.filePath;
+}
 
 // GET /api/songs/music-source — public: returns music source settings for the venue
 router.get("/music-source", authenticate, async (req, res, next) => {
@@ -44,7 +83,7 @@ router.get("/", authenticate, async (req, res, next) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
     const skip = (page - 1) * limit;
 
-    const where = { venueId: req.user!.venueId, blocked: false };
+    const where = { venueId: req.user!.venueId, blocked: false, isFallbackOnly: false };
 
     const [songs, total] = await Promise.all([
       prisma.song.findMany({
@@ -98,6 +137,7 @@ router.get("/search", authenticate, async (req, res, next) => {
     const where = {
       venueId: req.user!.venueId,
       blocked: false,
+      isFallbackOnly: false,
       OR: [
         { title: { contains: q } },
         { artist: { contains: q } },
@@ -158,8 +198,15 @@ router.get("/:id/stream", async (req, res, next) => {
       return;
     }
 
-    const libraryPath = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
-    const filePath = join(libraryPath, song.filePath);
+    const venue = await prisma.venue.findUnique({ where: { id: song.venueId } });
+    const libraryPath = venue
+      ? getLibraryRoot(getVenueSettings(venue))
+      : resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    const filePath = await resolveSongFilePath(song, libraryPath);
+    if (!filePath) {
+      res.status(403).json({ error: "forbidden", message: "This song's file path is no longer accessible" });
+      return;
+    }
 
     try {
       await access(filePath);
@@ -170,7 +217,7 @@ router.get("/:id/stream", async (req, res, next) => {
 
     const fileStat = statSync(filePath);
     const fileSize = fileStat.size;
-    const ext = extname(song.filePath).toLowerCase();
+    const ext = extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
     const range = req.headers.range;
@@ -232,8 +279,15 @@ router.get("/:id/artwork", async (req, res, next) => {
       return;
     }
 
-    const libraryPath = resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
-    const filePath = join(libraryPath, song.filePath);
+    const venue = await prisma.venue.findUnique({ where: { id: song.venueId } });
+    const libraryPath = venue
+      ? getLibraryRoot(getVenueSettings(venue))
+      : resolve(process.env.MUSIC_LIBRARY_PATH || "./music");
+    const filePath = await resolveSongFilePath(song, libraryPath);
+    if (!filePath) {
+      res.status(403).json({ error: "forbidden", message: "This song's file path is no longer accessible" });
+      return;
+    }
 
     try {
       await access(filePath);

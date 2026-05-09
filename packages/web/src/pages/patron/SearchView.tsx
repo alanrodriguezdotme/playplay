@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Search, X } from "lucide-react";
 import { searchSongs, getMusicSource } from "../../api/songs";
 import { searchSpotifyCatalog } from "../../api/spotify";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -26,7 +27,7 @@ export function SearchView() {
         setMusicSource(data.musicSource);
         setAllowFullCatalog(data.allowFullCatalogSearch);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const useSpotifySearch = musicSource === "spotify" && allowFullCatalog;
@@ -65,7 +66,9 @@ export function SearchView() {
         } else {
           // Search local library
           const data = await searchSongs(q, p, LIMIT);
-          setResults((prev) => (append ? [...prev, ...data.songs] : data.songs));
+          setResults((prev) =>
+            append ? [...prev, ...data.songs] : data.songs,
+          );
           setTotal(data.total);
         }
         setHasSearched(true);
@@ -95,48 +98,24 @@ export function SearchView() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Search input */}
-      <div className="sticky top-0 z-10 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 border-b border-border bg-surface">
         <div className="relative">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search songs by title or artist…"
-            className="w-full rounded-xl border border-border bg-surface-alt py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full bg-surface-alt py-4 pl-10 pr-4 text-base text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
             autoFocus
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-muted hover:text-on-surface"
+              className="absolute cursor-pointer p-2 right-3 top-1/2 -translate-y-1/2 text-on-surface-muted hover:text-on-surface"
               aria-label="Clear search"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -169,10 +148,10 @@ export function SearchView() {
       )}
 
       {hasMore && !isLoading && (
-        <div className="px-4 py-4">
+        <div className="">
           <button
             onClick={loadMore}
-            className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-on-surface-muted hover:text-on-surface"
+            className="w-full border-t border-b border-border p-4 text-sm font-medium text-on-surface-muted hover:text-on-surface"
           >
             Load More ({results.length} of {total})
           </button>

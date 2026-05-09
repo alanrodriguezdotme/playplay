@@ -1,28 +1,27 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useParams } from "react-router";
 import type {
   QueueEntry,
   QueueResponse,
   DisplaySettings,
 } from "@playplay/shared";
-import { DEFAULTS, SOCKET_EVENTS } from "@playplay/shared";
+import { DEFAULTS } from "@playplay/shared";
 import { useQueueUpdates } from "../../hooks/useSocket";
-import { useSocketContext } from "../../contexts/SocketContext";
+import { useVenue } from "../../contexts/VenueContext";
+import { BUILT_IN_THEMES, loadThemeFont } from "../../contexts/ThemeContext";
+import type { BuiltInTheme } from "../../contexts/ThemeContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
-import { getDisplaySettings } from "../../api/queue";
+import { getDisplaySettings, getQueueHistory } from "../../api/queue";
 import { DisplayHeader } from "./components/DisplayHeader";
 import { DisplayNowPlaying } from "./components/DisplayNowPlaying";
 import { DisplayQueue } from "./components/DisplayQueue";
 import { DisplayHistory } from "./components/DisplayHistory";
 import { DisplayQRCode } from "./components/DisplayQRCode";
-import { DisplayVenueOtp } from "./components/DisplayVenueOtp";
 
-const MAX_HISTORY = 10;
+const MAX_HISTORY = 20;
 
 export function NowPlayingDisplay() {
-  const { slug } = useParams<{ slug: string }>();
-  const { socket } = useSocketContext();
+  const { venue } = useVenue();
   const { isFullscreen, toggleFullscreen } = useFullscreen();
   useWakeLock();
 
@@ -32,91 +31,79 @@ export function NowPlayingDisplay() {
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
     displayQrSize: DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: DEFAULTS.DISPLAY_SHOW_HEADER,
+    displayTheme: DEFAULTS.DISPLAY_THEME,
     lanIp: null,
   });
 
-  // Venue OTP overlay state
-  const [venueOtp, setVenueOtp] = useState<{
-    code: string;
-    deviceHint: string;
-  } | null>(null);
-
-  // Listen for venue OTP socket events
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleShow = (data: { code: string; deviceHint: string }) => {
-      setVenueOtp(data);
-    };
-    const handleHide = () => {
-      setVenueOtp(null);
-    };
-
-    socket.on(SOCKET_EVENTS.VENUE_OTP_SHOW, handleShow);
-    socket.on(SOCKET_EVENTS.VENUE_OTP_HIDE, handleHide);
-
-    return () => {
-      socket.off(SOCKET_EVENTS.VENUE_OTP_SHOW, handleShow);
-      socket.off(SOCKET_EVENTS.VENUE_OTP_HIDE, handleHide);
-    };
-  }, [socket]);
-
   // Fetch display settings
   useEffect(() => {
-    if (!slug) return;
-    getDisplaySettings(slug)
+    getDisplaySettings()
       .then(setDisplaySettings)
-      .catch(() => { });
-  }, [slug]);
+      .catch(() => {});
+  }, []);
+
+  // Apply the venue's display theme to the document WITHOUT touching
+  // localStorage — the display is its own surface and shouldn't change
+  // the theme of admin/patron tabs in the same browser.
+  useEffect(() => {
+    const t = displaySettings.displayTheme;
+    if (!t || !(BUILT_IN_THEMES as readonly string[]).includes(t)) return;
+    const root = document.documentElement;
+    if (t === "dark") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.setAttribute("data-theme", t);
+    }
+    loadThemeFont(t as BuiltInTheme);
+    return () => {
+      // On unmount, hand control back to the patron/admin theme stored
+      // in localStorage (handled by ThemeProvider on next mount).
+      root.removeAttribute("data-theme");
+    };
+  }, [displaySettings.displayTheme]);
 
   // Track the last now-playing ID to detect transitions for history
   const lastNowPlayingIdRef = useRef<string | null>(null);
 
-  const addToHistory = useCallback((entry: QueueEntry) => {
-    setRecentHistory((prev) => {
-      // Don't add duplicates
-      if (prev.some((e) => e.id === entry.id)) return prev;
-      return [entry, ...prev].slice(0, MAX_HISTORY);
-    });
+  const refreshHistory = useCallback(() => {
+    getQueueHistory(1, MAX_HISTORY)
+      .then((res) => setRecentHistory(res.entries))
+      .catch(() => {});
   }, []);
+
+  // Initial history load
+  useEffect(() => {
+    refreshHistory();
+  }, [refreshHistory]);
 
   const onQueueUpdated = useCallback(
     (data: QueueResponse) => {
       setQueue(data.queue);
 
-      // If now-playing changed, push old one to history
       const prevId = lastNowPlayingIdRef.current;
       const newId = data.nowPlaying?.id ?? null;
-      if (prevId && prevId !== newId && nowPlaying) {
-        addToHistory({
-          ...nowPlaying,
-          status: "PLAYED",
-          playedAt: new Date().toISOString(),
-        });
+      if (prevId && prevId !== newId) {
+        refreshHistory();
       }
 
       setNowPlaying(data.nowPlaying);
       lastNowPlayingIdRef.current = newId;
     },
-    [nowPlaying, addToHistory],
+    [refreshHistory],
   );
 
   const onNowPlayingChanged = useCallback(
     (entry: QueueEntry | null) => {
       const prevId = lastNowPlayingIdRef.current;
       const newId = entry?.id ?? null;
-      if (prevId && prevId !== newId && nowPlaying) {
-        addToHistory({
-          ...nowPlaying,
-          status: "PLAYED",
-          playedAt: new Date().toISOString(),
-        });
+      if (prevId && prevId !== newId) {
+        refreshHistory();
       }
 
       setNowPlaying(entry);
       lastNowPlayingIdRef.current = newId;
     },
-    [nowPlaying, addToHistory],
+    [refreshHistory],
   );
 
   const onEntryAdded = useCallback((entry: QueueEntry) => {
@@ -127,17 +114,17 @@ export function NowPlayingDisplay() {
     setQueue((prev) => prev.filter((e) => e.id !== entryId));
   }, []);
 
-  useQueueUpdates(slug, {
+  useQueueUpdates({
     onQueueUpdated,
     onNowPlayingChanged,
     onEntryAdded,
     onEntryRemoved,
   });
 
-  if (!slug) {
+  if (!venue) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface text-on-surface">
-        <p className="text-xl text-on-surface-muted">Venue not found</p>
+        <p className="text-xl text-on-surface-muted">Loading venue...</p>
       </div>
     );
   }
@@ -145,7 +132,7 @@ export function NowPlayingDisplay() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface text-on-surface">
       <DisplayHeader
-        venueSlug={slug}
+        venueName={venue.name}
         isFullscreen={isFullscreen}
         show={displaySettings.displayShowHeader}
         onToggleFullscreen={toggleFullscreen}
@@ -154,37 +141,34 @@ export function NowPlayingDisplay() {
       {/* Responsive grid: single column portrait, two columns landscape */}
       <div className="flex min-h-0 flex-1 flex-col landscape:flex-row">
         {/* Left / Top: Now Playing + QR */}
-        <div className="flex shrink-0 flex-col landscape:flex-1 landscape:min-h-0">
+        <div className="flex shrink-0 flex-col landscape:flex-1 landscape:max-w-1/2 landscape:min-h-0">
           <div className="flex flex-1 items-center justify-center p-6 landscape:min-h-0 landscape:overflow-auto">
             <DisplayNowPlaying entry={nowPlaying} />
+          </div>
+          <div className="hidden landscape:flex w-full justify-center px-6 py-4">
+            <DisplayQRCode
+              size={displaySettings.displayQrSize}
+              lanIp={displaySettings.lanIp}
+            />
           </div>
         </div>
 
         {/* Right / Bottom: Queue + History */}
         <div className="flex min-h-0 flex-1 flex-col border-t landscape:border-l landscape:border-t-0 border-border overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-col shrink-0">
             <DisplayQueue queue={queue} />
           </div>
-          <div className="shrink-0 border-t border-border">
+          <div className="flex-1 border-t border-border overflow-hidden">
             <DisplayHistory entries={recentHistory} />
           </div>
-          <div className="shrink-0 border-t border-border px-6 py-4">
+          <div className="landscape:hidden fixed bottom-4 right-4 bg-surface-alt shrink-0 border border-border px-6 py-4 flex items-center justify-center">
             <DisplayQRCode
-              venueSlug={slug}
               size={displaySettings.displayQrSize}
               lanIp={displaySettings.lanIp}
             />
           </div>
         </div>
       </div>
-
-      {venueOtp && (
-        <DisplayVenueOtp
-          code={venueOtp.code}
-          deviceHint={venueOtp.deviceHint}
-          onExpired={() => setVenueOtp(null)}
-        />
-      )}
     </div>
   );
 }

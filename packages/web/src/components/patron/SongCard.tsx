@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
+import { Play, Pause } from "lucide-react";
 import type { Song } from "@playplay/shared";
 import { useQueue } from "../../contexts/QueueContext";
+import { useToast } from "../../contexts/ToastContext";
 import { getSongStreamUrl } from "../../api/songs";
+import { ConfirmDialog } from "../common/ConfirmDialog";
+import { Button } from "../common/Button";
+import { SongArtwork } from "../common/SongArtwork";
 
 interface SongCardProps {
   song: Song;
@@ -32,37 +37,20 @@ function stopSharedAudio() {
   notifyListeners();
 }
 
-function PlayIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  );
-}
-
-function PauseIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-    </svg>
-  );
-}
-
 export function SongCard({ song }: SongCardProps) {
-  const { queuedSongIds, queuedSpotifyTrackIds, addSong } = useQueue();
+  const {
+    queuedSongIds,
+    queuedSpotifyTrackIds,
+    userQueueEntryMap,
+    userSpotifyEntryMap,
+    addSong,
+    removeSong,
+  } = useQueue();
+  const { showToast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   // Subscribe to shared audio state changes
   useEffect(() => {
@@ -100,9 +88,14 @@ export function SongCard({ song }: SongCardProps) {
     (song.spotifyTrackId && queuedSpotifyTrackIds.has(song.spotifyTrackId)) ||
     false;
 
+  // Find entry ID if this is the current user's queued song
+  const userEntryId =
+    (song.id && userQueueEntryMap.get(song.id)) ||
+    (song.spotifyTrackId && userSpotifyEntryMap.get(song.spotifyTrackId)) ||
+    null;
+
   const handleAdd = async () => {
     setIsAdding(true);
-    setError(null);
     try {
       if (song.id) {
         await addSong(song.id);
@@ -110,77 +103,106 @@ export function SongCard({ song }: SongCardProps) {
         await addSong(undefined, song.spotifyTrackId);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add");
+      showToast(err instanceof Error ? err.message : "Failed to add");
     } finally {
       setIsAdding(false);
     }
   };
 
+  const handleRemove = async () => {
+    if (!userEntryId) return;
+    setIsRemoving(true);
+    try {
+      await removeSong(userEntryId);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to remove");
+    } finally {
+      setIsRemoving(false);
+      setShowRemoveConfirm(false);
+    }
+  };
+
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      {/* Artwork for Spotify songs */}
-      {song.source === "spotify" && song.artworkUrl ? (
+    <>
+      <ConfirmDialog
+        open={showRemoveConfirm}
+        title="Remove from Queue"
+        message={`Remove "${song.title}" by ${song.artist} from the queue?`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onConfirm={handleRemove}
+        onCancel={() => setShowRemoveConfirm(false)}
+      />
+      <div className="flex items-center gap-3 px-4 py-3">
+        {/* Artwork doubles as preview play/pause control */}
         <button
           onClick={togglePreview}
-          className="relative h-10 w-10 shrink-0 rounded overflow-hidden group"
+          className="relative h-10 w-10 shrink-0 overflow-hidden group"
           aria-label={isPlaying ? "Stop preview" : "Preview song"}
         >
-          <img
-            src={song.artworkUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-          <span className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}>
+          <SongArtwork song={song} className="h-full w-full" fallback={null} />
+          <span
+            className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
+              isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
             {isPlaying ? (
-              <PauseIcon className="h-4 w-4 text-white" />
+              <Pause
+                fill="currentColor"
+                stroke="none"
+                className="h-4 w-4 text-white"
+              />
             ) : (
-              <PlayIcon className="h-4 w-4 text-white" />
+              <Play
+                fill="currentColor"
+                stroke="none"
+                className="h-4 w-4 text-white"
+              />
             )}
           </span>
         </button>
-      ) : (
-        <button
-          onClick={togglePreview}
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${isPlaying
-            ? "bg-primary text-on-primary"
-            : "bg-surface-alt text-on-surface-muted hover:text-on-surface"
-            }`}
-          aria-label={isPlaying ? "Stop preview" : "Preview song"}
-        >
-          {isPlaying ? (
-            <PauseIcon className="h-4 w-4" />
-          ) : (
-            <PlayIcon className="h-4 w-4" />
-          )}
-        </button>
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-on-surface">
-          {song.title}
-        </p>
-        <p className="truncate text-xs text-on-surface-muted">
-          {song.artist}
-          {song.album ? ` · ${song.album}` : ""}
-        </p>
-        {error && <p className="mt-0.5 text-xs text-destructive">{error}</p>}
-      </div>
-      <span className="shrink-0 text-xs tabular-nums text-on-surface-muted">
-        {formatDuration(song.duration)}
-      </span>
-      {isInQueue ? (
-        <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
-          In Queue
+        <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+          <p className="truncate text-md text-on-surface font-family-accent">
+            {song.title}
+          </p>
+          <p className="truncate text-xs text-on-surface-muted">
+            {song.artist}
+            {song.album ? ` · ${song.album}` : ""}
+          </p>
+        </div>
+        <span className="shrink-0 text-xs tabular-nums text-on-surface-muted">
+          {formatDuration(song.duration)}
         </span>
-      ) : (
-        <button
-          onClick={handleAdd}
-          disabled={isAdding}
-          className="shrink-0 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-on-primary transition-colors hover:bg-primary-hover disabled:opacity-50"
-        >
-          {isAdding ? "Adding…" : "Add"}
-        </button>
-      )}
-    </div>
+        {isInQueue ? (
+          userEntryId ? (
+            <Button
+              variant="destructive-soft"
+              size="xs"
+              rounded="full"
+              onClick={() => setShowRemoveConfirm(true)}
+              disabled={isRemoving}
+              className="shrink-0"
+            >
+              {isRemoving ? "Removing…" : "Remove"}
+            </Button>
+          ) : (
+            <span className="shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-medium text-primary">
+              In Queue
+            </span>
+          )
+        ) : (
+          <Button
+            variant="primary"
+            size="xs"
+            rounded="full"
+            onClick={handleAdd}
+            disabled={isAdding}
+            className="shrink-0"
+          >
+            {isAdding ? "Adding…" : "Add"}
+          </Button>
+        )}
+      </div>
+    </>
   );
 }

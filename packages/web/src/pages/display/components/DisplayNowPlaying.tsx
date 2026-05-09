@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { QueueEntry } from "@playplay/shared";
 import { getSongArtworkUrl } from "../../../api/songs";
+import { UserBadge } from "../../../components/common/UserBadge";
 
 interface DisplayNowPlayingProps {
   entry: QueueEntry | null;
@@ -13,7 +14,7 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <div className="text-6xl">🎵</div>
-        <p className="mt-4 text-2xl font-semibold text-on-surface-muted">
+        <p className="mt-4 text-2xl text-on-surface-muted font-family-accent">
           No song playing
         </p>
         <p className="mt-2 text-lg text-on-surface-muted">
@@ -30,12 +31,12 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
   const showFallback = artworkError === entry.song.id;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center text-center">
-      <p className="mb-4 text-sm font-bold uppercase tracking-widest text-primary">
+    <div className="flex flex-1 landscape:flex-col landscape:items-center landscape:justify-center gap-4 shrink-0 h-50 lg:h-66 w-full landscape:h-full">
+      <p className="hidden landscape:block mb-4 text-md uppercase tracking-widest text-primary">
         Now Playing
       </p>
       {showFallback ? (
-        <div className="mb-6 flex h-44 w-44 items-center justify-center rounded-2xl bg-primary/10 text-6xl lg:h-66 lg:w-66">
+        <div className="mb-6 flex h-50 w-50 items-center justify-center rounded-2xl bg-primary/10 text-6xl lg:h-66 lg:w-66">
           <span className="animate-pulse">🎵</span>
         </div>
       ) : (
@@ -43,33 +44,31 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           src={artworkUrl}
           alt={`${entry.song.title} album art`}
           onError={() => setArtworkError(entry.song.id)}
-          className="mb-6 h-44 w-44 rounded-2xl object-cover shadow-lg lg:h-66 lg:w-66"
+          className="mb-6 h-50 w-50 shrink-0 object-cover shadow-lg lg:h-66 lg:w-66"
         />
       )}
-      <h1 className="max-w-full text-4xl font-extrabold text-on-surface lg:text-5xl">
-        {entry.song.title}
-      </h1>
-      <p className="mt-2 max-w-full truncate text-2xl text-on-surface-muted lg:text-3xl">
-        {entry.song.artist}
-      </p>
-      {entry.song.album && (
-        <p className="mt-1 max-w-full truncate text-lg text-on-surface-muted">
-          {entry.song.album}
+      <div className="flex portrait:flex-1 flex-col gap-1 landscape:gap-2 px-4 min-w-0 landscape:w-full landscape:text-center landscape:items-center landscape:justify-center">
+        <p className="landscape:hidden text-md uppercase tracking-wide text-primary">
+          Now Playing
         </p>
-      )}
-      <div className="mt-4 flex items-center gap-4 text-lg text-on-surface-muted">
-        {entry.addedBy && (
-          <span>
-            Added by{" "}
-            <span className="font-semibold text-on-surface">
-              {entry.addedBy.displayName || "Someone"}
-            </span>
+        <h1 className="mt-auto max-w-full w-full text-3xl text-on-surface lg:text-5xl font-family-accent line-clamp-3">
+          {entry.song.title}
+        </h1>
+        <p className="max-w-full text-lg text-on-surface-muted line-clamp-2">
+          {entry.song.artist} {entry.song.album && `• ${entry.song.album}`}
+        </p>
+        <div className="flex items-center gap-1 text-sm font-semibold uppercase">
+          {entry.addedBy && (
+            <UserBadge
+              user={entry.addedBy}
+              className="text-on-surface text-on-surface-subtle"
+            />
+          )}
+          <span className="mx-1">•</span>
+          <span className="uppercase tabular-nums text-on-surface-subtle">
+            {entry.voteScore} VOTES
           </span>
-        )}
-        <span className="rounded-full bg-surface-raised px-3 py-1 font-bold tabular-nums text-on-surface">
-          {entry.voteScore > 0 ? "+" : ""}
-          {entry.voteScore}
-        </span>
+        </div>
       </div>
     </div>
   );

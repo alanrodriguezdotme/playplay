@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
+import { Play, Pause } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -19,6 +20,7 @@ import { useToast } from "../../contexts/ToastContext";
 import { useSocket } from "../../hooks/useSocket";
 import { SOCKET_EVENTS } from "@playplay/shared";
 import type { PlaybackSyncState } from "@playplay/shared";
+import { Button } from "../../components/common/Button";
 import {
   removeFromQueue,
   playNow,
@@ -28,6 +30,8 @@ import {
 import { DraggableQueueItem } from "../../components/admin/DraggableQueueItem";
 import { timeAgo } from "../../utils/time";
 import type { QueueEntry } from "@playplay/shared";
+import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
+import SectionHeader from "../../components/common/SectionHeader";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -172,8 +176,12 @@ export function QueueManagement() {
   const handleSkip = useCallback(async () => {
     if (queue.length > 0) {
       await handlePlayNow(queue[0].id);
+      return;
     }
-  }, [queue, handlePlayNow]);
+    if (nowPlaying && socket) {
+      socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
+    }
+  }, [queue, nowPlaying, socket, handlePlayNow]);
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -200,45 +208,45 @@ export function QueueManagement() {
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <h2 className="text-xl font-bold">Queue Management</h2>
+    <div className="flex flex-col">
+      <AdminPageHeader title="Queue Management" />
 
       {/* Now Playing + Remote Playback Controls */}
-      <div className="rounded-xl border border-border bg-surface-raised p-4">
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Now Playing
-        </h3>
+      <div className="bg-surface-raised flex flex-col">
+        <SectionHeader
+          title="Now Playing"
+          subtitle={
+            audioOwnerDevice && (
+              <p className="text-[10px] text-on-surface-muted">
+                Audio: {audioOwnerDevice}
+              </p>
+            )
+          }
+        />
         {nowPlaying ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
+          <div className="space-y-3 flex flex-col">
+            <div className="flex items-center gap-3 p-4 pb-2">
               {/* Play/Pause button */}
               <button
                 onClick={togglePlayPause}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 hover:bg-primary/25 transition-colors"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 hover:bg-primary/25 transition-colors"
               >
                 {isPlaying ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
+                  <Pause
                     fill="currentColor"
+                    stroke="none"
                     className="h-5 w-5 text-primary"
-                  >
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
+                  />
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
+                  <Play
                     fill="currentColor"
+                    stroke="none"
                     className="h-5 w-5 text-primary"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+                  />
                 )}
               </button>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">
+              <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                <p className="truncate text-md font-family-accent">
                   {nowPlaying.song.title}
                 </p>
                 <p className="truncate text-xs text-on-surface-muted">
@@ -246,21 +254,27 @@ export function QueueManagement() {
                   {nowPlaying.addedBy && (
                     <span>
                       {" "}
-                      · {nowPlaying.addedBy.displayName ?? "Unknown"}
+                      ·{" "}
+                      {nowPlaying.addedBy.avatarEmoji
+                        ? nowPlaying.addedBy.avatarEmoji + " "
+                        : ""}
+                      {nowPlaying.addedBy.displayName ?? "Unknown"}
                     </span>
                   )}
                 </p>
               </div>
-              <button
+              <Button
+                variant="secondary"
+                size="xs"
                 onClick={handleSkip}
-                disabled={queue.length === 0}
-                className="rounded-lg bg-surface px-3 py-1.5 text-xs font-medium border border-border text-on-surface-muted hover:text-on-surface disabled:opacity-50"
+                disabled={queue.length === 0 && !nowPlaying}
+                className="bg-surface"
               >
                 Skip
-              </button>
+              </Button>
             </div>
             {/* Progress bar (shows audio owner state) */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 p-4 pt-2">
               <span className="text-[10px] tabular-nums text-on-surface-muted w-10 text-right">
                 {formatDuration(Math.floor(localTime))}
               </span>
@@ -268,9 +282,7 @@ export function QueueManagement() {
                 <div
                   className="h-full rounded-full bg-primary"
                   style={{
-                    width: duration
-                      ? `${(localTime / duration) * 100}%`
-                      : "0%",
+                    width: duration ? `${(localTime / duration) * 100}%` : "0%",
                   }}
                 />
               </div>
@@ -278,11 +290,6 @@ export function QueueManagement() {
                 {formatDuration(Math.floor(duration))}
               </span>
             </div>
-            {audioOwnerDevice && (
-              <p className="text-[10px] text-on-surface-muted">
-                Audio playing on: {audioOwnerDevice}
-              </p>
-            )}
           </div>
         ) : (
           <p className="text-sm text-on-surface-muted">Nothing playing</p>
@@ -291,9 +298,7 @@ export function QueueManagement() {
 
       {/* Queue */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          Queue ({queue.length})
-        </h3>
+        <SectionHeader title={`Queue (${queue.length})`} showTopBorder />
         {queue.length > 0 ? (
           <DndContext
             sensors={sensors}
@@ -304,7 +309,7 @@ export function QueueManagement() {
               items={queue.map((e) => e.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-2">
+              <div className="flex flex-col divide-y divide-border">
                 {queue.map((entry) => (
                   <DraggableQueueItem
                     key={entry.id}
@@ -317,45 +322,57 @@ export function QueueManagement() {
             </SortableContext>
           </DndContext>
         ) : (
-          <div className="rounded-xl border border-border bg-surface-raised p-8 text-center">
-            <p className="text-on-surface-muted">Queue is empty</p>
+          <div className="p-8 w-full text-center">
+            <p className="text-on-surface-subtle">Queue is empty</p>
           </div>
         )}
       </div>
 
       {/* History */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-on-surface-muted uppercase tracking-wider">
-          History
-        </h3>
+        <SectionHeader title="History" showTopBorder />
         {history.length > 0 ? (
-          <div className="space-y-2">
+          <div className="flex flex-col divide-y divide-border">
             {history.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex items-center gap-3 rounded-lg border border-border bg-surface-raised px-3 py-2.5"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{entry.song.title}</p>
-                  <p className="truncate text-xs text-on-surface-muted">
-                    {entry.song.artist}
-                    {entry.addedBy && (
-                      <span> · {entry.addedBy.displayName ?? "Default"}</span>
-                    )}
+              <div key={entry.id} className="flex items-center gap-2 p-4">
+                <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                  <p className="truncate text-sm font-family-accent">
+                    {entry.song.title}
                   </p>
+                  <p className="truncate text-xs text-on-surface-muted">
+                    {entry.song.artist} · {entry.song.album}
+                  </p>
+                  <div className="flex gap-1">
+                    {entry.addedBy && (
+                      <span className="text-xs text-on-surface-subtle">
+                        {entry.addedBy.avatarEmoji
+                          ? entry.addedBy.avatarEmoji + " "
+                          : ""}
+                        {entry.addedBy.displayName ?? "Unknown"}
+                      </span>
+                    )}
+                    <span className="text-xs text-on-surface-subtle">·</span>
+                    <span
+                      className={`text-xs font-semibold text-on-surface-subtle uppercase`}
+                    >
+                      {entry.voteScore} votes
+                    </span>
+                    <span className="text-xs text-on-surface-subtle">·</span>
+                    <span className={`text-xs text-on-surface-subtle`}>
+                      {entry.playedAt
+                        ? timeAgo(entry.playedAt)
+                        : timeAgo(entry.createdAt)}
+                    </span>
+                  </div>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${entry.status === "PLAYED"
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
+                    entry.status === "PLAYED"
                       ? "bg-on-surface-muted/15 text-on-surface-muted"
                       : "bg-destructive/15 text-destructive"
-                    }`}
+                  }`}
                 >
                   {entry.status}
-                </span>
-                <span className="text-xs text-on-surface-muted">
-                  {entry.playedAt
-                    ? timeAgo(entry.playedAt)
-                    : timeAgo(entry.createdAt)}
                 </span>
               </div>
             ))}

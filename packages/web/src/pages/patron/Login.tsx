@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   deviceRegister,
   deviceLogin,
-  getVenueInfo,
   adminLogin,
   setDisplayName,
 } from "../../api/auth";
 import { getDeviceId } from "../../api/client";
 import { useAuth } from "../../contexts/AuthContext";
+import { useVenue } from "../../contexts/VenueContext";
+import { useToast } from "../../contexts/ToastContext";
+import {
+  useTheme,
+  BUILT_IN_THEMES,
+  type BuiltInTheme,
+} from "../../contexts/ThemeContext";
 import { ApiRequestError } from "../../api/client";
 import { EmojiAvatarPicker } from "../../components/patron/EmojiAvatarPicker";
+import { Button } from "../../components/common/Button";
+import { validateUsername } from "@playplay/shared";
 import type { AuthResponse } from "@playplay/shared";
 
 type Step = "register" | "admin-login" | "admin-name";
@@ -26,9 +34,26 @@ export function Login({
   isAdmin = false,
   skipAutoLogin = false,
 }: { isAdmin?: boolean; skipAutoLogin?: boolean } = {}) {
-  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { login, updateUser, user: currentUser } = useAuth();
+  const { venue } = useVenue();
+  const { showToast } = useToast();
+  const { setTheme } = useTheme();
+
+  function seedVenueTheme() {
+    if (!venue) return;
+    if (localStorage.getItem("playplay-theme")) return;
+    if ((BUILT_IN_THEMES as readonly string[]).includes(venue.displayTheme)) {
+      setTheme(venue.displayTheme as BuiltInTheme);
+    }
+  }
+
+  // Apply the venue's default theme to the login screen for users who
+  // haven't picked their own theme yet (e.g. first visit / incognito).
+  useEffect(() => {
+    seedVenueTheme();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [venue]);
 
   const [step, setStep] = useState<Step>(
     isAdmin ? getInitialAdminStep(currentUser) : "register",
@@ -47,70 +72,64 @@ export function Login({
 
   // Check if venue requires a code & auto-login
   useEffect(() => {
-    if (!slug || autoLoginAttempted) return;
+    if (autoLoginAttempted) return;
     setAutoLoginAttempted(true);
-
-    // Fetch venue auth requirements
-    if (!isAdmin) {
-      getVenueInfo(slug)
-        .then((info) => {
-          if (info.requiresVenueCode) setRequiresVenueCode(true);
-        })
-        .catch(() => { });
-    }
 
     // Auto-login with existing device
     if (!isAdmin && !skipAutoLogin) {
-      deviceLogin(deviceId, slug)
+      deviceLogin(deviceId)
         .then((res) => {
           login(res.token, res.user);
-          navigate(`/venue/${slug}`);
+          navigate("/queue");
         })
         .catch(() => {
           // Not registered yet — stay on registration form
         });
     }
-  }, [
-    slug,
-    deviceId,
-    isAdmin,
-    skipAutoLogin,
-    autoLoginAttempted,
-    login,
-    navigate,
-  ]);
+  }, [deviceId, isAdmin, skipAutoLogin, autoLoginAttempted, login, navigate]);
+
+  // Reflect venue OTP setting whenever venue info loads/changes.
+  useEffect(() => {
+    if (isAdmin) return;
+    if (venue?.requiresVenueCode) setRequiresVenueCode(true);
+  }, [isAdmin, venue]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (!slug) return;
     setError("");
+
+    const nameCheck = validateUsername(name);
+    if (!nameCheck.ok) {
+      showToast(nameCheck.reason, "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await deviceRegister(
         deviceId,
-        slug,
-        name,
+        nameCheck.value,
         avatarEmoji,
         requiresVenueCode ? venueCode : undefined,
       );
 
       const authRes = res as AuthResponse;
+      seedVenueTheme();
       login(authRes.token, authRes.user);
-      navigate(`/venue/${slug}`);
+      navigate("/queue");
     } catch (err) {
       if (
         err instanceof ApiRequestError &&
         err.code === "VENUE_CODE_REQUIRED"
       ) {
-        // Field should already be visible from venue-info, but handle just in case
         setRequiresVenueCode(true);
       } else if (err instanceof ApiRequestError && err.status === 409) {
         // Already registered — try login
         try {
-          const loginRes = await deviceLogin(deviceId, slug);
+          const loginRes = await deviceLogin(deviceId);
           login(loginRes.token, loginRes.user);
-          navigate(`/venue/${slug}`);
+          navigate("/queue");
           return;
         } catch {
           // Fall through to show error
@@ -128,23 +147,20 @@ export function Login({
 
   async function handleAdminLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!slug) return;
     setError("");
     setLoading(true);
 
     try {
-      const res = await adminLogin(email, password, slug);
+      const res = await adminLogin(email, password);
       login(res.token, res.user);
 
       if (!res.user.displayName) {
         setStep("admin-name");
       } else {
-        navigate(`/venue/${slug}/admin`);
+        navigate("/admin");
       }
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Login failed",
-      );
+      setError(err instanceof ApiRequestError ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -152,14 +168,20 @@ export function Login({
 
   async function handleSetName(e: React.FormEvent) {
     e.preventDefault();
-    if (!slug) return;
     setError("");
+
+    const nameCheck = validateUsername(name);
+    if (!nameCheck.ok) {
+      showToast(nameCheck.reason, "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const updated = await setDisplayName(name);
+      const updated = await setDisplayName(nameCheck.value);
       updateUser(updated);
-      navigate(`/venue/${slug}/admin`);
+      navigate("/admin");
     } catch (err) {
       setError(
         err instanceof ApiRequestError ? err.message : "Failed to set name",
@@ -172,12 +194,12 @@ export function Login({
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-8 text-center text-3xl font-bold text-on-surface">
-          PlayPlay
+        <h1 className="mb-8 text-center text-4xl text-on-surface font-family-accent">
+          {venue?.name}
         </h1>
 
         {error && (
-          <div className="mb-4 rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="mb-4 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -197,7 +219,7 @@ export function Login({
                 placeholder="Your name"
                 maxLength={30}
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
             {requiresVenueCode && (
@@ -215,21 +237,23 @@ export function Login({
                   }
                   placeholder="000000"
                   required
-                  className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-center text-2xl tracking-widest text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-center text-2xl tracking-widest text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </label>
             )}
-            <button
+            <Button
               type="submit"
+              size="lg"
+              rounded="none"
+              fullWidth
               disabled={
                 loading ||
                 !name.trim() ||
                 (requiresVenueCode && venueCode.length !== 6)
               }
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Joining..." : "Join Venue"}
-            </button>
+            </Button>
           </form>
         )}
 
@@ -244,7 +268,7 @@ export function Login({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@venue.local"
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
             <label className="block">
@@ -255,16 +279,18 @@ export function Login({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
-            <button
+            <Button
               type="submit"
+              size="lg"
+              rounded="none"
+              fullWidth
               disabled={loading || !email.trim() || !password}
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign In"}
-            </button>
+            </Button>
           </form>
         )}
 
@@ -282,16 +308,17 @@ export function Login({
                 placeholder="Your name"
                 maxLength={30}
                 required
-                className="mt-1 block w-full rounded-lg border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </label>
-            <button
+            <Button
               type="submit"
+              size="lg"
+              fullWidth
               disabled={loading || !name.trim()}
-              className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-on-primary transition-opacity disabled:opacity-50"
             >
               {loading ? "Saving..." : "Continue"}
-            </button>
+            </Button>
           </form>
         )}
       </div>

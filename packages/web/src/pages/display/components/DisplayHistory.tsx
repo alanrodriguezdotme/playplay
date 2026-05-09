@@ -1,5 +1,6 @@
 import type { QueueEntry } from "@playplay/shared";
 import { timeAgo } from "../../../utils/time";
+import SectionHeader from "../../../components/common/SectionHeader";
 
 interface DisplayHistoryProps {
   entries: QueueEntry[];
@@ -12,23 +13,21 @@ export function DisplayHistory({ entries }: DisplayHistoryProps) {
 
   return (
     <div className="flex flex-col overflow-hidden">
-      <h2 className="shrink-0 px-4 py-2 text-xs font-bold uppercase tracking-widest text-on-surface-muted">
-        Recently Played
-      </h2>
+      <SectionHeader title="Recently Played" muted />
       <div className="divide-y divide-border overflow-y-auto">
         {entries.map((entry) => (
-          <div key={entry.id} className="flex items-center gap-3 px-4 py-2">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-on-surface">
+          <div key={entry.id} className="flex items-center gap-3 p-4">
+            <div className="min-w-0 flex-1 flex flex-col gap-1">
+              <p className="truncate text-md text-on-surface-muted font-family-accent">
                 {entry.song.title}
               </p>
-              <p className="truncate text-xs text-on-surface-muted">
-                {entry.song.artist}
+              <p className="truncate text-xs text-on-surface-subtle">
+                {entry.song.artist} •{" "}
+                <span className="uppercase">
+                  {entry.playedAt ? timeAgo(entry.playedAt) : "—"}
+                </span>
               </p>
             </div>
-            <span className="shrink-0 text-xs tabular-nums text-on-surface-muted">
-              {entry.playedAt ? timeAgo(entry.playedAt) : "—"}
-            </span>
           </div>
         ))}
       </div>

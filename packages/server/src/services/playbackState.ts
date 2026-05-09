@@ -97,3 +97,29 @@ export function setCurrentSong(venueId: string, songId: string | null, source?: 
     s.isPlaying = false;
   }
 }
+
+// ---- Default-playlist fallback cursor (per-venue, in-memory) ----
+
+interface FallbackCursor {
+  /** Unique key for the current default-playlist config; bumping this resets the cursor. */
+  configKey: string;
+  /** ID of the last fallback Song picked (used by ordered playback to advance). */
+  lastSongId: string | null;
+}
+
+const fallbackCursors = new Map<string, FallbackCursor>();
+
+export function getFallbackCursor(venueId: string, configKey: string): string | null {
+  const c = fallbackCursors.get(venueId);
+  if (!c || c.configKey !== configKey) return null;
+  return c.lastSongId;
+}
+
+export function setFallbackCursor(venueId: string, configKey: string, songId: string | null): void {
+  fallbackCursors.set(venueId, { configKey, lastSongId: songId });
+}
+
+export function clearFallbackCursor(venueId: string): void {
+  fallbackCursors.delete(venueId);
+}
+
