@@ -186,20 +186,64 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
 
     const play = useCallback(
         async (spotifyUri: string) => {
-            if (!deviceId || !tokenRef.current) return;
-            await fetch(
-                `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-                {
+            if (!deviceId) return;
+            const playUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
+            const transferUrl = "https://api.spotify.com/v1/me/player";
+            const body = JSON.stringify({ uris: [spotifyUri] });
+
+            // Always fetch a fresh token — the cached one may have expired
+            // (Spotify access tokens last ~1h) which surfaces as a 403/401 on
+            // the play call and leaves the previous track loaded on the device.
+            let token: string;
+            try {
+                token = await fetchToken();
+            } catch {
+                setError("Failed to get Spotify token");
+                return;
+            }
+
+            const authHeaders = () => ({
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            });
+
+            const transferToDevice = () =>
+                fetch(transferUrl, {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${tokenRef.current}`,
-                    },
-                    body: JSON.stringify({ uris: [spotifyUri] }),
+                    headers: authHeaders(),
+                    body: JSON.stringify({ device_ids: [deviceId], play: false }),
+                });
+
+            const doPlay = () =>
+                fetch(playUrl, { method: "PUT", headers: authHeaders(), body });
+
+            let resp = await doPlay();
+
+            if (resp.status === 401) {
+                try {
+                    token = await fetchToken();
+                } catch {
+                    setError("Failed to refresh Spotify token");
+                    return;
                 }
-            );
+                resp = await doPlay();
+            }
+
+            // 403 "Restriction violated" usually means another Connect device
+            // owns playback. Transfer to our SDK device, then retry.
+            if (resp.status === 403 || resp.status === 404) {
+                await transferToDevice().catch(() => {});
+                // Spotify needs a brief moment to register the transfer.
+                await new Promise((r) => setTimeout(r, 400));
+                resp = await doPlay();
+            }
+
+            if (!resp.ok) {
+                const text = await resp.text().catch(() => "");
+                setError(`Spotify play failed (${resp.status}): ${text || resp.statusText}`);
+            }
         },
-        [deviceId]
+        [deviceId, fetchToken]
     );
 
     const pause = useCallback(async () => {

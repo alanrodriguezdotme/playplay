@@ -16,6 +16,7 @@ import { playNow } from "../../api/queue";
 import { useSpotifyPlayer } from "../../hooks/useSpotifyPlayer";
 import { useSpotifyConnect } from "../../hooks/useSpotifyConnect";
 import { UserBadge } from "../../components/common/UserBadge";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 
 function getDeviceHint(): string {
   const ua = navigator.userAgent;
@@ -54,6 +55,7 @@ export function AdminAudioPlayer({
     null,
   );
   const [showConnectDevices, setShowConnectDevices] = useState(false);
+  const [showClaimConfirm, setShowClaimConfirm] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekValue, setSeekValue] = useState(0);
@@ -190,8 +192,12 @@ export function AdminAudioPlayer({
     prevSpotifyStateRef.current = curr;
 
     if (prev && !prev.paused && curr && curr.paused && curr.position === 0) {
-      // Track ended — Spotify resets position to 0 when paused at end
-      lastEntryIdRef.current = null;
+      // Track ended — Spotify resets position to 0 when paused at end.
+      // Do NOT clear lastEntryIdRef here: the SDK keeps firing
+      // player_state_changed events while we wait for the server to
+      // broadcast the next nowPlaying, and clearing the ref would let
+      // the "play current" effect re-issue play() for the just-ended
+      // song (causing the previous track to repeat).
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     }
   }, [spotify.playerState, socket, isOwner, needsSpotify]);
@@ -262,7 +268,8 @@ export function AdminAudioPlayer({
     if (!audio || !socket || !isOwner) return;
 
     const onEnded = () => {
-      lastEntryIdRef.current = null;
+      // See note in the Spotify end detector — leave lastEntryIdRef alone
+      // so the current song isn't re-loaded before the next nowPlaying arrives.
       socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
     };
     const onPlay = () => broadcastLocalState();
@@ -288,6 +295,14 @@ export function AdminAudioPlayer({
   const handleClaim = () => {
     if (!socket) return;
     socket.emit(SOCKET_EVENTS.PLAYBACK_CLAIM, { deviceHint: getDeviceHint() });
+  };
+
+  const handleClaimClick = () => {
+    if (isPlaying && hasOwner) {
+      setShowClaimConfirm(true);
+    } else {
+      handleClaim();
+    }
   };
 
   const handleStartPlayback = () => {
@@ -348,7 +363,6 @@ export function AdminAudioPlayer({
         audioRef.current?.pause();
       }
     }
-    lastEntryIdRef.current = null;
     socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
   }, [queue, nowPlaying, socket, isOwner, currentSongSource, spotify]);
 
@@ -595,7 +609,7 @@ export function AdminAudioPlayer({
               )}
             </div>
             <button
-              onClick={handleClaim}
+              onClick={handleClaimClick}
               className="bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover"
             >
               Play Audio Here
@@ -623,6 +637,18 @@ export function AdminAudioPlayer({
           </button>,
           document.body,
         )}
+      <ConfirmDialog
+        open={showClaimConfirm}
+        title="Take over audio playback?"
+        message={`Music is currently playing on ${playbackSync?.audioOwnerDeviceHint ?? "another device"}. Claiming playback here will stop it there.`}
+        confirmLabel="Play Here"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          setShowClaimConfirm(false);
+          handleClaim();
+        }}
+        onCancel={() => setShowClaimConfirm(false)}
+      />
     </>
   );
 }
