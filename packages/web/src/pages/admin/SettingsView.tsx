@@ -28,6 +28,7 @@ import type {
   DefaultPlaylistConfig,
 } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
+import { Button } from "../../components/common/Button";
 import {
   FormInput,
   FormToggle,
@@ -455,8 +456,8 @@ export function SettingsView() {
             </div>
           )}
           {musicSource === "spotify" && (
-            <div className="space-y-3 p-4">
-              <div className="space-y-2 border border-outline/30 p-3">
+            <div className="space-y-4 p-4">
+              <div className="flex flex-col gap-4">
                 <h4 className="text-sm font-medium text-on-surface">
                   Spotify App Credentials
                 </h4>
@@ -470,11 +471,11 @@ export function SettingsView() {
                   >
                     developer.spotify.com/dashboard
                   </a>
-                  , then paste this Redirect URI into the app's settings:
+                  , then paste this Redirect URI into the app's settings:{" "}
+                  <span className="text-xs bg-surface-variant text-on-surface">
+                    {credsRelayUrl || "https://spotify-relay.vercel.app"}
+                  </span>
                 </p>
-                <code className="block break-all bg-surface-variant px-2 py-1 text-[11px] text-on-surface">
-                  {credsRelayUrl || "https://spotify-relay.vercel.app"}
-                </code>
 
                 {!credsEditing && venue?.settings.spotify?.configured ? (
                   <div className="flex flex-wrap items-center gap-2">
@@ -601,93 +602,98 @@ export function SettingsView() {
                   </div>
                 )}
               </div>
+              <div className="flex flex-col gap-4">
+                <h4 className="text-sm font-medium text-on-surface">
+                  Spotify Connection
+                </h4>
 
-              <h4 className="text-sm font-medium text-on-surface">
-                Spotify Connection
-              </h4>
-
-              {!venue?.settings.spotify?.configured ? (
-                <p className="text-xs text-on-surface-muted">
-                  Add credentials above before connecting an account.
-                </p>
-              ) : spotifyStatus?.connected ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-success" />
-                    <span className="text-sm text-on-surface">
-                      Connected as <strong>{spotifyStatus.displayName}</strong>
-                    </span>
-                    {spotifyStatus.isPremium && (
-                      <span className="rounded-full bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
-                        PREMIUM
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    onClick={async () => {
-                      setSpotifyLoading(true);
-                      try {
-                        await disconnectSpotify();
-                        setSpotifyStatus({
-                          connected: false,
-                          spotifyUserId: null,
-                          displayName: null,
-                          isPremium: false,
-                        });
-                        showToast("Spotify disconnected", "success");
-                      } catch (err) {
-                        showToast(
-                          err instanceof Error
-                            ? err.message
-                            : "Failed to disconnect",
-                          "error",
-                        );
-                      } finally {
-                        setSpotifyLoading(false);
-                      }
-                    }}
-                    disabled={spotifyLoading}
-                    className="border border-error/50 px-4 py-2 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-50"
-                  >
-                    {spotifyLoading ? "..." : "Disconnect Spotify"}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
+                {!venue?.settings.spotify?.configured ? (
                   <p className="text-xs text-on-surface-muted">
-                    Connect your Spotify Premium account to enable streaming.
+                    Add credentials above before connecting an account.
                   </p>
-                  <button
-                    onClick={async () => {
-                      setSpotifyLoading(true);
-                      try {
-                        const { url } = await getSpotifyAuthUrl();
-                        window.location.href = url;
-                      } catch (err) {
-                        showToast(
-                          err instanceof Error
-                            ? err.message
-                            : "Failed to get auth URL",
-                          "error",
-                        );
-                        setSpotifyLoading(false);
-                      }
-                    }}
-                    disabled={spotifyLoading}
-                    className="bg-[#1DB954] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1ed760] disabled:opacity-50"
-                  >
-                    {spotifyLoading ? "Connecting..." : "Connect Spotify"}
-                  </button>
-                </div>
-              )}
+                ) : spotifyStatus?.connected ? (
+                  <div className="flex items-center gap-4">
+                    <Button
+                      size="md"
+                      disabled={spotifyLoading}
+                      onClick={async () => {
+                        setSpotifyLoading(true);
+                        try {
+                          await disconnectSpotify();
+                          setSpotifyStatus({
+                            connected: false,
+                            spotifyUserId: null,
+                            displayName: null,
+                            isPremium: false,
+                          });
+                          showToast("Spotify disconnected", "success");
+                        } catch (err) {
+                          showToast(
+                            err instanceof Error
+                              ? err.message
+                              : "Failed to disconnect",
+                            "error",
+                          );
+                        } finally {
+                          setSpotifyLoading(false);
+                        }
+                      }}
+                    >
+                      {spotifyLoading ? "..." : "Disconnect Spotify"}
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-success" />
+                      <span className="text-sm text-on-surface">
+                        Connected as{" "}
+                        <strong>{spotifyStatus.displayName}</strong>
+                      </span>
+                      {spotifyStatus.isPremium && (
+                        <span className="rounded-full bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
+                          PREMIUM
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <Button
+                        onClick={async () => {
+                          setSpotifyLoading(true);
+                          try {
+                            const { url } = await getSpotifyAuthUrl();
+                            window.location.href = url;
+                          } catch (err) {
+                            showToast(
+                              err instanceof Error
+                                ? err.message
+                                : "Failed to get auth URL",
+                              "error",
+                            );
+                            setSpotifyLoading(false);
+                          }
+                        }}
+                        disabled={spotifyLoading}
+                        className="bg-[#1DB954] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1ed760] disabled:opacity-50"
+                      >
+                        {spotifyLoading ? "Connecting..." : "Connect Spotify"}
+                      </Button>
+                      <p className="text-xs text-on-surface-muted">
+                        Connect your Spotify Premium account to enable
+                        streaming.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-              <FormToggle
-                label="Allow Full Catalog Search"
-                description="Let patrons search the entire Spotify catalog (not just your curated library)."
-                checked={allowFullCatalogSearch}
-                onChange={setAllowFullCatalogSearch}
-                compact
-              />
+                <FormToggle
+                  label="Allow Full Catalog Search"
+                  description="Let patrons search the entire Spotify catalog (not just your curated library)."
+                  checked={allowFullCatalogSearch}
+                  onChange={setAllowFullCatalogSearch}
+                  compact
+                />
+              </div>
             </div>
           )}
         </div>

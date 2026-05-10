@@ -31,8 +31,8 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
   const showFallback = artworkError === entry.song.id;
 
   return (
-    <div className="flex flex-1 landscape:flex-col landscape:items-center landscape:justify-center gap-4 shrink-0 h-50 lg:h-66 w-full landscape:h-full">
-      <p className="hidden landscape:block mb-4 text-md uppercase tracking-widest text-primary">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4">
+      <p className="mb-4 text-md uppercase tracking-widest text-primary">
         Now Playing
       </p>
       {showFallback ? (
@@ -47,11 +47,8 @@ export function DisplayNowPlaying({ entry }: DisplayNowPlayingProps) {
           className="mb-6 h-50 w-50 shrink-0 object-cover shadow-lg lg:h-66 lg:w-66"
         />
       )}
-      <div className="flex portrait:flex-1 flex-col gap-1 landscape:gap-2 px-4 min-w-0 landscape:w-full landscape:text-center landscape:items-center landscape:justify-center">
-        <p className="landscape:hidden text-md uppercase tracking-wide text-primary">
-          Now Playing
-        </p>
-        <h1 className="mt-auto max-w-full w-full text-3xl text-on-surface lg:text-5xl font-family-accent line-clamp-3">
+      <div className="flex portrait:flex-1 flex-col gap-2 px-4 min-w-0 w-full text-center items-center justify-center">
+        <h1 className="mt-auto text-3xl text-on-surface lg:text-5xl font-family-accent line-clamp-3 max-w-3/4 pb-2 leading-[1.15]">
           {entry.song.title}
         </h1>
         <p className="max-w-full text-lg text-on-surface-muted line-clamp-2">

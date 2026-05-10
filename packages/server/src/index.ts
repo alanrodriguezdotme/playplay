@@ -32,11 +32,12 @@ app.use("/api/queue", queueRouter);
 app.use("/api/spotify", spotifyRouter);
 app.use("/api/admin", authenticate, requireAdmin, adminRouter);
 
-// Serve the built web app in production. The built server lives at
+// Serve the built web app in production only. The built server lives at
 // `packages/server/dist/index.js`, so the web build sits at `../../web/dist`.
-// In dev (tsx), this directory may not exist — Vite serves the UI instead.
+// In dev we run via `tsx` (this file ends in `.ts`); Vite serves the UI with HMR.
+const isProduction = import.meta.url.endsWith(".js");
 const webDist = resolvePath(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
-if (existsSync(webDist) && statSync(webDist).isDirectory()) {
+if (isProduction && existsSync(webDist) && statSync(webDist).isDirectory()) {
   app.use(express.static(webDist));
   app.get(/^\/(?!api\/|socket\.io\/).*/, (_req, res) => {
     res.sendFile(resolvePath(webDist, "index.html"));
@@ -61,9 +62,14 @@ function lanAddresses(): string[] {
 
 server.listen(port, "0.0.0.0", () => {
   const urls = ["127.0.0.1", ...lanAddresses()].map((ip) => `http://${ip}:${port}`);
-  console.log("\nPlayPlay Venue is running:");
-  for (const url of urls) console.log(`  ${url}`);
-  console.log("\n  Admin:    /admin");
-  console.log("  Patron:   /  (share this URL with patrons)");
-  console.log("  Display:  /now-playing\n");
+  if (isProduction) {
+    console.log("\nPlayPlay Venue is running:");
+    for (const url of urls) console.log(`  ${url}`);
+    console.log("\n  Admin:    /admin");
+    console.log("  Patron:   /  (share this URL with patrons)");
+    console.log("  Display:  /now-playing\n");
+  } else {
+    console.log(`\nPlayPlay Venue API listening on :${port} (dev)`);
+    console.log("  → open the Vite dev URL (printed above) for HMR\n");
+  }
 });
