@@ -6,20 +6,15 @@ A self-hosted, collaborative jukebox for venues, parties, workplaces, road trips
 
 Music can come from a **local folder of MP3s** (fully offline) or from **Spotify** (requires a Spotify Premium account on the playback device).
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Node 20+](https://img.shields.io/badge/node-%E2%89%A520-brightgreen.svg)](https://nodejs.org/) [![Built with React + Express](https://img.shields.io/badge/stack-React%20%2B%20Express-orange.svg)](#architecture)
-
 ---
 
 ## Features
 
-- **Phone-based queue + voting** — guests join from a QR code, search the catalog, add songs, and upvote/downvote others.
-- **Real-time sync** — every queue change pushes instantly to all connected devices via Socket.IO.
-- **Now-Playing TV display** — full-screen, themeable view with current track, upcoming queue, history, and a join QR. Wake-lock keeps it awake.
-- **Admin dashboard** — drag-to-reorder queue, block/unblock songs and users, manage settings, scan music libraries, monitor activity.
-- **Easy login** — patron sign-in with display name + emoji avatar; SMS-free flow can show the OTP on the venue display.
-- **Local or Spotify mode** — drop MP3s in a folder, or stream from Spotify with the official Web Playback SDK.
-- **Fallback playlist** — what plays when the queue runs dry: recent history, a local folder/M3U, or a Spotify playlist (with optional shuffle).
-- **Themes!** — you can pick your own theme; venues can set a default for the display.
+- Vote on the songs in the queue and add your own suggestions
+- Now Playing screen to show what's on rotation and what's queued up. Also shows a QR code for anyone to join the party
+- Admin dashboard to manage playback, queue, music, and users
+- Use local MP3s or your premium Spotify account
+- **Themes!** — you can pick your own theme; venues can set a theme for the Now Playing screen.
 
 ## Hardware & network requirements
 
@@ -73,18 +68,9 @@ Open `/admin` on the laptop to manage the venue, point the TV at `/now-playing`,
 | `/admin`       | You — sign in with the email + password you set |
 | `/now-playing` | Big-screen display (open on the venue TV)       |
 
-### What the wizard does
+### Run the wizard to setup
 
-1. Verifies Node 20+, then bootstraps `pnpm` via `corepack` if it isn't installed.
-2. Runs `pnpm install --frozen-lockfile`.
-3. Asks for venue name, slug, admin email + password, music source, library path or Spotify credentials, and HTTP port.
-4. Generates a random `JWT_SECRET` and writes `packages/server/.env`.
-5. Runs Prisma migrations against the SQLite database.
-6. Builds the server + web app.
-7. Stores the venue, hashed admin password, and (if provided) encrypted Spotify credentials in the DB.
-8. Prints LAN URLs + a QR code for the patron URL, then optionally starts the server.
-
-Re-run later with `pnpm setup --reconfigure` to change any setting, or `pnpm start` to just launch the server.
+CLI wizard helps set everything up for you. You can change nearly everything later in the admin settings. Re-run later with `pnpm setup --reconfigure` to change any setting, or `pnpm start` to just launch the server.
 
 ## Regular use
 
@@ -251,3 +237,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for monorepo layout, build/test commands,
 ## License
 
 [MIT](LICENSE) © PlayPlay contributors.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Node 20+](https://img.shields.io/badge/node-%E2%89%A520-brightgreen.svg)](https://nodejs.org/) [![Built with React + Express](https://img.shields.io/badge/stack-React%20%2B%20Express-orange.svg)](#architecture)
