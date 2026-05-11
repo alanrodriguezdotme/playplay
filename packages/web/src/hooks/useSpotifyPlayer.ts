@@ -116,7 +116,7 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
                 if (cancelled) return;
 
                 const player = new window.Spotify.Player({
-                    name: "PlayPlay Venue",
+                    name: "PlayPlay",
                     getOAuthToken: async (cb: (token: string) => void) => {
                         try {
                             const token = await fetchToken();

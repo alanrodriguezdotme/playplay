@@ -1,8 +1,8 @@
-# PlayPlay Venue
+# PlayPlay
 
 ![screenshots of the different screens](./packages/shared/src/images/all-screens.png)
 
-A self-hosted, collaborative jukebox for venues. Patrons scan a QR code, suggest songs, and vote on the queue from their phone. The Now Playing screen runs on a TV. You run it on a laptop.
+A self-hosted, collaborative jukebox for venues, parties, workplaces, road trips... anywhere! Install it on Mac, PC, or Linux to start playing music. Display the Now Playing screen on TVs or monitors, where guests can scan a QR code to join the party and suggest songs, and vote on the queue, all from their phones.
 
 Music can come from a **local folder of MP3s** (fully offline) or from **Spotify** (requires a Spotify Premium account on the playback device).
 
@@ -12,14 +12,14 @@ Music can come from a **local folder of MP3s** (fully offline) or from **Spotify
 
 ## Features
 
-- **Phone-based queue + voting** — patrons join from a QR code, search the catalog, add songs, and upvote/downvote others.
+- **Phone-based queue + voting** — guests join from a QR code, search the catalog, add songs, and upvote/downvote others.
 - **Real-time sync** — every queue change pushes instantly to all connected devices via Socket.IO.
 - **Now-Playing TV display** — full-screen, themeable view with current track, upcoming queue, history, and a join QR. Wake-lock keeps it awake.
 - **Admin dashboard** — drag-to-reorder queue, block/unblock songs and users, manage settings, scan music libraries, monitor activity.
 - **Easy login** — patron sign-in with display name + emoji avatar; SMS-free flow can show the OTP on the venue display.
 - **Local or Spotify mode** — drop MP3s in a folder, or stream from Spotify with the official Web Playback SDK.
 - **Fallback playlist** — what plays when the queue runs dry: recent history, a local folder/M3U, or a Spotify playlist (with optional shuffle).
-- **Themes!** — patrons can pick their own theme; venues can set a default for the display.
+- **Themes!** — you can pick your own theme; venues can set a default for the display.
 
 ## Hardware & network requirements
 
@@ -48,8 +48,8 @@ Everything syncs in real time, so a vote on someone's phone instantly reshuffles
 ## Quick start
 
 ```bash
-git clone <repo-url> playplay-venue
-cd playplay-venue
+git clone <repo-url> playplay
+cd playplay
 node scripts/setup.mjs
 ```
 
@@ -117,7 +117,7 @@ Spotify is optional. You can add or change credentials anytime under **Admin →
 1. Open <https://developer.spotify.com/dashboard> and log in.
 2. Click **Create app**.
 3. Fill in:
-   - **App name** — anything (e.g. "PlayPlay – My Venue").
+   - **App name** — anything (e.g. "PlayPlay – <your venue>").
    - **App description** — anything.
    - **Website** — can be blank.
    - **Redirect URI** — paste this exactly and click **Add**:
@@ -250,4 +250,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for monorepo layout, build/test commands,
 
 ## License
 
-[MIT](LICENSE) © PlayPlay Venue contributors.
+[MIT](LICENSE) © PlayPlay contributors.

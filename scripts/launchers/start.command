@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PlayPlay Venue — start launcher (macOS / Linux .command/.sh)
+# PlayPlay — start launcher (macOS / Linux .command/.sh)
 # If setup hasn't run yet, falls through to the wizard.
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")/../.." && pwd)"
