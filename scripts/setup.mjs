@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PlayPlay Venue — First-Run Setup Wizard
+// PlayPlay — First-Run Setup Wizard
 //
 // Designed to run on a freshly-cloned repo with only Node installed:
 //   node scripts/setup.mjs
@@ -144,7 +144,7 @@ async function main() {
   const p = await import("@clack/prompts");
   const qrcode = (await import("qrcode-terminal")).default;
 
-  p.intro("PlayPlay Venue — First-Run Setup");
+  p.intro("PlayPlay — First-Run Setup");
 
   const venueName = await p.text({
     message: "Venue name",

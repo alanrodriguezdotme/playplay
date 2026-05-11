@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:cr
 
 const ALGO = "aes-256-gcm";
 const VERSION = "v1";
-const APP_SALT = "playplay-venue:secrets:v1";
+const APP_SALT = "playplay:secrets:v1";
 const KEY_INFO = "spotify-credentials";
 
 let cachedKey: Buffer | null = null;

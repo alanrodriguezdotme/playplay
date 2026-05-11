@@ -1,5 +1,5 @@
 {
-  "name": "playplay-venue",
+  "name": "playplay",
   "private": true,
   "scripts": {
     "dev": "pnpm -F @playplay/shared build && concurrently \"pnpm -F @playplay/server dev\" \"pnpm -F @playplay/web dev\"",

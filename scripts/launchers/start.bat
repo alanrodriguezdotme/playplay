@@ -1,5 +1,5 @@
 @echo off
-REM PlayPlay Venue — start launcher (Windows)
+REM PlayPlay — start launcher (Windows)
 setlocal
 cd /d "%~dp0..\.."
 

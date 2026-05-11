@@ -63,13 +63,13 @@ function lanAddresses(): string[] {
 server.listen(port, "0.0.0.0", () => {
   const urls = ["127.0.0.1", ...lanAddresses()].map((ip) => `http://${ip}:${port}`);
   if (isProduction) {
-    console.log("\nPlayPlay Venue is running:");
+    console.log("\nPlayPlay is running:");
     for (const url of urls) console.log(`  ${url}`);
     console.log("\n  Admin:    /admin");
     console.log("  Patron:   /  (share this URL with patrons)");
     console.log("  Display:  /now-playing\n");
   } else {
-    console.log(`\nPlayPlay Venue API listening on :${port} (dev)`);
+    console.log(`\nPlayPlay API listening on :${port} (dev)`);
     console.log("  → open the Vite dev URL (printed above) for HMR\n");
   }
 });
