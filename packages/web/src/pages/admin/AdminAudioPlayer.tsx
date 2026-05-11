@@ -170,10 +170,18 @@ export function AdminAudioPlayer({
     });
   }, [socket]);
 
-  // Broadcast playback state from Spotify SDK
+  // Broadcast playback state from Spotify SDK.
+  // Fire immediately on every state change so the rest of the app reflects
+  // track changes/play/pause without the previous 2s setInterval delay.
+  // The interval is just a low-frequency keep-alive for position drift.
   useEffect(() => {
     if (!socket || !isOwner || !needsSpotify || !spotify.playerState) return;
     const state = spotify.playerState;
+    socket.emit(SOCKET_EVENTS.PLAYBACK_STATE, {
+      isPlaying: !state.paused,
+      currentTime: state.position / 1000,
+      duration: state.duration / 1000,
+    });
     const interval = setInterval(() => {
       socket.emit(SOCKET_EVENTS.PLAYBACK_STATE, {
         isPlaying: !state.paused,

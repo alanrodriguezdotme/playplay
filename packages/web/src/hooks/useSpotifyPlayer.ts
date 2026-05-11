@@ -84,6 +84,13 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
     const [playerState, setPlayerState] = useState<SpotifyPlaybackState | null>(null);
     const [error, setError] = useState<string | null>(null);
     const tokenRef = useRef<string | null>(null);
+    // Tracks the currently in-flight play() call so a newer call can cancel
+    // it. Without this, fast track advances cause overlapping PUT /play
+    // requests to Spotify; the older one can land second and override the
+    // new track (showing as "next song info but previous song plays"
+    // and intermittent 403s).
+    const playAbortRef = useRef<AbortController | null>(null);
+    const playSeqRef = useRef(0);
 
     const fetchToken = useCallback(async (): Promise<string> => {
         const { accessToken } = await getSpotifyToken();
@@ -121,11 +128,32 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
                     volume: 0.8,
                 });
 
-                player.addListener("ready", ({ device_id }: { device_id: string }) => {
+                player.addListener("ready", async ({ device_id }: { device_id: string }) => {
                     if (cancelled) return;
                     setDeviceId(device_id);
                     setIsReady(true);
                     setError(null);
+
+                    // Proactively transfer Connect playback to our SDK device.
+                    // Without this, the first play() call after page load
+                    // typically 403s with "Restriction violated" because some
+                    // other Spotify client (phone, desktop app, previous tab)
+                    // is still the active device. The retry-after-transfer
+                    // path inside play() works eventually, but the initial
+                    // 400ms wait is often too short on a fresh device.
+                    try {
+                        const token = tokenRef.current ?? (await fetchToken());
+                        await fetch("https://api.spotify.com/v1/me/player", {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ device_ids: [device_id], play: false }),
+                        });
+                    } catch {
+                        // Non-fatal — play() will retry-with-transfer if needed.
+                    }
                 });
 
                 player.addListener("not_ready", () => {
@@ -187,6 +215,15 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
     const play = useCallback(
         async (spotifyUri: string) => {
             if (!deviceId) return;
+
+            // Cancel any prior in-flight play call so a stale request can't
+            // override this one when it eventually lands.
+            playAbortRef.current?.abort();
+            const ac = new AbortController();
+            playAbortRef.current = ac;
+            const seq = ++playSeqRef.current;
+            const isStale = () => seq !== playSeqRef.current;
+
             const playUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
             const transferUrl = "https://api.spotify.com/v1/me/player";
             const body = JSON.stringify({ uris: [spotifyUri] });
@@ -198,9 +235,10 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
             try {
                 token = await fetchToken();
             } catch {
-                setError("Failed to get Spotify token");
+                if (!isStale()) setError("Failed to get Spotify token");
                 return;
             }
+            if (isStale()) return;
 
             const authHeaders = () => ({
                 "Content-Type": "application/json",
@@ -212,35 +250,62 @@ export function useSpotifyPlayer(enabled: boolean): UseSpotifyPlayerReturn {
                     method: "PUT",
                     headers: authHeaders(),
                     body: JSON.stringify({ device_ids: [deviceId], play: false }),
+                    signal: ac.signal,
                 });
 
             const doPlay = () =>
-                fetch(playUrl, { method: "PUT", headers: authHeaders(), body });
+                fetch(playUrl, {
+                    method: "PUT",
+                    headers: authHeaders(),
+                    body,
+                    signal: ac.signal,
+                });
 
-            let resp = await doPlay();
+            try {
+                let resp = await doPlay();
+                if (isStale()) return;
 
-            if (resp.status === 401) {
-                try {
-                    token = await fetchToken();
-                } catch {
-                    setError("Failed to refresh Spotify token");
-                    return;
+                if (resp.status === 401) {
+                    try {
+                        token = await fetchToken();
+                    } catch {
+                        if (!isStale()) setError("Failed to refresh Spotify token");
+                        return;
+                    }
+                    if (isStale()) return;
+                    resp = await doPlay();
+                    if (isStale()) return;
                 }
-                resp = await doPlay();
-            }
 
-            // 403 "Restriction violated" usually means another Connect device
-            // owns playback. Transfer to our SDK device, then retry.
-            if (resp.status === 403 || resp.status === 404) {
-                await transferToDevice().catch(() => {});
-                // Spotify needs a brief moment to register the transfer.
-                await new Promise((r) => setTimeout(r, 400));
-                resp = await doPlay();
-            }
+                // 403 "Restriction violated" usually means another Connect device
+                // owns playback. Transfer to our SDK device, then retry.
+                // Spotify can take a noticeable moment to register the
+                // transfer on a freshly-connected device, so we retry with
+                // increasing backoff before giving up.
+                if (resp.status === 403 || resp.status === 404) {
+                    for (const waitMs of [600, 1200]) {
+                        await transferToDevice().catch(() => {});
+                        if (isStale()) return;
+                        await new Promise((r) => setTimeout(r, waitMs));
+                        if (isStale()) return;
+                        resp = await doPlay();
+                        if (isStale()) return;
+                        if (resp.ok) break;
+                    }
+                }
 
-            if (!resp.ok) {
-                const text = await resp.text().catch(() => "");
-                setError(`Spotify play failed (${resp.status}): ${text || resp.statusText}`);
+                if (!resp.ok) {
+                    const text = await resp.text().catch(() => "");
+                    if (!isStale()) {
+                        setError(`Spotify play failed (${resp.status}): ${text || resp.statusText}`);
+                    }
+                }
+            } catch (err) {
+                // AbortError means a newer play() superseded this one — silent.
+                if ((err as { name?: string })?.name === "AbortError") return;
+                if (!isStale()) {
+                    setError(err instanceof Error ? err.message : "Spotify play failed");
+                }
             }
         },
         [deviceId, fetchToken]
