@@ -16,17 +16,32 @@ Music can come from a **local folder of MP3s** (fully offline) or from **Spotify
 - **Real-time sync** — every queue change pushes instantly to all connected devices via Socket.IO.
 - **Now-Playing TV display** — full-screen, themeable view with current track, upcoming queue, history, and a join QR. Wake-lock keeps it awake.
 - **Admin dashboard** — drag-to-reorder queue, block/unblock songs and users, manage settings, scan music libraries, monitor activity.
-- **OTP login** — patron sign-in with display name + emoji avatar; SMS-free flow can show the OTP on the venue display.
+- **Easy login** — patron sign-in with display name + emoji avatar; SMS-free flow can show the OTP on the venue display.
 - **Local or Spotify mode** — drop MP3s in a folder, or stream from Spotify with the official Web Playback SDK.
-- **Default playlist** — what plays when the queue runs dry: recent history, a local folder/M3U, or a Spotify playlist (with optional shuffle).
-- **Per-user theme** — patrons can pick their own theme; venues can set a default for the display.
+- **Fallback playlist** — what plays when the queue runs dry: recent history, a local folder/M3U, or a Spotify playlist (with optional shuffle).
+- **Themes!** — patrons can pick their own theme; venues can set a default for the display.
 
 ## Hardware & network requirements
 
-- **Laptop** running macOS, Windows, or Linux with **Node.js 20+**. Any reasonably modern machine handles this — it's a single Express server + Vite-built React app.
-- **Wi-Fi** that lets devices reach each other on the LAN. Public-Wi-Fi-style "AP isolation" or guest networks block patron phones from hitting the laptop. A simple home/router network or a dedicated venue access point works fine.
+- **Computer running macOS, Windows, or Linux with Node.js 20+**. It's a single Express server + Vite-built React app.
+- **Same Wi-Fi** for all devices.
 - **TV or large monitor** for the Now Playing display (optional but recommended). Anything that can open a web page works — a Chromecast/AppleTV browser, a Raspberry Pi, or a spare laptop.
-- **Spotify Premium account** if you choose Spotify mode (Premium is a Spotify-side requirement for Web Playback SDK streaming).
+- **Spotify Premium account (optional)** if you choose Spotify mode (Premium is a Spotify-side requirement for Web Playback SDK streaming).
+
+---
+
+## How it works
+
+Install PlayPlay on the computer that will play the music — either from a folder of MP3s on its drive or through a signed-in Spotify session. Using the browser, three kinds of screens connect to it over the same Wi-Fi network:
+
+- **The admin page** (`/admin`) is for you. Sign in to manage the queue, reorder or remove songs, block troublemakers, scan your music library, and change settings.
+  - ![Admin dashboard screen](/packages/shared/src/images/admin-dashboard.png){width=500px}
+- **The Now Playing display** (`/now-playing`) is for the room. Open it full-screen on a TV or spare monitor and it shows the current track, what's coming up, and a QR code patrons can scan to join.
+  - ![Now playing screen](/packages/shared/src/images/now-playing-landscape.png){width=500px}
+- **Patron phones** (`/`) are for everyone else. They scan the QR code, pick a name and emoji, then search the catalog to suggest songs and upvote or downvote what others have added. The queue is collaborative — whatever floats to the top plays next.
+  - ![Patron queue screen](/packages/shared/src/images/patron-queue.jpg){height=500px}
+
+Everything syncs in real time, so a vote on someone's phone instantly reshuffles the queue on the TV and in the admin view. When the queue runs dry, a default playlist (recent history, a local folder, or a Spotify playlist) keeps the music going.
 
 ---
 
@@ -71,7 +86,7 @@ Open `/admin` on the laptop to manage the venue, point the TV at `/now-playing`,
 
 Re-run later with `pnpm setup --reconfigure` to change any setting, or `pnpm start` to just launch the server.
 
-## Daily use
+## Regular use
 
 After the first wizard run you have two equivalent ways to start the venue:
 
@@ -93,8 +108,8 @@ Spotify is optional. You can add or change credentials anytime under **Admin →
 
 ### Prerequisites
 
-- A **Spotify account** (free or Premium) to create the developer app — the dashboard is free.
 - A **Spotify Premium account** on whichever device is doing the actual playback. Premium is a Spotify requirement for the Web Playback SDK; PlayPlay doesn't add any Premium gating of its own.
+- A **Spotify dev account** to create the developer app — the dashboard is free.
 - About 5 minutes to register the app and add allowed users.
 
 ### Step 1 — Create the Spotify Developer app
@@ -115,16 +130,14 @@ Spotify is optional. You can add or change credentials anytime under **Admin →
 
 ### Step 2 — Add allowed Spotify users (important!)
 
-By default, every new Spotify app starts in **Development Mode**. In Dev Mode, only Spotify accounts you explicitly add can sign in to your app — anyone else gets a vague 403 / "Connection failed" error. Dev Mode allows up to **25 users**, which is plenty for a single-venue install.
+By default, every new Spotify app starts in **Development Mode**. In Dev Mode, only Spotify accounts you explicitly add can sign in to your app — anyone else gets a vague 403 / "Connection failed" error.
 
-For each Spotify account that needs to authenticate (typically just the venue's playback account):
+For each Spotify account that needs to authenticate (typically one per computer):
 
 1. In the dashboard, open your app → **User Management** (sidebar).
 2. Click **Add new user**.
 3. Enter the user's **Spotify display name** and the **email address** on their Spotify account, exactly as they appear in their Spotify profile.
 4. Save.
-
-If you ever need this open to arbitrary listeners, you can apply for **Extended Quota Mode** from the same dashboard, but it requires Spotify review and typically isn't needed for a single venue.
 
 ### Step 3 — Paste the credentials into PlayPlay
 
