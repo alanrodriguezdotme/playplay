@@ -41,6 +41,10 @@ export function VenueProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    document.title = venue?.name ? `${venue.name} — PlayPlay` : "PlayPlay";
+  }, [venue?.name]);
+
   return (
     <VenueContext.Provider value={{ venue, loading, error }}>
       {children}
