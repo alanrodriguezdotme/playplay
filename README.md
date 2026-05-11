@@ -35,11 +35,11 @@ Music can come from a **local folder of MP3s** (fully offline) or from **Spotify
 Install PlayPlay on the computer that will play the music — either from a folder of MP3s on its drive or through a signed-in Spotify session. Using the browser, three kinds of screens connect to it over the same Wi-Fi network:
 
 - **The admin page** (`/admin`) is for you. Sign in to manage the queue, reorder or remove songs, block troublemakers, scan your music library, and change settings.
-  - ![Admin dashboard screen](/packages/shared/src/images/admin-dashboard.png){width=500px}
+  - <img src="/packages/shared/src/images/admin-dashboard.png" width="500" />
 - **The Now Playing display** (`/now-playing`) is for the room. Open it full-screen on a TV or spare monitor and it shows the current track, what's coming up, and a QR code patrons can scan to join.
-  - ![Now playing screen](/packages/shared/src/images/now-playing-landscape.png){width=500px}
+  - <img src="/packages/shared/src/images/now-playing-landscape.png" width="500" />
 - **Patron phones** (`/`) are for everyone else. They scan the QR code, pick a name and emoji, then search the catalog to suggest songs and upvote or downvote what others have added. The queue is collaborative — whatever floats to the top plays next.
-  - ![Patron queue screen](/packages/shared/src/images/patron-queue.jpg){height=500px}
+  - <img src="/packages/shared/src/images//patron-queue.jpg" height="500" />
 
 Everything syncs in real time, so a vote on someone's phone instantly reshuffles the queue on the TV and in the admin view. When the queue runs dry, a default playlist (recent history, a local folder, or a Spotify playlist) keeps the music going.
 
