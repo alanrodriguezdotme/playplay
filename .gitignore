@@ -17,3 +17,11 @@ Thumbs.db
 packages/server/prisma/*.db
 packages/server/prisma/migrations/**/migration_lock.toml
 packages/server/music/*.mp3
+
+# First-run setup stamp (per-install state, must not be committed)
+packages/server/.playplay-configured
+
+# TypeScript incremental build cache
+packages/server/tsconfig.tsbuildinfo
+packages/web/tsconfig.tsbuildinfo
+packages/shared/tsconfig.tsbuildinfo

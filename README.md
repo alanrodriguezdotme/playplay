@@ -42,25 +42,44 @@ Everything syncs in real time, so a vote on someone's phone instantly reshuffles
 
 ## Quick start
 
+You need [Node.js 20+](https://nodejs.org/) installed. That's it — the setup script handles `pnpm`, dependencies, the database, and the build for you.
+
 ```bash
 git clone https://github.com/alanrodriguezdotme/playplay.git playplay
 cd playplay
 node scripts/setup.mjs
 ```
 
-The interactive wizard handles everything else. When it finishes you'll see something like:
+The script installs dependencies, then drops you into an interactive wizard. It will ask you, in this order:
+
+1. **Venue name** — e.g. `The Back Patio` (used on the Now Playing screen).
+2. **Venue slug** — auto-generated from the name; lowercase letters/digits/dashes.
+3. **Admin email** and **password** (8+ characters, asked twice).
+4. **Music source** — `Local folder` (drop in MP3s, fully offline), `Spotify` (Premium required on the playback device — see [Spotify setup](#spotify-setup)), or `Skip for now`.
+5. **Music library path** — only if you picked local; defaults to `./music` and is created if missing.
+6. **HTTP port** — defaults to `3001`.
+7. **Spotify Client ID + Secret** — only if you picked Spotify and chose to paste credentials now.
+
+After the prompts, the wizard runs database migrations, builds the app, applies your config, and prints a banner like:
 
 ```
+◆  Setup complete.
+
 Reachable at:
   http://127.0.0.1:3001
   http://192.168.1.42:3001
 
   Admin:    /admin
-  Patron:   /
+  Patron:   /        (share this URL or scan the QR below)
   Display:  /now-playing
+
+Patron URL: http://192.168.1.42:3001/
+[QR code]
+
+◆  Start the server now? ▸ Yes / No
 ```
 
-Open `/admin` on the laptop to manage the venue, point the TV at `/now-playing`, and share the LAN URL (or scan the QR code printed in your terminal) with patrons on the same Wi-Fi.
+Say yes and you're live. Open `/admin` on the laptop, point the TV at `/now-playing`, and share the LAN URL (or have people scan the QR code) with patrons on the same Wi-Fi.
 
 | Path           | Who it's for                                    |
 | -------------- | ----------------------------------------------- |
@@ -68,9 +87,7 @@ Open `/admin` on the laptop to manage the venue, point the TV at `/now-playing`,
 | `/admin`       | You — sign in with the email + password you set |
 | `/now-playing` | Big-screen display (open on the venue TV)       |
 
-### Run the wizard to setup
-
-CLI wizard helps set everything up for you. You can change nearly everything later in the admin settings. Re-run later with `pnpm setup --reconfigure` to change any setting, or `pnpm start` to just launch the server.
+Almost every setting can be changed later in `/admin` settings or by re-running the wizard with `pnpm setup --reconfigure`. Once setup is complete, `pnpm start` (or the double-click launchers below) starts the server without re-prompting.
 
 ## Regular use
 
@@ -222,7 +239,7 @@ pnpm setup
 - **Spotify "Connection failed" / 403 from `getMe`** — the Spotify account isn't on the app's allowlist. Add it under **Spotify Dashboard → your app → User Management** (see [Step 2 above](#step-2--add-allowed-spotify-users-important)).
 - **Spotify "Premium is required for playback"** — the connected account isn't Premium. Connect a Premium account (or upgrade), then click **Connect Spotify** again.
 - **Spotify "Invalid redirect URI"** — the Redirect URI on your Spotify app must be exactly `https://spotify-relay.vercel.app` (no trailing slash, no extra path). Or use your self-hosted relay URL if you set one.
-- **Wizard doesn't re-prompt** — pass `--reconfigure` (`pnpm setup --reconfigure`). Without it, the wizard skips prompts when `packages/server/.playplay-configured` exists.
+- **Wizard doesn't re-prompt** — that's intentional once you're configured. Pass `--reconfigure` (`pnpm setup --reconfigure`) to change venue/admin/Spotify settings. The wizard knows you're configured when `packages/server/.playplay-configured` exists locally; this file is per-install and never committed.
 
 ---
 

@@ -3,7 +3,17 @@ REM PlayPlay — start launcher (Windows)
 setlocal
 cd /d "%~dp0..\.."
 
+REM A real install has both the stamp and a .env; if either is missing,
+REM defer to the wizard (which will configure / build as needed).
 if not exist "packages\server\.playplay-configured" (
+  node scripts\setup.mjs
+  goto :eof
+)
+if not exist "packages\server\.env" (
+  node scripts\setup.mjs
+  goto :eof
+)
+if not exist "packages\server\dist\index.js" (
   node scripts\setup.mjs
   goto :eof
 )

@@ -126,6 +126,24 @@ function makeLaunchersExecutable() {
   }
 }
 
+function isAppBuilt() {
+  return existsSync(join(SERVER_DIR, "dist", "index.js"));
+}
+
+function isConfigured() {
+  // The stamp file alone is not enough — it has historically leaked into the
+  // repo, and a real install also has an .env with DATABASE_URL / JWT_SECRET.
+  return existsSync(STAMP) && existsSync(ENV_TARGET);
+}
+
+function runMigrateAndBuild() {
+  execSync("pnpm exec prisma migrate deploy", { cwd: SERVER_DIR, stdio: "inherit" });
+  execSync("pnpm exec prisma generate", { cwd: SERVER_DIR, stdio: "inherit" });
+  // Use the root `build` script so the shared package is compiled before
+  // server/web. Calling `pnpm -r build` runs them in parallel and races.
+  execSync("pnpm run build", { cwd: ROOT, stdio: "inherit" });
+}
+
 // ---------- main ----------
 
 async function main() {
@@ -133,11 +151,27 @@ async function main() {
   ensurePnpm();
   ensureInstalled();
 
-  const alreadyConfigured = existsSync(STAMP);
-  if (alreadyConfigured && !RECONFIGURE) {
-    console.log("PlayPlay is already configured. Pass --reconfigure to re-run setup.");
+  if (isConfigured() && !RECONFIGURE) {
+    if (!isAppBuilt()) {
+      console.log("PlayPlay is configured but the app isn't built yet. Building now...\n");
+      try {
+        runMigrateAndBuild();
+      } catch (err) {
+        console.error("\nBuild failed. See the output above for details.");
+        process.exit(1);
+      }
+      console.log("\nBuild complete.");
+    } else {
+      console.log("PlayPlay is already configured. Pass --reconfigure to re-run setup.");
+    }
     if (!NO_START) await startServer();
     return;
+  }
+
+  // If a stale stamp exists from an old clone but there's no .env, treat this
+  // as a fresh install and continue with the full wizard.
+  if (existsSync(STAMP) && !existsSync(ENV_TARGET)) {
+    try { unlinkSync(STAMP); } catch { /* ignore */ }
   }
 
   // Dynamic imports — deps are now installed.
@@ -274,7 +308,7 @@ async function main() {
 
   spinner.start("Building app");
   try {
-    execSync("pnpm -r build", { cwd: ROOT, stdio: "pipe" });
+    execSync("pnpm run build", { cwd: ROOT, stdio: "pipe" });
   } catch (err) {
     spinner.stop("Build failed");
     console.error(err.stdout?.toString() ?? err.message);
@@ -343,8 +377,14 @@ async function main() {
 async function startServer() {
   const entry = join(SERVER_DIR, "dist", "index.js");
   if (!existsSync(entry)) {
-    console.log("App is not built yet. Run `pnpm build` first.");
-    return;
+    console.log("App isn't built yet. Building now...\n");
+    try {
+      runMigrateAndBuild();
+    } catch (err) {
+      console.error("\nBuild failed. See the output above for details.");
+      process.exit(1);
+    }
+    console.log("\nBuild complete.");
   }
   const child = spawnSync(process.execPath, [entry], { cwd: ROOT, stdio: "inherit" });
   if (child.status !== 0) process.exit(child.status ?? 1);
