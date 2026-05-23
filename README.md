@@ -43,7 +43,7 @@ Everything syncs in real time, so a vote on someone's phone instantly reshuffles
 ## Quick start
 
 ```bash
-git clone <repo-url> playplay
+git clone https://github.com/alanrodriguezdotme/playplay.git playplay
 cd playplay
 node scripts/setup.mjs
 ```
