@@ -18,5 +18,10 @@ export function errorHandler(
     return;
   }
 
+  if (err.name === "SpotifyNotConfiguredError") {
+    res.status(409).json({ error: "spotify_not_configured", message: err.message });
+    return;
+  }
+
   res.status(500).json({ error: "INTERNAL_ERROR", message: "Internal server error" });
 }
