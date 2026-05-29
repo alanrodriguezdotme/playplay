@@ -18,7 +18,7 @@ import {
 import { rebuildSpotifyFallbackPool } from "../services/defaultPlaylist.js";
 import { clearFallbackCursor } from "../services/playbackState.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
-import { prisma, stringifySettings } from "../lib/prisma.js";
+import { prisma, parseSettings, stringifySettings } from "../lib/prisma.js";
 import { getVenueSettings, getSpotifyConfig } from "../lib/settings.js";
 
 const router: Router = Router();
@@ -266,29 +266,32 @@ router.post("/default-playlist/sync", authenticate, requireAdmin, async (req, re
         }
 
         const meta = await getPlaylistMeta(venue.id, playlistId).catch(() => null);
-        const next = {
-            ...settings,
-            defaultPlaylist: {
-                ...settings.defaultPlaylist,
-                spotify: {
-                    playlistId,
-                    playlistName: meta?.name ?? result.playlistName ?? settings.defaultPlaylist.spotify.playlistName,
-                    ownerName: meta?.ownerName ?? result.ownerName ?? settings.defaultPlaylist.spotify.ownerName,
-                    trackCount: result.trackCount,
-                    lastSyncedAt: new Date().toISOString(),
-                },
+        const nextDefaultPlaylist = {
+            ...settings.defaultPlaylist,
+            spotify: {
+                playlistId,
+                playlistName: meta?.name ?? result.playlistName ?? settings.defaultPlaylist.spotify.playlistName,
+                ownerName: meta?.ownerName ?? result.ownerName ?? settings.defaultPlaylist.spotify.ownerName,
+                trackCount: result.trackCount,
+                lastSyncedAt: new Date().toISOString(),
             },
+        };
+        // Merge into the RAW stored settings (not the lossy public view) so private
+        // fields the public view omits — e.g. encrypted Spotify credentials — survive.
+        const next: Record<string, unknown> = {
+            ...parseSettings(venue.settings),
+            defaultPlaylist: nextDefaultPlaylist,
         };
         await prisma.venue.update({
             where: { id: venue.id },
-            data: { settings: stringifySettings(next as unknown as Record<string, unknown>) },
+            data: { settings: stringifySettings(next) },
         });
         clearFallbackCursor(venue.id);
 
         res.json({
             trackCount: result.trackCount,
             errors: result.errors,
-            spotify: next.defaultPlaylist.spotify,
+            spotify: nextDefaultPlaylist.spotify,
         });
     } catch (err) {
         next(err);
