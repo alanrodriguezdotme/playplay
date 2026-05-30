@@ -159,7 +159,7 @@ export function DashboardView() {
                 <span className="w-5 text-center text-xs font-medium text-on-surface-muted">
                   {i + 1}
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
                   <p className="truncate text-md font-family-accent">
                     {entry.song.title}
                   </p>

@@ -96,7 +96,7 @@ export function SearchView() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Search input */}
-      <div className="sticky top-0 z-10 border-b border-border bg-surface">
+      <div className="sticky top-18 z-30 border-b border-border bg-surface">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
           <input
