@@ -143,7 +143,9 @@ export function DashboardView() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-on-surface-muted">Nothing playing</p>
+          <div className="flex items-center gap-4 p-4 pt-2">
+            <p className="text-sm text-on-surface-muted">Nothing playing</p>
+          </div>
         )}
       </div>
 

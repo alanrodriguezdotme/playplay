@@ -41,6 +41,8 @@ export const SOCKET_EVENTS = {
   // Admin → Server (playback control)
   PLAYBACK_PLAY: "playback:play",
   PLAYBACK_PAUSE: "playback:pause",
+  // Admin → Server: clear the current track without advancing to a fallback.
+  PLAYBACK_STOP: "playback:stop",
 
   // Audio owner → Server (playback position sync)
   PLAYBACK_STATE: "playback:state",

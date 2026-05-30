@@ -4,6 +4,7 @@ import {
   Play,
   Pause,
   SkipForward,
+  Square,
   Volume2,
   Volume1,
   VolumeX,
@@ -374,6 +375,20 @@ export function AdminAudioPlayer({
     socket.emit(SOCKET_EVENTS.PLAYBACK_ENDED);
   }, [queue, nowPlaying, socket, isOwner, currentSongSource, spotify]);
 
+  const handleStop = useCallback(() => {
+    if (!socket || !nowPlaying) return;
+    // Stop local audio immediately; the null now-playing broadcast also clears
+    // it, and the server forwards a pause for Spotify.
+    if (isOwner) {
+      if (currentSongSource === "spotify") {
+        spotify.pause().catch(() => {});
+      } else {
+        audioRef.current?.pause();
+      }
+    }
+    socket.emit(SOCKET_EVENTS.PLAYBACK_STOP);
+  }, [socket, nowPlaying, isOwner, currentSongSource, spotify]);
+
   const handleVolumeChange = useCallback(
     (value: number) => {
       setVolume(value);
@@ -489,6 +504,18 @@ export function AdminAudioPlayer({
                       title="Skip"
                     >
                       <SkipForward className="h-4 w-4 text-on-surface" />
+                    </button>
+                    <button
+                      onClick={handleStop}
+                      disabled={!nowPlaying}
+                      className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface-alt transition-colors disabled:opacity-40"
+                      title="Stop"
+                    >
+                      <Square
+                        fill="currentColor"
+                        stroke="none"
+                        className="h-3.5 w-3.5 text-on-surface"
+                      />
                     </button>
                   </>
                 )}

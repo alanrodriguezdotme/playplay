@@ -131,6 +131,33 @@ async function pickFromFallbackPool(
   return pickNext(songs, config.shuffle, lastId);
 }
 
+/**
+ * Clears the currently playing track WITHOUT advancing to the next queued song
+ * or a default-playlist fallback. Used by the admin "Stop" control to return the
+ * venue to the empty Now Playing state. Marks the current PLAYING entry as
+ * PLAYED (counting the play) and returns the number of entries cleared.
+ */
+export async function stopPlayback(venueId: string): Promise<{ cleared: boolean }> {
+  return prisma.$transaction(async (tx) => {
+    const currentlyPlaying = await tx.queueEntry.findFirst({
+      where: { venueId, status: QUEUE_STATUS.PLAYING },
+    });
+    if (!currentlyPlaying) return { cleared: false };
+
+    await Promise.all([
+      tx.queueEntry.update({
+        where: { id: currentlyPlaying.id },
+        data: { status: QUEUE_STATUS.PLAYED, playedAt: new Date() },
+      }),
+      tx.song.update({
+        where: { id: currentlyPlaying.songId },
+        data: { totalPlays: { increment: 1 } },
+      }),
+    ]);
+    return { cleared: true };
+  });
+}
+
 export async function advanceQueue(venueId: string): Promise<QueueEntry | null> {
   const venue = await prisma.venue.findUnique({ where: { id: venueId } });
   const settings = venue ? getVenueSettings(venue) : null;

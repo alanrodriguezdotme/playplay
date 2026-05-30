@@ -183,6 +183,12 @@ export function QueueManagement() {
     }
   }, [queue, nowPlaying, socket, handlePlayNow]);
 
+  const handleStop = useCallback(() => {
+    if (nowPlaying && socket) {
+      socket.emit(SOCKET_EVENTS.PLAYBACK_STOP);
+    }
+  }, [nowPlaying, socket]);
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -266,6 +272,15 @@ export function QueueManagement() {
               <Button
                 variant="secondary"
                 size="xs"
+                onClick={handleStop}
+                disabled={!nowPlaying}
+                className="bg-surface"
+              >
+                Stop
+              </Button>
+              <Button
+                variant="secondary"
+                size="xs"
                 onClick={handleSkip}
                 disabled={queue.length === 0 && !nowPlaying}
                 className="bg-surface"
@@ -292,7 +307,9 @@ export function QueueManagement() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-on-surface-muted">Nothing playing</p>
+          <div className="flex items-center gap-4 p-4 pt-2">
+            <p className="text-sm text-on-surface-muted">Nothing playing</p>
+          </div>
         )}
       </div>
 

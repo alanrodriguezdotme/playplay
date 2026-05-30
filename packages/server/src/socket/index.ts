@@ -4,7 +4,7 @@ import { SOCKET_EVENTS } from "@playplay/shared";
 import { verifyToken } from "../services/auth.js";
 import { prisma } from "../lib/prisma.js";
 import { getQueue } from "../services/queue.js";
-import { advanceQueue } from "../services/playback.js";
+import { advanceQueue, stopPlayback } from "../services/playback.js";
 import { broadcastQueueUpdated, broadcastNowPlayingChanged } from "./broadcast.js";
 import { getDefaultVenue } from "../lib/venue.js";
 import {
@@ -143,6 +143,32 @@ export function initSocket(server: HttpServer): Server {
         io!.to(state.audioOwnerSocketId).emit(SOCKET_EVENTS.PLAYBACK_PAUSE);
       }
       broadcastPlaybackSync(venueId, slug);
+    });
+
+    socket.on(SOCKET_EVENTS.PLAYBACK_STOP, async () => {
+      try {
+        const venueId = socket.data.venueId;
+        const slug = socket.data.venueSlug;
+        if (!venueId || !slug || socket.data.role !== "ADMIN") return;
+
+        // Clear the current track without advancing to a queued/fallback song.
+        await stopPlayback(venueId);
+        setCurrentSong(venueId, null);
+        setPlaying(venueId, false);
+
+        // Tell the audio owner to stop. Local audio also stops via the null
+        // now-playing prop, but Spotify needs an explicit pause.
+        const state = getPlaybackState(venueId);
+        if (state.audioOwnerSocketId) {
+          io!.to(state.audioOwnerSocketId).emit(SOCKET_EVENTS.PLAYBACK_PAUSE);
+        }
+
+        await broadcastNowPlayingChanged(venueId, null);
+        await broadcastQueueUpdated(venueId);
+        broadcastPlaybackSync(venueId, slug);
+      } catch (err) {
+        console.error("playback:stop error:", err);
+      }
     });
 
     // ---- Playback lifecycle (audio owner only) ----
