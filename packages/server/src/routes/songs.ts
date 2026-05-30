@@ -63,13 +63,12 @@ router.get("/music-source", authenticate, async (req, res, next) => {
       where: { id: req.user!.venueId },
     });
     if (!venue) {
-      res.json({ musicSource: "local", allowFullCatalogSearch: false });
+      res.json({ musicSource: "local" });
       return;
     }
     const s = parseSettings(venue.settings);
     res.json({
       musicSource: (s.musicSource as string) ?? DEFAULTS.MUSIC_SOURCE,
-      allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
     });
   } catch (err) {
     next(err);

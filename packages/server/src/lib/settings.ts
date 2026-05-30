@@ -102,7 +102,6 @@ export function getVenueSettings(venue: { settings: string | unknown }): VenueSe
     smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
     musicSource: (s.musicSource as MusicSource) ?? DEFAULTS.MUSIC_SOURCE,
     musicLibraryPath: typeof s.musicLibraryPath === "string" ? s.musicLibraryPath : "",
-    allowFullCatalogSearch: (s.allowFullCatalogSearch as boolean) ?? DEFAULTS.ALLOW_FULL_CATALOG_SEARCH,
     spotify: publicSpotifyView(storedSpotify),
     isConfigured: s.isConfigured === true,
   };

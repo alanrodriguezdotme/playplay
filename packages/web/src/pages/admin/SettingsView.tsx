@@ -76,7 +76,6 @@ export function SettingsView() {
   const [libraryPathSaving, setLibraryPathSaving] = useState(false);
   const [libraryPathMsg, setLibraryPathMsg] = useState<string | null>(null);
   const [libraryPathOk, setLibraryPathOk] = useState<boolean | null>(null);
-  const [allowFullCatalogSearch, setAllowFullCatalogSearch] = useState(false);
   const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus | null>(
     null,
   );
@@ -100,10 +99,6 @@ export function SettingsView() {
   const debouncedOtpDeliveryMode = useDebounce(otpDeliveryMode, 400);
   const debouncedSmsGatewayUrl = useDebounce(smsGatewayUrl, 800);
   const debouncedMusicSource = useDebounce(musicSource, 400);
-  const debouncedAllowFullCatalogSearch = useDebounce(
-    allowFullCatalogSearch,
-    400,
-  );
 
   const fetchVenue = useCallback(async () => {
     try {
@@ -124,7 +119,6 @@ export function SettingsView() {
       setMusicSource(data.settings.musicSource);
       setMusicLibraryPath(data.settings.musicLibraryPath ?? "");
       setMusicLibraryPathDraft(data.settings.musicLibraryPath ?? "");
-      setAllowFullCatalogSearch(data.settings.allowFullCatalogSearch);
       setCredsRelayUrl(data.settings.spotify?.relayUrl ?? "");
       // Fetch Spotify status (only if creds are present, otherwise it 400s)
       if (data.settings.spotify?.configured) {
@@ -197,7 +191,6 @@ export function SettingsView() {
       otpDeliveryMode: debouncedOtpDeliveryMode,
       smsGatewayUrl: debouncedSmsGatewayUrl,
       musicSource: debouncedMusicSource,
-      allowFullCatalogSearch: debouncedAllowFullCatalogSearch,
     };
 
     const s = venue.settings;
@@ -210,8 +203,7 @@ export function SettingsView() {
       debouncedLanAddressOverride === s.lanAddressOverride &&
       debouncedOtpDeliveryMode === s.otpDeliveryMode &&
       debouncedSmsGatewayUrl === s.smsGatewayUrl &&
-      debouncedMusicSource === s.musicSource &&
-      debouncedAllowFullCatalogSearch === s.allowFullCatalogSearch
+      debouncedMusicSource === s.musicSource
     )
       return;
 
@@ -236,7 +228,6 @@ export function SettingsView() {
     debouncedOtpDeliveryMode,
     debouncedSmsGatewayUrl,
     debouncedMusicSource,
-    debouncedAllowFullCatalogSearch,
   ]);
 
   // Save default-playlist config explicitly (rebuild can be slow / surface errors).
@@ -691,14 +682,6 @@ export function SettingsView() {
                     </div>
                   </div>
                 )}
-
-                <FormToggle
-                  label="Allow Full Catalog Search"
-                  description="Let patrons search the entire Spotify catalog (not just your curated library)."
-                  checked={allowFullCatalogSearch}
-                  onChange={setAllowFullCatalogSearch}
-                  compact
-                />
               </div>
             </div>
           )}

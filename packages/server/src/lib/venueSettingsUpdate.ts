@@ -136,10 +136,6 @@ export function buildMergedVenueSettings(
     if (!validSources.includes(body.musicSource)) return fail("musicSource must be 'local' or 'spotify'");
     merged.musicSource = body.musicSource;
   }
-  if (body.allowFullCatalogSearch !== undefined) {
-    if (typeof body.allowFullCatalogSearch !== "boolean") return fail("allowFullCatalogSearch must be a boolean");
-    merged.allowFullCatalogSearch = body.allowFullCatalogSearch;
-  }
 
   return { merged, nextDefaultPlaylist };
 }
