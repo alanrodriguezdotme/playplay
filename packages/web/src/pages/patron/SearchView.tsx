@@ -16,7 +16,6 @@ export function SearchView() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [musicSource, setMusicSource] = useState<MusicSource>("local");
-  const [allowFullCatalog, setAllowFullCatalog] = useState(false);
 
   const LIMIT = 10;
 
@@ -25,12 +24,11 @@ export function SearchView() {
     getMusicSource()
       .then((data) => {
         setMusicSource(data.musicSource);
-        setAllowFullCatalog(data.allowFullCatalogSearch);
       })
       .catch(() => {});
   }, []);
 
-  const useSpotifySearch = musicSource === "spotify" && allowFullCatalog;
+  const useSpotifySearch = musicSource === "spotify";
 
   const doSearch = useCallback(
     async (q: string, p: number, append: boolean) => {

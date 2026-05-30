@@ -34,7 +34,6 @@ export interface VenueSettings {
   smsGatewayUrl: string;
   musicSource: MusicSource;
   musicLibraryPath: string;
-  allowFullCatalogSearch: boolean;
   /** Per-venue Spotify app credentials. Stored encrypted server-side. */
   spotify?: SpotifyCredentialsConfig;
   /** Set true after first-run setup completes. */
@@ -291,7 +290,6 @@ export interface AdminVenueSettingsUpdateBody {
   smsGatewayUrl?: string;
   musicSource?: MusicSource;
   musicLibraryPath?: string;
-  allowFullCatalogSearch?: boolean;
 }
 
 export interface AdminVenueInfoUpdateBody {
