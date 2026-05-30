@@ -105,7 +105,9 @@ router.get("/display-settings", async (req, res, next) => {
         const t = (s.displayTheme as string) ?? DEFAULTS.DISPLAY_THEME;
         return t === "neon" || t === "edm" ? "synthwave" : t;
       })(),
-      lanIp: getLocalIp(),
+      lanIp: (typeof s.lanAddressOverride === "string" && s.lanAddressOverride.trim())
+        ? s.lanAddressOverride.trim()
+        : getLocalIp(),
     });
   } catch (err) {
     next(err);

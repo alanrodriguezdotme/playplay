@@ -23,6 +23,13 @@ export interface VenueSettings {
   displayQrSize: number;
   displayShowHeader: boolean;
   displayTheme: string;
+  /**
+   * Manual override for the host/IP used in the QR code and patron URL on the
+   * Now Playing display. Empty string = auto-detect the LAN address. Useful
+   * when auto-detection picks the wrong adapter (common on Windows laptops with
+   * VPN/Hyper-V/WSL interfaces) or when a stable hostname is preferred.
+   */
+  lanAddressOverride: string;
   otpDeliveryMode: OtpDeliveryMode;
   smsGatewayUrl: string;
   musicSource: MusicSource;
@@ -279,6 +286,7 @@ export interface AdminVenueSettingsUpdateBody {
   displayQrSize?: number;
   displayShowHeader?: boolean;
   displayTheme?: string;
+  lanAddressOverride?: string;
   otpDeliveryMode?: OtpDeliveryMode;
   smsGatewayUrl?: string;
   musicSource?: MusicSource;

@@ -112,6 +112,16 @@ export function buildMergedVenueSettings(
     }
     merged.displayTheme = body.displayTheme;
   }
+  if (body.lanAddressOverride !== undefined) {
+    if (typeof body.lanAddressOverride !== "string") return fail("lanAddressOverride must be a string");
+    const trimmed = body.lanAddressOverride.trim();
+    // Allow an IPv4/IPv6 literal or a hostname (optionally with a :port). Keep
+    // it permissive — this is an advanced escape hatch, not a security boundary.
+    if (trimmed.length > 0 && !/^[A-Za-z0-9.:_-]+$/.test(trimmed)) {
+      return fail("lanAddressOverride must be a host or IP address (no scheme or path)");
+    }
+    merged.lanAddressOverride = trimmed;
+  }
   if (body.otpDeliveryMode !== undefined) {
     const validModes = ["none", "venue-display", "sms-gateway", "paid"];
     if (!validModes.includes(body.otpDeliveryMode)) return fail("Invalid otpDeliveryMode");

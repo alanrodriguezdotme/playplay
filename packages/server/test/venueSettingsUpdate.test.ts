@@ -48,6 +48,30 @@ describe("buildMergedVenueSettings", () => {
     expect(raw.maxSongsPerUser).toBe(3);
   });
 
+  it("stores a trimmed lanAddressOverride (issue #10)", () => {
+    const result = buildMergedVenueSettings(rawWithCreds(), { lanAddressOverride: "  192.168.1.50  " });
+    expect("error" in result).toBe(false);
+    if ("error" in result) return;
+    expect(result.merged.lanAddressOverride).toBe("192.168.1.50");
+    // Credentials must survive this save like any other field.
+    const spotify = result.merged.spotify as Record<string, unknown>;
+    expect(spotify.clientIdEnc).toBe("v1:encrypted-client-id");
+  });
+
+  it("accepts an empty lanAddressOverride to clear it (back to auto-detect)", () => {
+    const result = buildMergedVenueSettings({ lanAddressOverride: "old-host" }, { lanAddressOverride: "" });
+    expect("error" in result).toBe(false);
+    if ("error" in result) return;
+    expect(result.merged.lanAddressOverride).toBe("");
+  });
+
+  it("rejects a lanAddressOverride that includes a scheme or path", () => {
+    const result = buildMergedVenueSettings(rawWithCreds(), { lanAddressOverride: "http://192.168.1.50/foo" });
+    expect("error" in result).toBe(true);
+    if (!("error" in result)) return;
+    expect(result.error.status).toBe(400);
+  });
+
   it("returns a validation error without touching credentials on bad input", () => {
     const result = buildMergedVenueSettings(rawWithCreds(), { maxSongsPerUser: 0 });
     expect("error" in result).toBe(true);
