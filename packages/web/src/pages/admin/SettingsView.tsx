@@ -65,6 +65,7 @@ export function SettingsView() {
   const [displayQrSize, setDisplayQrSize] = useState(120);
   const [displayShowHeader, setDisplayShowHeader] = useState(true);
   const [displayTheme, setDisplayTheme] = useState<string>("dark");
+  const [lanAddressOverride, setLanAddressOverride] = useState("");
   const [otpDeliveryMode, setOtpDeliveryMode] =
     useState<OtpDeliveryMode>("none");
   const [smsGatewayUrl, setSmsGatewayUrl] = useState("");
@@ -95,6 +96,7 @@ export function SettingsView() {
   const debouncedDisplayQrSize = useDebounce(displayQrSize, 800);
   const debouncedDisplayShowHeader = useDebounce(displayShowHeader, 400);
   const debouncedDisplayTheme = useDebounce(displayTheme, 400);
+  const debouncedLanAddressOverride = useDebounce(lanAddressOverride, 800);
   const debouncedOtpDeliveryMode = useDebounce(otpDeliveryMode, 400);
   const debouncedSmsGatewayUrl = useDebounce(smsGatewayUrl, 800);
   const debouncedMusicSource = useDebounce(musicSource, 400);
@@ -116,6 +118,7 @@ export function SettingsView() {
       setDisplayQrSize(data.settings.displayQrSize);
       setDisplayShowHeader(data.settings.displayShowHeader);
       setDisplayTheme(data.settings.displayTheme);
+      setLanAddressOverride(data.settings.lanAddressOverride ?? "");
       setOtpDeliveryMode(data.settings.otpDeliveryMode);
       setSmsGatewayUrl(data.settings.smsGatewayUrl);
       setMusicSource(data.settings.musicSource);
@@ -190,6 +193,7 @@ export function SettingsView() {
       displayQrSize: debouncedDisplayQrSize,
       displayShowHeader: debouncedDisplayShowHeader,
       displayTheme: debouncedDisplayTheme,
+      lanAddressOverride: debouncedLanAddressOverride,
       otpDeliveryMode: debouncedOtpDeliveryMode,
       smsGatewayUrl: debouncedSmsGatewayUrl,
       musicSource: debouncedMusicSource,
@@ -203,6 +207,7 @@ export function SettingsView() {
       debouncedDisplayQrSize === s.displayQrSize &&
       debouncedDisplayShowHeader === s.displayShowHeader &&
       debouncedDisplayTheme === s.displayTheme &&
+      debouncedLanAddressOverride === s.lanAddressOverride &&
       debouncedOtpDeliveryMode === s.otpDeliveryMode &&
       debouncedSmsGatewayUrl === s.smsGatewayUrl &&
       debouncedMusicSource === s.musicSource &&
@@ -227,6 +232,7 @@ export function SettingsView() {
     debouncedDisplayQrSize,
     debouncedDisplayShowHeader,
     debouncedDisplayTheme,
+    debouncedLanAddressOverride,
     debouncedOtpDeliveryMode,
     debouncedSmsGatewayUrl,
     debouncedMusicSource,
@@ -754,6 +760,13 @@ export function SettingsView() {
             ))}
           </div>
         </div>
+        <FormInput
+          label="QR Code Address Override"
+          description="Host or IP the QR code points patrons to. Leave blank to auto-detect the LAN address. Set this if the QR code shows the wrong address (common on Windows with VPN, Hyper-V, or WSL adapters)."
+          value={lanAddressOverride}
+          onChange={setLanAddressOverride}
+          placeholder="192.168.1.50"
+        />
       </div>
 
       {/* Patron Authentication */}

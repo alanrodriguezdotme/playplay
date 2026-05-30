@@ -13,7 +13,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useSocket } from "../../hooks/useSocket";
 import { useVenue } from "../../contexts/VenueContext";
 import { QueueProvider, useQueue } from "../../contexts/QueueContext";
-import { ToastProvider } from "../../contexts/ToastContext";
 import { Login } from "../patron/Login";
 import { AdminAudioPlayer } from "./AdminAudioPlayer";
 import { useCallback, useState } from "react";

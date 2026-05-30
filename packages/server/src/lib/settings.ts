@@ -97,6 +97,7 @@ export function getVenueSettings(venue: { settings: string | unknown }): VenueSe
     displayQrSize: (s.displayQrSize as number) ?? DEFAULTS.DISPLAY_QR_SIZE,
     displayShowHeader: (s.displayShowHeader as boolean) ?? DEFAULTS.DISPLAY_SHOW_HEADER,
     displayTheme,
+    lanAddressOverride: typeof s.lanAddressOverride === "string" ? s.lanAddressOverride : "",
     otpDeliveryMode: (s.otpDeliveryMode as OtpDeliveryMode) ?? DEFAULTS.OTP_DELIVERY_MODE,
     smsGatewayUrl: (s.smsGatewayUrl as string) ?? "",
     musicSource: (s.musicSource as MusicSource) ?? DEFAULTS.MUSIC_SOURCE,
