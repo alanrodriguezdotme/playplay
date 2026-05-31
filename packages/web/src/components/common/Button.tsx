@@ -47,11 +47,14 @@ const sizeClasses: Record<ButtonSize, string> = {
   icon: "p-2",
 };
 
+// Mapped to theme shape tokens so themes control corner radius. The
+// token defaults match the previous literal values, so existing usage
+// looks identical until a theme changes them.
 const roundedClasses: Record<ButtonRounded, string> = {
   none: "",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
+  md: "rounded-field",
+  lg: "rounded-box",
+  full: "rounded-selector",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -71,8 +74,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) {
+    // `depth` is carried automatically and gated by the active theme
+    // (invisible while --theme-depth is 0).
     const base =
-      "inline-flex items-center justify-center gap-1.5 transition-colors disabled:cursor-not-allowed";
+      "inline-flex items-center justify-center gap-1.5 depth transition-colors disabled:cursor-not-allowed";
     const variantCls =
       active && activeClasses[variant]
         ? activeClasses[variant]

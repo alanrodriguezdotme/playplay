@@ -29,6 +29,7 @@ import type {
 } from "@playplay/shared";
 import SectionHeader from "../../components/common/SectionHeader";
 import { Button } from "../../components/common/Button";
+import { Input } from "../../components/common/Input";
 import {
   FormInput,
   FormToggle,
@@ -416,12 +417,12 @@ export function SettingsView() {
                 <code className="text-xs">MUSIC_LIBRARY_PATH</code> env var).
               </p>
               <div className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   value={musicLibraryPathDraft}
                   onChange={(e) => setMusicLibraryPathDraft(e.target.value)}
                   placeholder="C:\Music or \\server\share\music"
-                  className="flex-1 border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
+                  className="flex-1"
                 />
                 <button
                   type="button"

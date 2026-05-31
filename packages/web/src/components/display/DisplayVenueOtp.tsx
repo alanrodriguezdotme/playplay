@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { getVenueCode } from "../../../api/auth";
+import { getVenueCode } from "../../api/auth";
+import { Card } from "../common/Card";
 
 export function DisplayVenueCode() {
   const [code, setCode] = useState<string | null>(null);
@@ -76,7 +77,7 @@ export function DisplayVenueOtp({
 
   return (
     <div className="flex items-center justify-center p-6">
-      <div className="rounded-2xl bg-surface-raised p-8 text-center shadow-2xl">
+      <Card bordered={false} className="p-8 text-center shadow-2xl">
         <p className="mb-2 text-sm text-on-surface-muted">
           {deviceHint} is requesting access
         </p>
@@ -86,7 +87,7 @@ export function DisplayVenueOtp({
         <p className="mt-4 text-xs text-on-surface-muted">
           Enter this code on the device to continue
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

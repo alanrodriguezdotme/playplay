@@ -32,6 +32,7 @@ import { timeAgo } from "../../utils/time";
 import type { QueueEntry } from "@playplay/shared";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import SectionHeader from "../../components/common/SectionHeader";
+import { Card } from "../../components/common/Card";
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -406,9 +407,9 @@ export function QueueManagement() {
             )}
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-surface-raised p-8 text-center">
+          <Card className="p-8 text-center">
             <p className="text-on-surface-muted">No history yet</p>
-          </div>
+          </Card>
         )}
       </div>
     </div>

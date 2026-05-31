@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../common/Button";
+import { Dialog } from "../common/Dialog";
+import { Input } from "../common/Input";
 import { updateProfile } from "../../api/auth";
 import { ApiRequestError } from "../../api/client";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,7 +17,6 @@ interface EditProfileDialogProps {
 export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [name, setName] = useState(user?.displayName ?? "");
   const [avatarEmoji, setAvatarEmoji] = useState(user?.avatarEmoji ?? "🎤");
@@ -30,18 +31,6 @@ export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
       setError("");
     }
   }, [open, user]);
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    if (open && !el.open) {
-      el.showModal();
-    } else if (!open && el.open) {
-      el.close();
-    }
-  }, [open]);
-
-  if (!open) return null;
 
   const trimmed = name.trim();
   const unchanged =
@@ -79,11 +68,7 @@ export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
   }
 
   return (
-    <dialog
-      ref={dialogRef}
-      onCancel={onClose}
-      className="fixed inset-0 z-50 m-auto w-[min(24rem,calc(100vw-2rem))] border border-border bg-surface p-0 shadow-xl backdrop:bg-black/50"
-    >
+    <Dialog open={open} onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6">
         <h2 className="text-lg font-semibold text-on-surface">Edit profile</h2>
 
@@ -97,14 +82,16 @@ export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
 
         <label className="block">
           <span className="text-sm text-on-surface-muted">Display name</span>
-          <input
+          <Input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
             maxLength={30}
             required
-            className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            tone="raised"
+            inputSize="lg"
+            className="mt-1"
           />
         </label>
 
@@ -123,6 +110,6 @@ export function EditProfileDialog({ open, onClose }: EditProfileDialogProps) {
           </Button>
         </div>
       </form>
-    </dialog>
+    </Dialog>
   );
 }

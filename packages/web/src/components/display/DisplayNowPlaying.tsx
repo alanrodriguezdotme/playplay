@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { QueueEntry } from "@playplay/shared";
-import { getSongArtworkUrl } from "../../../api/songs";
-import { UserBadge } from "../../../components/common/UserBadge";
+import { getSongArtworkUrl } from "../../api/songs";
+import { UserBadge } from "../common/UserBadge";
 
 interface DisplayNowPlayingProps {
   entry: QueueEntry | null;

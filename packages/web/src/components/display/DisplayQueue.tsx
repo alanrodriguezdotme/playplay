@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { QueueEntry, Song } from "@playplay/shared";
-import { getSongArtworkUrl } from "../../../api/songs";
-import SectionHeader from "../../../components/common/SectionHeader";
-import { UserBadge } from "../../../components/common/UserBadge";
+import { getSongArtworkUrl } from "../../api/songs";
+import SectionHeader from "../common/SectionHeader";
+import { UserBadge } from "../common/UserBadge";
 
 function QueueItemArt({ song }: { song: Song }) {
   const [failed, setFailed] = useState(false);

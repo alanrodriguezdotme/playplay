@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Search } from "lucide-react";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { UserBadge } from "../../components/common/UserBadge";
+import { Card } from "../../components/common/Card";
+import { SearchInput } from "../../components/common/SearchInput";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -132,16 +133,12 @@ export function UserManagement() {
 
         {/* Search + Filter */}
         <div className="flex flex-col sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or phone..."
-              className="w-full min-h-12 h-full border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
-            />
-          </div>
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by name or phone..."
+            wrapperClassName="flex-1"
+          />
           <div className="flex border-b sm:border border-border">
             {(["all", "PATRON", "ADMIN", "blocked"] as Filter[]).map((f) => (
               <button
@@ -165,11 +162,11 @@ export function UserManagement() {
             <p className="text-on-surface-muted">Loading users...</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="rounded-xl border border-border bg-surface-raised p-8 text-center">
+          <Card className="p-8 text-center">
             <p className="text-on-surface-muted">
               {query ? "No users match your search" : "No users yet"}
             </p>
-          </div>
+          </Card>
         ) : (
           <>
             {/* Table header - desktop */}

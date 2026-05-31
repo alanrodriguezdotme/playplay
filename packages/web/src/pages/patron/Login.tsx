@@ -18,6 +18,7 @@ import {
 import { ApiRequestError } from "../../api/client";
 import { EmojiAvatarPicker } from "../../components/patron/EmojiAvatarPicker";
 import { Button } from "../../components/common/Button";
+import { Input } from "../../components/common/Input";
 import { validateUsername } from "@playplay/shared";
 import type { AuthResponse } from "@playplay/shared";
 
@@ -212,14 +213,16 @@ export function Login({
               <span className="text-sm text-on-surface-muted">
                 What should we call you?
               </span>
-              <input
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 maxLength={30}
                 required
-                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                tone="raised"
+                inputSize="lg"
+                className="mt-1 block"
               />
             </label>
             {requiresVenueCode && (
@@ -227,7 +230,7 @@ export function Login({
                 <span className="text-sm text-on-surface-muted">
                   Enter the code shown on the venue screen
                 </span>
-                <input
+                <Input
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
@@ -237,7 +240,9 @@ export function Login({
                   }
                   placeholder="000000"
                   required
-                  className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-center text-2xl tracking-widest text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  tone="raised"
+                  inputSize="lg"
+                  className="mt-1 block text-center text-2xl! tracking-widest"
                 />
               </label>
             )}
@@ -262,24 +267,28 @@ export function Login({
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <label className="block">
               <span className="text-sm text-on-surface-muted">Venue Email</span>
-              <input
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@venue.local"
                 required
-                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                tone="raised"
+                inputSize="lg"
+                className="mt-1 block"
               />
             </label>
             <label className="block">
               <span className="text-sm text-on-surface-muted">Password</span>
-              <input
+              <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                tone="raised"
+                inputSize="lg"
+                className="mt-1 block"
               />
             </label>
             <Button
@@ -301,14 +310,16 @@ export function Login({
               <span className="text-sm text-on-surface-muted">
                 What should we call you?
               </span>
-              <input
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 maxLength={30}
                 required
-                className="mt-1 block w-full border border-border bg-surface-raised px-4 py-3 text-on-surface placeholder-on-surface-muted/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                tone="raised"
+                inputSize="lg"
+                className="mt-1 block"
               />
             </label>
             <Button

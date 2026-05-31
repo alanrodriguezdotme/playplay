@@ -18,6 +18,7 @@ import { useSpotifyPlayer } from "../../hooks/useSpotifyPlayer";
 import { useSpotifyConnect } from "../../hooks/useSpotifyConnect";
 import { UserBadge } from "../../components/common/UserBadge";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { Card } from "../../components/common/Card";
 
 function getDeviceHint(): string {
   const ua = navigator.userAgent;
@@ -660,7 +661,7 @@ export function AdminAudioPlayer({
             onClick={handleUnlock}
             className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
           >
-            <div className="rounded-2xl border border-border bg-surface-raised px-8 py-6 text-center shadow-2xl">
+            <Card className="px-8 py-6 text-center shadow-2xl">
               <div className="text-4xl">🔊</div>
               <p className="mt-3 text-lg text-on-surface">
                 Click to enable audio
@@ -668,7 +669,7 @@ export function AdminAudioPlayer({
               <p className="mt-1 text-sm text-on-surface-muted">
                 Browser requires interaction to play audio
               </p>
-            </div>
+            </Card>
           </button>,
           document.body,
         )}

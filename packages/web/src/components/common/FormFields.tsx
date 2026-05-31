@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { Badge } from "./Badge";
+import { Input } from "./Input";
+import { Switch } from "./Switch";
 
 // ---- Text / Number / URL input ----
 
@@ -35,14 +38,13 @@ export function FormInput({
       {description && (
         <p className="text-xs text-on-surface-muted mb-2">{description}</p>
       )}
-      <input
+      <Input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         min={min}
         max={max}
-        className="w-full border border-border bg-surface px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
       />
     </div>
   );
@@ -77,21 +79,7 @@ export function FormToggle({
           <p className="text-xs text-on-surface-muted">{description}</p>
         )}
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-          checked ? "bg-primary" : "bg-surface-alt"
-        }`}
-      >
-        <span
-          className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-5" : "translate-x-0"
-          }`}
-        />
-      </button>
+      <Switch checked={checked} onChange={onChange} aria-label={label} />
     </div>
   );
 }
@@ -144,9 +132,9 @@ export function FormRadioGroup<T extends string>({
             <p className="text-sm font-medium text-on-surface">
               {opt.label}
               {opt.disabled && (
-                <span className="ml-2 rounded bg-surface-alt px-1.5 py-0.5 text-[10px] font-semibold text-on-surface-muted">
+                <Badge variant="neutral" className="ml-2">
                   COMING SOON
-                </span>
+                </Badge>
               )}
             </p>
             <p className="text-xs text-on-surface-muted">{opt.desc}</p>

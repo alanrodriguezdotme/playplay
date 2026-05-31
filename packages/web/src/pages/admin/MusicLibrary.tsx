@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
 import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { Button } from "../../components/common/Button";
+import { Card } from "../../components/common/Card";
+import { SearchInput } from "../../components/common/SearchInput";
 import { useToast } from "../../contexts/ToastContext";
 import { useDebounce } from "../../hooks/useDebounce";
 import { getSongs, searchSongs } from "../../api/songs";
@@ -252,16 +253,12 @@ export function MusicLibrary() {
 
         {/* Search + Filter */}
         <div className="flex flex-col sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-muted" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search songs..."
-              className="w-full min-h-12 h-full border-b border-t border-border bg-surface pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none"
-            />
-          </div>
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search songs..."
+            wrapperClassName="flex-1"
+          />
           <div className="flex border-b sm:border border-border">
             {(["all", "active", "blocked"] as Filter[]).map((f) => (
               <Button
@@ -284,11 +281,11 @@ export function MusicLibrary() {
             <p className="text-on-surface-muted">Loading songs...</p>
           </div>
         ) : filteredSongs.length === 0 ? (
-          <div className="rounded-xl border border-border bg-surface-raised p-8 text-center">
+          <Card className="p-8 text-center">
             <p className="text-on-surface-muted">
               {query ? "No songs match your search" : "No songs in library"}
             </p>
-          </div>
+          </Card>
         ) : (
           <>
             {/* Table header - desktop */}

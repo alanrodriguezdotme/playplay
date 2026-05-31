@@ -12,11 +12,11 @@ import type { BuiltInTheme } from "../../contexts/ThemeContext";
 import { useFullscreen } from "../../hooks/useFullscreen";
 import { useWakeLock } from "../../hooks/useWakeLock";
 import { getDisplaySettings, getQueueHistory } from "../../api/queue";
-import { DisplayHeader } from "./components/DisplayHeader";
-import { DisplayNowPlaying } from "./components/DisplayNowPlaying";
-import { DisplayQueue } from "./components/DisplayQueue";
-import { DisplayHistory } from "./components/DisplayHistory";
-import { DisplayQRCode } from "./components/DisplayQRCode";
+import { DisplayHeader } from "../../components/display/DisplayHeader";
+import { DisplayNowPlaying } from "../../components/display/DisplayNowPlaying";
+import { DisplayQueue } from "../../components/display/DisplayQueue";
+import { DisplayHistory } from "../../components/display/DisplayHistory";
+import { DisplayQRCode } from "../../components/display/DisplayQRCode";
 
 const MAX_HISTORY = 20;
 

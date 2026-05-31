@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { SpotifyPlaylistSummary } from "@playplay/shared";
 import { listSpotifyPlaylists } from "../../api/spotify";
 import { useDebounce } from "../../hooks/useDebounce";
+import { Input } from "../common/Input";
 
 interface Props {
   selectedId: string | null;
@@ -45,13 +46,13 @@ export function SpotifyPlaylistPicker({
 
   return (
     <div className="space-y-2">
-      <input
+      <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search public playlists, or leave empty for your playlists"
         disabled={disabled}
-        className="w-full border border-border bg-surface px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-muted focus:border-border-focus focus:outline-none disabled:opacity-50"
+        className="disabled:opacity-50"
       />
       {error && <p className="text-xs text-error">{error}</p>}
       <div className="max-h-72 overflow-y-auto border border-border bg-surface">

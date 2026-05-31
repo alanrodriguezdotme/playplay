@@ -8,6 +8,8 @@ import type {
   SpotifyStatus,
 } from "@playplay/shared";
 import { FormInput, FormToggle, FormRadioGroup } from "../common/FormFields";
+import { Input } from "../common/Input";
+import { Card } from "../common/Card";
 import { validateDefaultPlaylistPath } from "../../api/admin";
 import { syncSpotifyDefaultPlaylist } from "../../api/spotify";
 import { SpotifyPlaylistPicker } from "./SpotifyPlaylistPicker";
@@ -120,7 +122,7 @@ function HistorySection({
 }) {
   const days = config.history?.lookbackDays ?? "";
   return (
-    <div className="border border-border bg-surface-raised p-3">
+    <Card className="p-3">
       <FormInput
         label="Lookback (days)"
         description="Only replay songs played within the last N days. Leave empty for all-time."
@@ -136,7 +138,7 @@ function HistorySection({
         min={1}
         compact
       />
-    </div>
+    </Card>
   );
 }
 
@@ -189,7 +191,7 @@ function LocalSection({
   };
 
   return (
-    <div className="border border-border bg-surface-raised p-3 space-y-3">
+    <Card className="p-3 space-y-3">
       <FormRadioGroup<LocalDefaultPlaylistKind>
         name="localKind"
         options={LOCAL_KIND_OPTIONS}
@@ -207,7 +209,7 @@ function LocalSection({
           <code className="text-xs">\\server\share\music</code>.
         </p>
         <div className="flex gap-2">
-          <input
+          <Input
             type="text"
             value={pathDraft}
             onChange={(e) => setPathDraft(e.target.value)}
@@ -216,7 +218,7 @@ function LocalSection({
                 ? "./music/default"
                 : "./playlists/lounge.m3u"
             }
-            className="flex-1 border border-border bg-surface px-4 py-2.5 text-sm text-on-surface focus:border-border-focus focus:outline-none"
+            className="flex-1"
           />
           <button
             type="button"
@@ -243,7 +245,7 @@ function LocalSection({
           </p>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -263,9 +265,9 @@ function SpotifySection({
 
   if (!spotifyStatus?.connected) {
     return (
-      <div className="border border-border bg-surface-raised p-3 text-xs text-on-surface-muted">
+      <Card className="p-3 text-xs text-on-surface-muted">
         Connect Spotify above to choose a default playlist.
-      </div>
+      </Card>
     );
   }
 
@@ -301,7 +303,7 @@ function SpotifySection({
   };
 
   return (
-    <div className="border border-border bg-surface-raised p-3 space-y-3">
+    <Card className="p-3 space-y-3">
       {selected && !picking ? (
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-3">
@@ -346,6 +348,6 @@ function SpotifySection({
           onSelect={handleSelect}
         />
       )}
-    </div>
+    </Card>
   );
 }

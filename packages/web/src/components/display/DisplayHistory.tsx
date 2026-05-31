@@ -1,6 +1,6 @@
 import type { QueueEntry } from "@playplay/shared";
-import { timeAgo } from "../../../utils/time";
-import SectionHeader from "../../../components/common/SectionHeader";
+import { timeAgo } from "../../utils/time";
+import SectionHeader from "../common/SectionHeader";
 
 interface DisplayHistoryProps {
   entries: QueueEntry[];
